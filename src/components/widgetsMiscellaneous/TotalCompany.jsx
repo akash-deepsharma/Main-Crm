@@ -1,10 +1,9 @@
 "use client"
-import { useState } from "react"
 import CircleProgress from "@/components/shared/CircleProgress"
 // import ProjectAssingeMiscellaneous from "./CompanyMiscellaneous"
 import CreateCompanyModal from "../common/CreateCompanyModal"
 import CompanyMiscellaneous from "./CompanyMiscellaneous"
-
+import { useEffect, useState } from "react"
 const projectData = [
   { project_name: "Apps Developemnt Company", progress: "40", progress_color: "#ea4d4d", deadiline: "20 days left" },
   { project_name: "NFT Developemnt Company", progress: "85", progress_color: "#3454d1", deadiline: "18 days left" },
@@ -13,11 +12,53 @@ const projectData = [
 ]
 
 const TotalCompany = () => {
+    // console.log('sd');
+    const [projectData2, setProjectData] = useState([])
+
+    const fetchProjects = async () => {
+    try {
+      // const token = localStorage.getItem("auth_token")
+      const token = "63|qkN7z5q20cK2t4VcewzDDDgYUvdFgT6Qd6IyfVke16a7f469";
+      console.log('this is my token here',token);
+      const res = await fetch(
+        "https://green-owl-255815.hostingersite.com/api/company/view",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+    
+      // console.log('what happend',res.json());
+    
+    
+      const result = await res.json()
+      console.log("API DATA ", result)
+    
+      setProjectData(result)
+    } catch (error) {
+      console.error("API Error:", error)
+    } finally {
+      setLoading(false)
+    }
+    }
+console.log("this is jaskdakskasdj",projectData2);
+
+
+  // ✅ API CALL HERE
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+    
+
   const [selectedCard, setSelectedCard] = useState(null)
 
   // ✅ Modal state
   const [showCompanyModal, setShowCompanyModal] = useState(false)
 
+  
   // ✅ Open modal
   const openCompanyModal = () => {
     setShowCompanyModal(true)
@@ -87,6 +128,9 @@ const TotalCompany = () => {
 
                 <CompanyMiscellaneous
                   index={index}
+                  projectData={projectData}
+                  projectData2={projectData2}
+
                   isSelected={selectedCard === index}
                   onSelect={() => setSelectedCard(index)}
                 />

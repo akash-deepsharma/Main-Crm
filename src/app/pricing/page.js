@@ -88,6 +88,9 @@ async function handleRazorpayPayment(plan, billingPeriod, router) {
       };
       
       const resData =  await subscribedData(payload);
+
+      // console.log("mera data",resData);
+
       if(resData?.status === "success"){
         alert("Subscription successful!");
         router.push("/company");

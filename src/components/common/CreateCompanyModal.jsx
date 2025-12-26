@@ -64,20 +64,58 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
   };
   /* ---------------- EMAIL OTP ---------------- */
 
+  // const handleSendEmailOtp = async () => {
+
+    
+  //   if (!isValidEmail(email)) {
+  //     setEmailError("Invalid email address");
+  //     return;
+  //   }
+
+
+
+  //   setEmailError("");
+
+    
+
+  //   setOtpType("email");
+  //   setShowOtpPopup(true); // ✅ OPEN OTP MODAL
+  // };
+
+
   const handleSendEmailOtp = async () => {
-    if (!isValidEmail(email)) {
-      setEmailError("Invalid email address");
-      return;
+  if (!isValidEmail(email)) {
+    setEmailError("Invalid email address");
+    return;
+  }
+
+  setEmailError("");
+
+  try {
+    const response = await fetch("https://green-owl-255815.hostingersite.com/api/emailverify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+   
+    if (data.status) {
+      setOtpType("email");
+       sessionStorage.setItem("email_otp", data.otp);
+      sessionStorage.setItem("otp_email", email);
+      setShowOtpPopup(true); // ✅ OPEN OTP MODAL
+    } else {
+      setEmailError(data.message || "Failed to send OTP");
     }
-
-    setEmailError("");
-
-    // 🔴 API call example
-    // await sentEmailOtpApi(email);
-
-    setOtpType("email");
-    setShowOtpPopup(true); // ✅ OPEN OTP MODAL
-  };
+  } catch (error) {
+    console.error("API Error:", error);
+    setEmailError("Server error. Please try again.");
+  }
+};
 
   /* ---------------- OTP VERIFIED ---------------- */
 
@@ -115,6 +153,9 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
 
     onClose();
   };
+
+
+
 
   return (
     <>

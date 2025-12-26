@@ -12,7 +12,8 @@ export async function subscriptionsGet() {
 // ---------------- REGISTER ----------------
 export async function subscribedData(payload) {
     console.log("subscription data", payload)
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth_token");
+    console.log("user token" , token);
   try {
     const res = await fetch(`${BASE_URL}/purchase-subscription`, {
       method: "POST",

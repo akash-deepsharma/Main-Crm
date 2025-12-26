@@ -63,10 +63,15 @@ export default function VerifyOtpModal({ onClose, onVerify, type }) {
 
   // ✅ Submit OTP
   const handleSubmit = (e) => {
+
     e.preventDefault();
+
     const enteredOtp = otp.join("");
+    // console.log('yu mera otp hain ',enteredOtp);
     if (enteredOtp.length !== 6) return alert("Please enter all 6 digits");
+
     onVerify(enteredOtp);
+
   };
 const titleMap = {
   email: "Verify Email OTP",
