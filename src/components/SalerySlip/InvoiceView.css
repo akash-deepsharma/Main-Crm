@@ -1,0 +1,7 @@
+.table-responsive .table thead th, .table-responsive .table tfoot th{
+        padding: 8px 15px;
+    color: #283c50;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
