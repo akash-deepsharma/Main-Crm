@@ -29,10 +29,7 @@ const CompanyMiscellaneous = ({ index, isSelected, projectData2 }) => {
           style={{ width: "150px", height: "150px", borderRadius: "50%" }}
         >
           <img
-            src={
-              company.company_logo
-                ? `https://green-owl-255815.hostingersite.com/${company.company_logo}`
-                : "/placeholder.svg"
+            src={ `https://green-owl-255815.hostingersite.com/${company.company_logo}`
             }
             alt={company.company_name}
           />
@@ -46,15 +43,12 @@ const CompanyMiscellaneous = ({ index, isSelected, projectData2 }) => {
             </span>
           </p>
 
-          <Link href="#" className="fs-18 fw-bold text-truncate-1-line">
+          <Link href="#" className="fs-18 fw-bold text-truncate-1-line text-capitalize ">
             {company.company_name}
           </Link>
 
-          <div className="hstack gap-3 mt-3 justify-content-center">
-            <div className="avatar-image avatar-sm">
-              <img src="/placeholder.svg" alt="" className="img-fluid" />
-            </div>
-            <Link href="#">{company.company_business_email}</Link>
+          <div className="hstack gap-3 mt-3 justify-content-center">            
+            <Link href="#" style={{textWrap:'wrap'}}>{company.company_business_email}</Link>
           </div>
         </div>
       </div>

@@ -1,18 +1,17 @@
 "use client";
 import React, { useState } from "react";
-import { FiCheck, FiEye, FiEyeOff, FiHash } from "react-icons/fi";
+import { FiCheck } from "react-icons/fi";
 import VerifyOtpModal from "./VerifyOtpModal";
+import { Router } from "next/router";
 
 export default function CreateCompanyModal({ onClose, onVerify, type }) {
   const [company_name, setCompanyName] = useState("");
   const [company_about, setCompanyAbout] = useState("");
-  const [company_business_email, setCompanyBusinessEmail] = useState("");
   const [company_phone, setCompanyPhone] = useState("");
   const [pan_number, setPanNumber] = useState("");
   const [pan_document, setPanDocument] = useState("");
   const [gst_number, setGstNumber] = useState("");
   const [gst_document, setGstDocument] = useState("");
-  const [userName, setUserName] = useState("");
   const [company_logo, setCompanyLogo] = useState("");
 
   const [email, setEmail] = useState("");
@@ -21,66 +20,11 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
 
   const [showOtpPopup, setShowOtpPopup] = useState(false);
   const [otpType, setOtpType] = useState("email");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [strength, setStrength] = useState(0);
 
   /* ---------------- HELPERS ---------------- */
+const BASE_URL = "https://green-owl-255815.hostingersite.com/api";
 
   const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
-  /* ---------------- PASSWORD STRENGTH ---------------- */
-  const calculateStrength = (pass) => {
-    let score = 0;
-    if (pass.length >= 8) score++;
-    if (/[A-Z]/.test(pass)) score++;
-    if (/[a-z]/.test(pass)) score++;
-    if (/[0-9]/.test(pass)) score++;
-    if (/[^A-Za-z0-9]/.test(pass)) score++;
-    setStrength(score);
-  };
-
-  const strengthLabel =
-    strength <= 2 ? "Low" : strength <= 4 ? "Medium" : "High";
-
-  const strengthColor =
-    strength <= 2 ? "bg-danger" : strength <= 4 ? "bg-warning" : "bg-success";
-
-  /* ---------------- PASSWORD GENERATOR ---------------- */
-  const generatePassword = () => {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
-    let generated = "";
-    for (let i = 0; i < 12; i++) {
-      generated += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setPassword(generated);
-    setConfirmPassword(generated);
-    setPasswordError("");
-    calculateStrength(generated);
-  };
-  /* ---------------- EMAIL OTP ---------------- */
-
-  // const handleSendEmailOtp = async () => {
-
-    
-  //   if (!isValidEmail(email)) {
-  //     setEmailError("Invalid email address");
-  //     return;
-  //   }
-
-
-
-  //   setEmailError("");
-
-    
-
-  //   setOtpType("email");
-  //   setShowOtpPopup(true); // ✅ OPEN OTP MODAL
-  // };
 
 
   const handleSendEmailOtp = async () => {
@@ -92,7 +36,7 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
   setEmailError("");
 
   try {
-    const response = await fetch("https://green-owl-255815.hostingersite.com/api/emailverify", {
+    const response = await fetch(`${BASE_URL}/emailverify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -101,12 +45,10 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
     });
 
     const data = await response.json();
-
+    console.log("email verify otp", data.otp)
    
     if (data.status) {
       setOtpType("email");
-       sessionStorage.setItem("email_otp", data.otp);
-      sessionStorage.setItem("otp_email", email);
       setShowOtpPopup(true); // ✅ OPEN OTP MODAL
     } else {
       setEmailError(data.message || "Failed to send OTP");
@@ -128,31 +70,62 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
 
   /* ---------------- SUBMIT ---------------- */
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
 
-    if (!emailVerified) {
-      alert("Please verify email first");
-      return;
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!emailVerified) {
+    alert("Please verify email first");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+
+    formData.append("company_name", company_name);
+    formData.append("company_about", company_about);
+    formData.append("company_business_email", email);
+    formData.append("company_phone", company_phone);
+    formData.append("pan_number", pan_number);
+    formData.append("gst_number", gst_number);
+    formData.append("type", type);
+
+    // ✅ Files (append only if present)
+    if (pan_document) {
+      formData.append("pan_document", pan_document);
     }
 
-    onVerify?.({
-      company_name,
-      company_about,
-      company_business_email,
-      company_phone,
-      pan_number,
-      pan_document,
-      gst_number,
-      gst_document,
-      userName,
-      company_logo,
-      email,
-      type,
-    });
+    if (gst_document) {
+      formData.append("gst_document", gst_document);
+    }
+
+    if (company_logo) {
+      formData.append("company_logo", company_logo);
+    }
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${BASE_URL}/company/create`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+    const data = await response.json();
+    console.log("API Response:", data);
+
+    // optional callback
+    onVerify?.(data); 
 
     onClose();
-  };
+    window.location.reload();
+  } catch (error) {
+    console.error("Company create error:", error);
+    alert(
+      error?.response?.data?.message || "Something went wrong, try again"
+    );
+  }
+};
 
 
 
@@ -184,27 +157,18 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
                   className="form-control"
                   placeholder="Company about"
                   value={company_about}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => setCompanyAbout(e.target.value)}
                   required
                 />
               </div>
-              <div className="col-lg-6 mb-3">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Company Business Email"
-                  value={company_business_email}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  required
-                />
-              </div>
+              
               <div className="col-lg-6 mb-3">
                 <input
                   type="text"
                   className="form-control"
                   placeholder="Company Phone"
                   value={company_phone}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => setCompanyPhone(e.target.value)}
                   required
                 />
               </div>
@@ -214,17 +178,7 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
                   className="form-control"
                   placeholder="Company Pan Number"
                   value={pan_number}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="col-lg-6 mb-3">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Company Pan Document"
-                  value={pan_document}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => setPanNumber(e.target.value)}
                   required
                 />
               </div>
@@ -234,49 +188,17 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
                   className="form-control"
                   placeholder="Company GST Number"
                   value={gst_number}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => setGstNumber(e.target.value)}
                   required
                 />
               </div>
-              <div className="col-lg-6 mb-3">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Company GST Document"
-                  value={gst_document}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="col-lg-6 mb-3">
-                <input
-                  type="file"
-                  className="form-control"
-                  placeholder="Company Logo"
-                  value={company_logo}
-                  onChange={(e) => setCompanyLogo(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="col-lg-6 mb-3">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="User Name"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  required
-                />
-              </div>
-
               {/* EMAIL */}
-              <div className="col-lg-6 mb-2">
+              <div className="col-lg-12 mb-2">
               <div className=" input-group mb-2">
                 <input
                   type="email"
                   className={`form-control ${emailError ? "is-invalid" : ""}`}
-                  placeholder="Email"
+                  placeholder="Official Email"
                   value={email}
                   disabled={emailVerified}
                   onChange={(e) => {
@@ -301,6 +223,40 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
               )}
 
               </div>
+              <div className="col-lg-6 mb-3">
+                <label htmlFor="pan_document">Upload Company Pancard</label>
+                <input
+                  type="file"
+                  id="pan_document"
+                  className="form-control"
+                  onChange={(e) => setPanDocument(e.target.files[0])}
+                  required
+                />
+              </div>
+              
+              <div className="col-lg-6 mb-3">
+                <label htmlFor="gst_document">Upload Company GST</label>
+                <input
+                  type="file"
+                  id="gst_document"
+                  className="form-control"
+                  placeholder="Company GST Document"
+                  onChange={(e) => setGstDocument(e.target.files[0])}
+                  required
+                />
+              </div>
+              <div className="col-lg-6 mb-3">
+                <label htmlFor="logo">Upload Company Logo</label>
+                <input
+                  type="file"
+                  id="logo"
+                  className="form-control"
+                  placeholder="Company Logo"
+                  onChange={(e) => setCompanyLogo(e.target.files[0])}
+                  required
+                />
+              </div>
+
 
               </div>
 

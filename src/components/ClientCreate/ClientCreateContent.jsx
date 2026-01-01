@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import TabProjectType from './TabProjectType'
 import TabProjectSettings from './TabProjectSettings';
@@ -11,23 +11,38 @@ const TabProjectDetails = dynamic(() => import('./TabProjectDetails'), { ssr: fa
 const TabProjectTarget = dynamic(() => import('./TabProjectTarget'), { ssr: false })
 
 const steps = [
-    { name: "Type", required: true },     // Step 0 → Required
-    { name: "Organisation Details", required: true }, // Step 1
-    { name: "Financial Approval / Paying Authority Details", required: false },// Step 2
-    { name: "Consignee", required: false },  // Step 3 → Not required anymore
-    // { name: "Assigned", required: false },// Step 4 → Not required anymore
-    { name: "Service Details", required: false },  // Step 5
-    { name: "Attachment", required: false },// Step 6
-    { name: "Completed", required: false }  // Step 7
+    { name: "Type", required: true }, 
+    { name: "Organisation Details", required: true }, 
+    { name: "Financial Approval / Paying Authority Details", required: false },
+    { name: "Consignee", required: false },  
+    { name: "Service Details", required: false },
+    { name: "Attachment", required: false },
+    { name: "Completed", required: false } 
 ];
 
 const ProjectCreateContent = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [error, setError] = useState(false)
+    const projectDetailsRef = useRef(null)
+       const [loading, setLoading] = useState(false)
+       const settingsRef = useRef(null)
+       const budgetRef = useRef(null)
+       const serviceDetailRef = useRef(null)
+       const attachmentRef = useRef(null)
+       const [submittedSteps, setSubmittedSteps] = useState({
+        0: false,
+        1: false,
+        2: false,
+        3: false,
+        4: false,
+        5: false,
+        });
     const [formData, setFormData] = useState({
         projectType: "",
         projectManage: "",
         projectBudgets: "",
+        budgetsSpend: "",
+        ProjectTarget: "",
         budgetsSpend: "",
     });
 
@@ -40,15 +55,53 @@ const ProjectCreateContent = () => {
         return false;
     }
 
-    return true;
-};
-
-    const handleNext = (e) => {
-        e.preventDefault()
-        if (validateFields()) {
-            setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-        }
+        return true;
     };
+
+  const handleNext = async (e) => {
+  e.preventDefault()
+
+  // STEP 0 validation
+  if (currentStep === 0) {
+    if (!validateFields()) return
+    setSubmittedSteps(prev => ({ ...prev, 0: true }))
+  }
+
+  // STEP 1 submit
+  if (currentStep === 1) {
+    const success = await projectDetailsRef.current?.submit()
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 1: true }))
+  }
+
+  // STEP 2 submit (Settings)
+  if (currentStep === 2) {
+    const success = await settingsRef.current?.submit()
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 2: true }))
+  }
+    if (currentStep === 3) {
+    const success = await budgetRef.current?.submit()
+    console.log(`what is the staturs ${currentStep}`, success)
+
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 3: true }))
+  }
+   if (currentStep === 4) {
+    const success = await serviceDetailRef.current?.submit()
+    console.log(`what is the staturs ${currentStep}`, success)
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 4: true }))
+  }
+
+    if (currentStep === 5) {
+    const success = await attachmentRef.current?.submit()
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 5: true }))
+  }
+
+  setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
+}
 
     // Handle prev button click
     const handlePrev = (e) => {
@@ -57,17 +110,19 @@ const ProjectCreateContent = () => {
     };
 
     // Handle tab click to change step
-   const handleTabClick = (e, index) => {
-    e.preventDefault();
+  const handleTabClick = (e, index) => {
+  e.preventDefault()
 
-    // If you are leaving a required step, validate
-    if (steps[currentStep].required && !validateFields()) {
-        return;
+  // Prevent jumping ahead without submit
+  for (let i = 0; i < index; i++) {
+    if (steps[i].required && !submittedSteps[i]) {
+      alert(`Please complete "${steps[i].name}" first`)
+      return
     }
+  }
 
-    // Otherwise allow navigation freely
-    setCurrentStep(index);
-};
+  setCurrentStep(index)
+}
 
 
 const previtems = [
@@ -80,21 +135,7 @@ const previtems = [
 ]
 const [items, setItems] = useState(previtems);
 
-    const addItem = () => {
-        const newItem = {
-            id: items.length + 1,
-            product: '',
-            qty: 1,
-            price: 0
-        };
-        setItems([...items, newItem]);
-    };
 
-    const removeItem =()=>{
-        items.pop()
-      
-        setItems(items)
-    }
     
     const handleInputChange = (id, field, value) => {
         const updatedItems = items.map(item => {
@@ -117,6 +158,13 @@ const [items, setItems] = useState(previtems);
     const vat = (subTotal * 0.1).toFixed(2)
     const vatNumber = Number(vat);
     const total = Number(subTotal + vatNumber).toFixed(2)
+  const [clientId, setClientId] = useState(null);
+
+useEffect(() => {
+//   const id = sessionStorage.getItem("selected_company");
+  const ClientId = sessionStorage.getItem("client_id");
+  setClientId(ClientId);
+}, []);
 
     return (
        
@@ -139,27 +187,27 @@ const [items, setItems] = useState(previtems);
 
                     <div className="content clearfix">
                         {currentStep === 0 && <TabProjectType setFormData={setFormData} formData={formData} error={error} setError={setError} />}
-                        {currentStep === 1 && <TabProjectDetails />}
-                        {currentStep === 2 && <TabProjectSettings />}
-                        {currentStep === 3 && <TabProjectBudget setFormData={setFormData} formData={formData} error={error} setError={setError} />}
-                        {/* {currentStep === 4 && <TabProjectAssigned />} */}
-                        {currentStep === 4 && <TabProjectTarget />}
-                        {currentStep === 5 && <TabAttachement />}
-                        {currentStep === 6 && <TabCompleted />}
+                        {currentStep === 1 && <TabProjectDetails ref={projectDetailsRef} clientId={clientId}  clientType={formData.projectType} onNext={() => setCurrentStep(prev => prev + 0)} />}
+                        {currentStep === 2 && (
+                        <TabProjectSettings ref={settingsRef} clientId={clientId} />
+                        )}
+                        {currentStep === 3 && <TabProjectBudget ref={budgetRef} setFormData={setFormData} formData={formData} error={error} setError={setError} />}
+                        {currentStep === 4 && <TabProjectTarget ref={serviceDetailRef} clientId={clientId}/>}
+                        {currentStep === 5 && <TabAttachement ref={attachmentRef} clientId={clientId}/>}
+                        {currentStep === 6 && <TabCompleted />} 
                     </div>
 
-                    {/* Buttons */}
+                   
                     <div className="actions clearfix">
                         <ul>
-                            <li className={`${currentStep === 0 ? "disabled" : ""} ${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handlePrev(e)} disabled={currentStep === 0}>
-                                <a href="#">Previous</a>
+                            <li className={`${currentStep === 0 ? "disabled" : ""} ${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={handlePrev} disabled={currentStep === 0}>
+                            <a href="#">Previous</a>
                             </li>
-                            <li className={`${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handleNext(e)} disabled={currentStep === steps.length - 1}>
-                                <a href="#">Next</a>
+                            <li className={`${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={handleNext} disabled={currentStep === steps.length - 1}>
+                            <a href="#">{loading ? 'Saving...' : 'Next'}</a>
                             </li>
                         </ul>
-
-                    </div>
+                        </div>
                 </div>
             </div>
             

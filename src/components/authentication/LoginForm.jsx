@@ -29,8 +29,8 @@ const handleSignIn = async (e) => {
 
     if (response?.status === "success") {
       // ✅ Save to localStorage
-      localStorage.setItem("auth_token", response.token);
-      localStorage.setItem("auth_user", JSON.stringify(response.user));
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("user", JSON.stringify(response.user));
       localStorage.setItem("is_subscribed", response.subscribe);
 
       // ✅ Redirect based on subscription

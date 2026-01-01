@@ -1,257 +1,449 @@
-import React, { useEffect, useState } from 'react'
-import SelectDropdown from '@/components/shared/SelectDropdown'
-import { customerListTagsOptions, projectBillingOptions, projectStatusOptions, propasalLeadOptions } from '@/utils/options'
-import MultiSelectTags from '@/components/shared/MultiSelectTags';
-import DatePicker from 'react-datepicker';
-import useDatePicker from '@/hooks/useDatePicker';
-import useJoditConfig from '@/hooks/useJoditConfig';
-import JoditEditor from 'jodit-react';
+'use client'
+import React, { useEffect, useState,forwardRef, useImperativeHandle } from 'react'
+import DatePicker from 'react-datepicker'
+import useDatePicker from '@/hooks/useDatePicker'
+import { useRouter } from 'next/navigation'
 
-const TabProjectDetails = () => {
-    const [selectedOption, setSelectedOption] = useState(null);
-    const { startDate, endDate, setStartDate, setEndDate, renderFooter } = useDatePicker();
-    const config = useJoditConfig()
-    const [value, setValue] = useState('');
+const API_BASE = 'https://green-owl-255815.hostingersite.com/api'
+
+const TabProjectDetails = forwardRef(({ clientId, clientType }, ref) => {
+    const { startDate, setStartDate, renderFooter } = useDatePicker()
+    const [loading, setLoading] = useState(false)
+   const router = useRouter();
+   const client_Type = clientType
+   console.log( "clientId from first step" , clientId)
+
+useEffect(() => {
+  const companyId = sessionStorage.getItem("selected_company");
+
+  if (!companyId) {
+    alert("Company not selected");
+    router.replace("/company");
+  }
+}, [router]);
+
+    const [formData, setFormData] = useState({
+        client_type: client_Type,
+        client_id: clientId,
+        contract_no: '',
+        bid_no: '',
+        service_start_date: '',
+        service_end_date: '',
+        customer_name: '',
+        type: '',
+        ministry: '',
+        department: '',
+        department_nickname: '',
+        organisation_name: '',
+        office_zone: '',
+        buyer_name: '',
+        designation: '',
+        contact_no: '',
+        email: '',
+        gstin: '',
+        address: '',
+        gst_percentage: 18,
+        apply_gst: false,
+        apply_cgst_sgst: false,
+    })
+
     useEffect(() => {
         setStartDate(new Date())
-        setValue(`
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores beatae inventore reiciendis ipsum natus, porro recusandae sunt accusantium reprehenderit aliquid commodi est veniam sit molestiae, nesciunt cupiditate. Laborum, culpa maxime.
-            `)
-    }, []);
-    
+    }, [])
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'radio' ? checked : value
+        }))
+    }
+    const formatDate = (date) => {
+  if (!date) return null
+  return new Date(date).toISOString().split('T')[0]
+}
+
+
+
+   const handleSaveAndNext = async (e) => {
+//   e.preventDefault()
+
+const token = localStorage.getItem('token')
+const company_id = sessionStorage.getItem('selected_company')
+
+
+
+if (!company_id) {
+alert("Company not selected");
+router.replace("/company");
+return false;
+}
+
+
+if (!token) {
+  alert('Auth error')
+  return false
+}
+  try {
+    setLoading(true)
+
+
+    const payload = {
+      user_id: 1,
+      client_type: client_Type,
+      company_id: Number(company_id),
+      contract_no: formData.contract_no,
+      service_title: 'Service Contract', // REQUIRED by API
+      onboard_date: formatDate(startDate),
+      contract_generated_date: formatDate(startDate),
+      bid_no: formData.bid_no,
+      service_start_date: formatDate(formData.service_start_date),
+      service_end_date: formatDate(formData.service_end_date),
+      customer_name: formData.customer_name,
+      type: formData.type,
+      ministry: formData.ministry,
+      department: formData.department,
+      department_nickname: formData.department_nickname,
+      organisation_name: formData.organisation_name,
+      office_zone: formData.office_zone,
+      buyer_name: formData.buyer_name,
+      designation: formData.designation,
+      contact_no: formData.contact_no,
+      email: formData.email,
+      gstin: formData.gstin,
+      address: formData.address,
+      gst_percentage: 18,
+      apply_gst: formData.apply_gst,
+      apply_cgst_sgst: formData.apply_cgst_sgst,
+    }
+
+    const response = await fetch(
+      'https://green-owl-255815.hostingersite.com/api/create/client',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    )
+
+    const result = await response.json()
+    if (!response.status ==="true") {
+      console.error('API Error:', result)
+      throw new Error(result.message || 'Validation failed')
+    }
+    if (result?.status && result?.data?.id) {
+        sessionStorage.setItem("client_id", result.data.id.toString());
+        sessionStorage.setItem(
+            "Client_details",
+            JSON.stringify({
+            formData,
+            startDate
+            })
+        );
+    } 
+
+console.log("Saved successfully", result);
+    // ✅ MOVE TO NEXT STEP ONLY AFTER SUCCESS
+    // onNext()
+     if (!result?.status) {
+      throw new Error(result.message || "Failed to save settings");
+    }
+    return true
+  } catch (err) {
+    alert(err.message)
+    return false
+  } finally {
+    setLoading(false)
+  }
+}
+
+useEffect(() => {
+  const saved = sessionStorage.getItem("Client_details");
+
+  if (saved) {
+    const { formData, startDate } = JSON.parse(saved);
+    setFormData(formData);
+    setStartDate(new Date(startDate));
+  }
+}, []);
+
+
+ useImperativeHandle(ref, () => ({
+    submit: handleSaveAndNext
+  }))
+
 
     return (
         <section className="step-body mt-4 body current stepChange">
-            <form id="project-details">
-                <fieldset>
-                    <div className="mb-5">
-                        <h2 className="fs-16 fw-bold">Organisation details</h2>
-                        <p className="text-muted">Organisation details gose here.</p>
+            <form onSubmit={handleSaveAndNext}>
+                <div className="row">
+
+                    {/* CONTRACT NO */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Contract No *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="contract_no"
+                            value={formData.contract_no}
+                            onChange={handleChange}
+                            required
+                        />
                     </div>
-                    <fieldset>
-                        <div className='row'>
-                        <div className="col-xl-3 col-lg-4 col-md-6  mb-4">
-                            <label htmlFor="projectName" className="form-label">Contract No. <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="projectName" name="projectName" defaultValue="Website design and development" required />
-                        </div>
-                       
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Onboard Date <span className="text-danger">*</span></label>
-                            {/* <input type="date" className="form-control" id="ratePerHour" name="ratePerHour" required /> */}
-                            <div className='input-group date '>
-                                <DatePicker
-                                    placeholderText='Pick Onboard Date'
-                                    selected={startDate}
-                                    showPopperArrow={false}
-                                    onChange={(date) => setStartDate(date)}
-                                    className='form-control'
-                                    popperPlacement="bottom-start"
-                                    calendarContainer={({ children }) => (
-                                        <div className='bg-white react-datepicker'>
-                                            {children}
-                                            {renderFooter("start")}
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                        </div>
 
+                    {/* ONBOARD DATE */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Onboard Date *</label>
+                        <div className="w-100 p-0">
+                        <DatePicker
+                            selected={startDate}
+                            onChange={setStartDate}
+                            className="w-100"
+                            calendarContainer={({ children }) => (
+                                <div className="bg-white react-datepicker">
+                                    {children}
+                                    {renderFooter('start')}
+                                </div>
+                            )}
+                        />
+                        </div>
+                    </div>
 
+                    {/* BID NO */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Bid No *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="bid_no"
+                            value={formData.bid_no}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
 
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Bid No. <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Service Start Date <span className="text-danger">*</span></label>
-                            {/* <input type="date" className="form-control" id="ratePerHour" name="ratePerHour" required /> */}
-                            <div className='input-group date '>
-                                <DatePicker
-                                    placeholderText='Pick Start Date'
-                                    selected={startDate}
-                                    showPopperArrow={false}
-                                    onChange={(date) => setStartDate(date)}
-                                    className='form-control'
-                                    popperPlacement="bottom-start"
-                                    calendarContainer={({ children }) => (
-                                        <div className='bg-white react-datepicker'>
-                                            {children}
-                                            {renderFooter("start")}
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                            
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Service End Date <span className="text-danger">*</span></label>
-                            {/* <input type="date" className="form-control" id="ratePerHour" name="ratePerHour" required /> */}
-                            <div className='input-group date '>
-                                <DatePicker
-                                    placeholderText='Pick End Date'
-                                    selected={startDate}
-                                    showPopperArrow={false}
-                                    onChange={(date) => setStartDate(date)}
-                                    className='form-control'
-                                    popperPlacement="bottom-start"
-                                    calendarContainer={({ children }) => (
-                                        <div className='bg-white react-datepicker'>
-                                            {children}
-                                            {renderFooter("start")}
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Customer Name <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Type <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Ministry <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Department <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Department Nickname <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                         <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="projectName" className="form-label">Organisation Name <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="projectName" name="projectName" defaultValue="Website design and development" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Office Zone <span className="text-danger"></span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
+                    {/* SERVICE START */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Service Start Date *</label>
+                        <input
+                            type="date"
+                            className="form-control"
+                            name="service_start_date"
+                            value={formData.service_start_date}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
 
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Buyer Name <span className="text-danger"></span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Designation <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Contact No <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Email <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">GSTIN <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                         <div className="col-xl-9 col-lg-12 col-md-12 mb-4">
-                            <label htmlFor="ratePerHour" className="form-label">Address <span className="text-danger">*</span></label>
-                            <input type="text" className="form-control" id="ratePerHour" name="ratePerHour" required />
-                        </div>
-                        <hr className="mb-5" />
-                        <div className="custom-control custom-checkbox mb-2">
-                            <input type="checkbox" className="custom-control-input" id="sendProjectEmail"  />
-                            <label className="custom-control-label c-pointer" htmlFor="sendProjectEmail">GSTIN (18%)</label>
-                        </div>
-                        <div className="custom-control custom-checkbox mb-2">
-                            <input type="checkbox" className="custom-control-input" id="calculateTasks" defaultChecked />
-                            <label className="custom-control-label c-pointer" htmlFor="calculateTasks">Apply CGST 9% / SGST 9%</label>
-                        </div>
-                            
-                        </div>
-                        {/* <div className="mb-4 ">
-                            <label className="form-label">Project Description <span className="text-danger">*</span></label>
-                            <JoditEditor
-                                value={value}
-                                config={config}
-                                onChange={(htmlString) => setValue(htmlString)}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label htmlFor="projectClient" className="form-label">Project Client <span className="text-danger">*</span></label>
-                            <SelectDropdown
-                                options={propasalLeadOptions}
-                                selectedOption={selectedOption}
-                                defaultSelect="ui"
-                                onSelectOption={(option) => setSelectedOption(option)}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label htmlFor="billingType" className="form-label">Billing type <span className="text-danger">*</span></label>
-                            <SelectDropdown
-                                options={projectBillingOptions}
-                                selectedOption={selectedOption}
-                                defaultSelect="tasks-hours"
-                                onSelectOption={(option) => setSelectedOption(option)}
-                            />
-                        </div>
-                        <div className="mb-4">
+                    {/* SERVICE END */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Service End Date *</label>
+                        <input
+                            type="date"
+                            className="form-control"
+                            name="service_end_date"
+                            value={formData.service_end_date}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
 
-                            <label htmlFor="projectStatus" className="form-label">Project status <span className="text-danger">*</span></label>
-                            <SelectDropdown
-                                options={projectStatusOptions}
-                                selectedOption={selectedOption}
-                                defaultSelect="active"
-                                onSelectOption={(option) => setSelectedOption(option)}
-                            />
+                    {/* CUSTOMER NAME */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Customer Name *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="customer_name"
+                            value={formData.customer_name}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
 
-                        </div>
-                        <div className="mb-4">
-                            <label htmlFor="projectTags" className="form-label">Project tags <span className="text-danger">*</span></label>
-                            <MultiSelectTags
-                                options={customerListTagsOptions}
-                                selectedOption={selectedOption}
-                                defaultSelect={[customerListTagsOptions[10]]}
-                                onSelectOption={(option) => setSelectedOption(option)}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label htmlFor="projectReleaseDate" className="form-label">Release Date <span className="text-danger">*</span></label>
-                            <div className='input-group date '>
-                                <DatePicker
-                                    placeholderText='Pick start date'
-                                    selected={startDate}
-                                    showPopperArrow={false}
-                                    onChange={(date) => setStartDate(date)}
-                                    className='form-control'
-                                    popperPlacement="bottom-start"
-                                    calendarContainer={({ children }) => (
-                                        <div className='bg-white react-datepicker'>
-                                            {children}
-                                            {renderFooter("start")}
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                        </div>
-                        <hr className="mb-5" />
-                        <div className="custom-control custom-checkbox mb-2">
-                            <input type="checkbox" className="custom-control-input" id="sendProjectEmail" defaultChecked />
-                            <label className="custom-control-label c-pointer" htmlFor="sendProjectEmail">Send project created email.</label>
-                        </div>
-                        <div className="custom-control custom-checkbox mb-2">
-                            <input type="checkbox" className="custom-control-input" id="calculateTasks" defaultChecked />
-                            <label className="custom-control-label c-pointer" htmlFor="calculateTasks">Calculate progress through tasks.</label>
-                        </div>
-                        <div className="custom-control custom-checkbox mb-2">
-                            <input type="checkbox" className="custom-control-input" id="allowNotifications" defaultChecked />
-                            <label className="custom-control-label c-pointer" htmlFor="allowNotifications">Allow Notifications by Phone or Email.</label>
-                        </div> */}
-                    </fieldset>
-                </fieldset>
-                
+                    {/* TYPE */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Type *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="type"
+                            value={formData.type}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* MINISTRY */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Ministry *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="ministry"
+                            value={formData.ministry}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* DEPARTMENT */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Department *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="department"
+                            value={formData.department}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* DEPARTMENT NICKNAME */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Department Nickname *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="department_nickname"
+                            value={formData.department_nickname}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* ORGANISATION */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Organisation Name *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="organisation_name"
+                            value={formData.organisation_name}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* OFFICE ZONE */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Office Zone</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="office_zone"
+                            value={formData.office_zone}
+                            onChange={handleChange}
+                        />
+                    </div>
+
+                    {/* BUYER NAME */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Buyer Name</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="buyer_name"
+                            value={formData.buyer_name}
+                            onChange={handleChange}
+                        />
+                    </div>
+
+                    {/* DESIGNATION */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Designation *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="designation"
+                            value={formData.designation}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* CONTACT */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Contact No *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="contact_no"
+                            value={formData.contact_no}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* EMAIL */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">Email *</label>
+                        <input
+                            type="email"
+                            className="form-control"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* GSTIN */}
+                    <div className="col-md-3 mb-4">
+                        <label className="form-label">GSTIN *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="gstin"
+                            value={formData.gstin}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* ADDRESS */}
+                    <div className="col-md-9 mb-4">
+                        <label className="form-label">Address *</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="address"
+                            value={formData.address}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <div className=" col-3 form-check mb-3 ">
+                        <input
+                        className='form-check-input'
+                            type="radio"
+                            name="apply_gst"
+                            id='apply_gst'
+                            checked={formData.apply_gst}
+                            onChange={handleChange}
+                        /> <label htmlFor="apply_gst">Apply GST 18% </label>
+                    </div>
+                    <div className=" col-3 form-check mb-3">
+                        <input
+                        className='form-check-input'
+                            type="radio"
+                            name="apply_gst"
+                            checked={formData.apply_cgst_sgst}
+                            onChange={handleChange}
+                        /> Apply CGST 9% / SGST 9%
+                    </div>
+
+                    
+
+                </div>
             </form>
         </section>
-
     )
-}
+})
 
 export default TabProjectDetails

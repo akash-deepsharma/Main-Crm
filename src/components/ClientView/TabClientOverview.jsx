@@ -31,7 +31,9 @@ export const imageList = [
         user_img: "/images/avatar/5.png"
     },
 ]
-const TabProjectOverview = () => {
+const TabProjectOverview = (data) => {
+    const overviewData = data.data.data
+    console.log( "data form overview", overviewData)
     return (
         <div className="tab-pane fade active show" id="overviewTab">
             <div className="row">
@@ -40,7 +42,10 @@ const TabProjectOverview = () => {
                         <div className="card-body task-header d-md-flex align-items-center justify-content-between">
                             <div className="me-4">
                                 <h4 className="mb-4 fw-bold d-flex">
-                                    <span className="text-truncate-1-line">Client Name  || Customer Name  <span className="badge bg-soft-primary text-primary mx-3">In Prograss</span></span>
+                                    <span className="text-truncate-1-line">
+                                        {/* Client Name : {`${overviewData?.customer_name}` } || */}
+                                         {/* Customer Name : */}
+                                          {`${overviewData?.customer_name}` }  <span className="badge bg-soft-primary text-primary mx-3">In Prograss</span></span>
                                 </h4>
                                 <div className="d-flex align-items-center">
                                     {/* <span className="vr mx-3 text-muted" /> */}
@@ -78,31 +83,31 @@ const TabProjectOverview = () => {
                             <div className="row">
                                 <div className="col-md-6 mb-4">
                                     <label className="form-label">Project</label>
-                                    <p>#01 - CRM Applications - G.Cute</p>
+                                    <p>{`${overviewData?.service_title}`}</p>
                                 </div>
                                 <div className="col-md-6 mb-4">
                                     <label className="form-label">Client ID - </label>
-                                    <p>Project Hours</p>
+                                    <p>{`${overviewData?.id}`}</p>
                                 </div>
                                 <div className="col-md-6 mb-4">
                                     <label className="form-label">Contract No</label>
-                                    <p>In Progress</p>
+                                    <p>{`${overviewData?.contract_no}`}</p>
                                 </div>
                                <div className="col-md-6 mb-4">
                                     <label className="form-label">Contract Added on</label>
-                                    <p>2025-05-30</p>
+                                    <p>{`${overviewData?.created_at}`}</p>
                                 </div>
                                 <div className="col-md-6 mb-4">
                                     <label className="form-label">Contract Generated Date</label>
-                                    <p>Green Cute</p>
+                                    <p>{`${overviewData?.onboard_date}`}</p>
                                 </div>
                                 <div className="col-md-6 mb-4">
                                     <label className="form-label">Contract Start Date </label>
-                                    <p>2023-02-25</p>
+                                    <p>{`${overviewData?.service_start_date}`}</p>
                                 </div>
                                 <div className="col-md-6 mb-4">
                                     <label className="form-label">Contract End Date </label>
-                                    <p>2023-03-20</p>
+                                    <p>{`${overviewData?.service_end_date}`}</p>
                                 </div>
                                  
                             </div>
@@ -115,21 +120,21 @@ const TabProjectOverview = () => {
                             icon="feather-log-in"
                             color="primary"
                             title="Phone"
-                            value="9876543210"
+                            value={overviewData?.contact_no}
                             col= "6"
                         />
                          <ContactCard
                             icon="feather-clipboard"
                             color="warning"
                             title="Email"
-                            value="akash@gmail.com"
+                            value={overviewData?.email}
                             col= "6"
                         />
                          <ContactCard
                             icon="feather-check"
                             color="success"
                             title="Address"
-                            value="noida"
+                            value={overviewData?.address}
                             col= "12"
                         />
                     </div>
@@ -168,7 +173,7 @@ const ContactCard = ({ icon,title, color, value,col }) => {
                     {/* <div className={`avatar-text bg-soft-${color} text-${color} border-0 mb-3`}>
                         {React.cloneElement(getIcon(icon), { size: "16" })}
                     </div> */}
-                    <p><span className={`fw-bold fs-5 text-${color}`}>{title}</span></p>
+                    <p><span className={`fw-bold fs-20 text-${color}`}>{title}</span></p>
                     <div><span className="fw-bold text-dark mb-0"></span> {value}</div>
                 </div>
             </div>

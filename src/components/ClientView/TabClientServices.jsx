@@ -2,136 +2,141 @@
 'use client'
 import React from 'react'
 
-const TabClientServices = () => {
+const TabClientServices = (data) => {
+    const servicesData = data.data
+    console.log( "servicesData" , servicesData)
     return (
         <div className="tab-pane fade active show" id="overviewTab">
             <div className="row">
-                <div className="col-xl-12">
+                {servicesData?.map((item,index)=>(
+                <div className="col-xl-12" key={index}>
                     <div className="card stretch stretch-full">
                         <div className="card-body">
-                            <h3 className='mb-4'>Service details For <span className='text-primary'>Fire Pump Wet Riser Operator</span> </h3>
+                            <h3 className='mb-4'>Service details For <span className='text-primary'>{item.list_of_profile  }</span> </h3>
                             <div className="row">
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Consignee </label>
-                                    <p>raj</p>
+                                    <p>{item.consignee?.consignee_name}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Designation </label>
-                                    <p>cmo</p>
+                                    <p>{item.consignee?.consigness_designation}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Gender  </label>
-                                    <p>Male</p>
+                                    <p>{item.gender}</p>
                                 </div>
                                <div className="col-md-3 mb-2">
                                     <label className="form-label">Age Limit </label>
-                                    <p>60</p>
+                                    <p>{item.age_limit}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Educational Qualification </label>
-                                    <p>High School</p>
+                                    <p>{item.education_qualification}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Specialization for PG  </label>
-                                    <p>Not Applicable</p>
+                                    <p>{item.specialization_for_pg}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Post Graduation </label>
-                                    <p>Not Required</p>
+                                    <p>{item.post_graduation}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Types of Function </label>
-                                    <p>Others</p>
+                                    <p>{item.type_of_function}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Years of Experience </label>
-                                    <p>0 to 3 years</p>
+                                    <p>{item.year_of_experience}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Specialization  </label>
-                                    <p>Not Required</p>
+                                    <p>{item.specialization}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Skill Category </label>
-                                    <p>Semi Skilled</p>
+                                    <p>{item.skill_category}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">District  </label>
-                                    <p>NA</p>
+                                    <p>{item.district}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Zipcode  </label>
-                                    <p>NA</p>
+                                    <p>{item.zip_code}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Duty Hours in a Day </label>
-                                    <p>9 Hours</p>
+                                    <p>{item.duty_hours} Hours</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Min Daily Wages </label>
-                                    <p>816</p>
+                                    <p>{item.min_daily_wages}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Monthly Salery </label>
-                                    <p>developer , designer</p>
+                                    <p>{item.monthly_salary}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Bonus  </label>
-                                    <p>0</p>
+                                    <p>{item.bonus}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Provident Fund (per/day)  </label>
-                                    <p>97.92</p>
+                                    <p>{item.provideant_fund}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">EPF Admin Charge (per/day) </label>
-                                    <p>4.08</p>
+                                    <p>{item.epf_admin_charge}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">EDLI (per/day) </label>
-                                    <p>4.08</p>
+                                    <p>{item.edliPerDay}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">ESI (per/day) </label>
-                                    <p>26.52</p>
+                                    <p>{item.esiPerDay}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Optional Allowance 1 (per/day)  </label>
-                                    <p>8.16</p>
+                                    <p>{item.optionAllowance1}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Optional Allowance 2 (per/day)  </label>
-                                    <p>10</p>
+                                    <p>{item.optionAllowance2}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Optional Allowance 3 (per/day) </label>
-                                    <p>0</p>
+                                    <p>{item.optionAllowance3}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
-                                    <label className="form-label">Number of Working Days (per/day) </label>
-                                    <p>30</p>
+                                    <label className="form-label">Number of Working Days (per/month) </label>
+                                    <p>{item.no_of_working_day}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Tenure/Duration of Employment(in Months)  </label>
-                                    <p>12</p>
+                                    <p>{item.tenure_duration}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Number Of Hired Resources </label>
-                                    <p>3</p>
+                                    <p>{item.number_of_hire_resource}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Percent Service charge </label>
-                                    <p>3.85</p>
+                                    <p>{item.perecnt_service_charge}</p>
                                 </div>
                                 <div className="col-md-3 mb-2">
                                     <label className="form-label">Additional Requirement </label>
-                                    <p>No</p>
+                                    <p>{item.additional_requirement}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="col-xl-12">
+
+                ))}
+                {/* <div className="col-xl-12">
                     <div className="card stretch stretch-full">
                         <div className="card-body">
                             <h3 className='mb-4'>Service details <span className='text-primary'> STP Operator</span> </h3>
@@ -255,7 +260,7 @@ const TabClientServices = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
 

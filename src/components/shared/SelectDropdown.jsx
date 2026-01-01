@@ -13,15 +13,15 @@ const SelectDropdown = ({ options, selectedOption, onSelectOption, className, de
 
     // 🔥 Sync with parent & defaultSelect
     useEffect(() => {
-        if (selectedOption) {
-            setLocalSelectedOption(selectedOption);
-        } else if (defaultSelect) {
-            const defaultOption = options.find(
-                opt => opt.value.toLowerCase() === defaultSelect.toLowerCase()
-            );
-            setLocalSelectedOption(defaultOption || null);
-        }
-    }, [selectedOption, defaultSelect, options]);
+  if (selectedOption) {
+    setLocalSelectedOption(selectedOption);
+  } else if (defaultSelect && Array.isArray(options)) {
+    const defaultOption = options.find(
+      opt => opt.label?.toLowerCase() === defaultSelect.toLowerCase()
+    );
+    setLocalSelectedOption(defaultOption || null);
+  }
+}, [selectedOption, defaultSelect, options]);
 
     // Click outside close
     useEffect(() => {

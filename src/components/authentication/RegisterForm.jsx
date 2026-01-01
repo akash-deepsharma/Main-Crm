@@ -190,8 +190,8 @@ const RegisterForm = ({ path }) => {
       const res = await RegisterApi(formattedData);
 
       if (res?.status === "success") {
-        localStorage.setItem("auth_token", res.token);
-        localStorage.setItem("auth_user", JSON.stringify(res.user));
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("user", JSON.stringify(res.user));
         alert("✅ Register request submitted successfully!");
 
         try {

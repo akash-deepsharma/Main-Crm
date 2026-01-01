@@ -1,8 +1,18 @@
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 
 const TabCompleted = () => {
+
+      useEffect(() => {
+    // ✅ clear client-related session data
+        sessionStorage.removeItem('client_id')
+        sessionStorage.removeItem('Consignee')
+        sessionStorage.removeItem('Client_Services')
+        sessionStorage.removeItem('Financial_Approval')
+        sessionStorage.removeItem('Client_details')
+  }, [])
+    
     return (
         <section className="step-body mt-4 text-center">
             <img src="/images/general/completed-steps.png" alt className="img-fluid wd-300 mb-4" />

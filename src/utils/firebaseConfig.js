@@ -49,8 +49,8 @@ export const signInWithGoogle = async () => {
 
       if (signindata?.status === "success") {
           // ✅ Save to localStorage
-          localStorage.setItem("auth_token", signindata.token);
-          localStorage.setItem("auth_user", JSON.stringify(signindata.user));
+          localStorage.setItem("token", signindata.token);
+          localStorage.setItem("user", JSON.stringify(signindata.user));
           localStorage.setItem("is_subscribed", signindata.subscribe);
     
           

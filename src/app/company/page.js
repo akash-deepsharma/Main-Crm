@@ -7,7 +7,7 @@ const page = () => {
         <>
             <div className='page-header-container h-100 my-5'>
             <div className='main-content h-100 m-auto d-flex flex-column align-items-center justify-content-center px-5'>
-                <div className='row align-items-center'>
+                <div className='row justify-content-center align-items-center w-100'>
                     <TotalCompany />                    
                 </div>
             </div>
