@@ -58,7 +58,7 @@ const SECTIONS = [
   { id: "section8", label: "print Details" },
 ];
 
-export default function TabDownloadSheet() {
+export default function TabDownloadSheet( data) {
   const [selectedSections, setSelectedSections] = useState([]);
   const [previewBoxes, setPreviewBoxes] = useState([]);
   const [showAll, setShowAll] = useState(false);
@@ -87,6 +87,8 @@ export default function TabDownloadSheet() {
     }
     setShowAll(!showAll);
   };
+
+  const employeeData = data?.data;
 
   return (
     <div
@@ -123,14 +125,14 @@ export default function TabDownloadSheet() {
                 <div className="me-4">
                   <h4 className="mb-4 fw-bold d-flex">
                     <span className="text-truncate-1-line">
-                      Employee Name || Client Name{" "}
+                      {employeeData?.name} || {employeeData?.company?.company_name}{" "}
                     </span>
                   </h4>
                   <div className="d-flex align-items-center">
                     <div className="img-group lh-0 ms-2 justify-content-start">
                       <span className="d-none d-sm-flex">
                         <span className="fs-12 text-muted ms-1 text-truncate-1-line">
-                          <b>Phone:- </b> 9876543210
+                          <b>Phone:- </b> {employeeData?.mobile_no}
                         </span>
                       </span>
                     </div>
@@ -138,7 +140,7 @@ export default function TabDownloadSheet() {
                     <div className="img-group lh-0 ms-2 justify-content-start">
                       <span className="d-none d-sm-flex">
                         <span className="fs-12 text-muted ms-1 text-truncate-1-line">
-                          <b>Email:- </b> akash@gmail.com
+                          <b>Email:- </b> {employeeData?.email}
                         </span>
                       </span>
                     </div>
@@ -146,7 +148,7 @@ export default function TabDownloadSheet() {
                     <div className="img-group lh-0 ms-2 justify-content-start">
                       <span className="d-none d-sm-flex">
                         <span className="fs-12 text-muted ms-1 text-truncate-1-line">
-                          <b>Address:- </b> noida{" "}
+                          <b>Address:- </b> {employeeData?.address}{" "}
                         </span>
                       </span>
                     </div>
@@ -170,23 +172,23 @@ export default function TabDownloadSheet() {
                 <div className="row">
                   <div className="col-md-3 mb-4">
                     <label className="form-label">Client Contract No</label>
-                    <p>XYZG1234ACB</p>
+                    <p>{employeeData?.address}</p>
                   </div>
                   <div className="col-md-3 mb-4">
                     <label className="form-label">Contract No</label>
-                    <p>In Progress</p>
+                    <p>{employeeData?.client?.contract_no}</p>
                   </div>
                   <div className="col-md-3 mb-4">
                     <label className="form-label">Consignee</label>
-                    <p>Tech</p>
+                    <p>{employeeData?.consignee?.consignee_name}</p>
                   </div>
                   <div className="col-md-3 mb-4">
                     <label className="form-label">Designation</label>
-                    <p>Developer</p>
+                    <p>{employeeData?.designation}</p>
                   </div>
                   <div className="col-md-3 mb-4">
                     <label className="form-label">Date Of Join </label>
-                    <p>01 Aug, 2025</p>
+                    <p>{employeeData?.date_joining}</p>
                   </div>
                   <div className="col-md-3 mb-4">
                     <label className="form-label">Replaceable </label>
@@ -227,46 +229,46 @@ export default function TabDownloadSheet() {
                 <div className="row">
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Date Of Birth</label>
-                    <p>12 Aug, 1997</p>
+                    <p>{employeeData?.dateOfBirth}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Gender </label>
-                    <p>Male</p>
+                    <p>{employeeData?.gender}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Religion </label>
-                    <p>Hindu</p>
+                    <p>{employeeData?.religion}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Marital status </label>
-                    <p>Married</p>
+                    <p>{employeeData?.maritalStatus}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Aadhar No </label>
-                    <p>5573 1920 7830</p>
+                    <p>{employeeData?.aadhar_no}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Pan Card No </label>
-                    <p>IFRPS5623F </p>
+                    <p>{employeeData?.pan_card} </p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">IP No </label>
-                    <p>8999999999</p>
+                    <p>{employeeData?.ipn_no}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">UAN </label>
-                    <p>989789787878</p>
+                    <p>{employeeData?.uan_no}</p>
                   </div>
 
                   <div className="col-md-3 mb-2">
                     <label className="form-label">
                       Rent Agreement / Electricity bill{" "}
                     </label>
-                    <p>1234767656hasdsf </p>
+                    <p>{employeeData?.rent_agreement} </p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Police Verification </label>
-                    <p>632423536862 </p>
+                    <p>{employeeData?.policeVerification} </p>
                   </div>
                 </div>
               </div>
@@ -298,19 +300,19 @@ export default function TabDownloadSheet() {
                 <div className="row">
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Father Name</label>
-                    <p>raj</p>
+                    <p>{employeeData?.Fathername}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Father Contact </label>
-                    <p>cmo</p>
+                    <p>{employeeData?.FatherContact}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Spouse Name </label>
-                    <p>XYZG</p>
+                    <p>{employeeData?.SpouseName}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Spouse Contact </label>
-                    <p>98765432</p>
+                    <p>{employeeData?.SpouseContact}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Child Name </label>
@@ -347,23 +349,23 @@ export default function TabDownloadSheet() {
                 <div className="row">
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Address</label>
-                    <p>Gali No. 9 Durgapuram</p>
+                    <p>{employeeData?.presentAddress}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">City </label>
-                    <p>Bluandshahr</p>
+                    <p>{employeeData?.presentCity}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">State </label>
-                    <p>Uttar Pradesh</p>
+                    <p>{employeeData?.presentState}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Country </label>
-                    <p>Country</p>
+                    <p>{employeeData?.presentCountry}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Zip Code </label>
-                    <p>203001</p>
+                    <p>{employeeData?.presentZipCode}</p>
                   </div>
                 </div>
               </div>
@@ -396,23 +398,23 @@ export default function TabDownloadSheet() {
                 <div className="row">
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Address</label>
-                    <p>Gali No. 9 Durgapuram</p>
+                    <p>{employeeData?.permanentAddress}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">City </label>
-                    <p>Bluandshahr</p>
+                    <p>{employeeData?.permanentCity}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">State </label>
-                    <p>Uttar Pradesh</p>
+                    <p>{employeeData?.permanentState}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Country </label>
-                    <p>Country</p>
+                    <p>{employeeData?.permanentCountry}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Zip Code </label>
-                    <p>203001</p>
+                    <p>{employeeData?.permanentzipcode}</p>
                   </div>
                 </div>
               </div>
@@ -444,19 +446,19 @@ export default function TabDownloadSheet() {
                 <div className="row">
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Bank Name</label>
-                    <p>Punjab National Bank</p>
+                    <p>{employeeData?.bankName}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Branch Branch </label>
-                    <p>DDRR Noida</p>
+                    <p>{employeeData?.branchLocation}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">IFSC Code </label>
-                    <p>23KLJDLAD</p>
+                    <p>{employeeData?.ifsc}</p>
                   </div>
                   <div className="col-md-3 mb-2">
                     <label className="form-label">Account no. </label>
-                    <p>323230203840823423</p>
+                    <p>{employeeData?.accountNo}</p>
                   </div>
                 </div>
               </div>

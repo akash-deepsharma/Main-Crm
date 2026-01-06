@@ -18,16 +18,42 @@ import { useSearchParams } from 'next/navigation';
 
 const BASE_URL = 'https://green-owl-255815.hostingersite.com/api';
 
-const actions = [
-  { label: 'Edit', icon: <FiEdit3 /> },
-  { label: 'Print', icon: <FiPrinter /> },
-  { label: 'Remind', icon: <FiClock /> },
+const getActions = (clientId, type, compid, deleteClient) => [
+  {
+    label: 'Edit',
+    icon: <FiEdit3 />,
+    onClick: () => {
+      window.location.href = `/clients/create?type=${type}&client_id=${clientId}&company_id=${compid}`;
+    },
+  },
+  {
+    label: 'Print',
+    icon: <FiPrinter />,
+    onClick: () => window.print(),
+  },
+  {
+    label: 'Remind',
+    icon: <FiClock />,
+  },
   { type: 'divider' },
-  { label: 'Archive', icon: <FiArchive /> },
-  { label: 'Report Spam', icon: <FiAlertOctagon /> },
+  {
+    label: 'Archive',
+    icon: <FiArchive />,
+  },
+  {
+    label: 'Report Spam',
+    icon: <FiAlertOctagon />,
+  },
   { type: 'divider' },
-  { label: 'Delete', icon: <FiTrash2 /> },
-];
+  {
+    label: 'Delete',
+    icon: <FiTrash2 />,
+   onClick: () => deleteClient(clientId),
+  },
+]; 
+
+
+ 
 
 const TableCell = memo(({ options, defaultSelect }) => {
   const [selectedOption, setSelectedOption] = useState(defaultSelect || null);
@@ -42,12 +68,13 @@ const TableCell = memo(({ options, defaultSelect }) => {
   );
 });
 
+
 const ProjectTable = () => {
   const [token, setToken] = useState(null);
   const [compid, setCompid] = useState(null);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
-  console.log("first table data", tableData)
+  // console.log("first table data", tableData)
 
   useEffect(() => {
     setToken(localStorage.getItem('token'));
@@ -80,6 +107,7 @@ const ProjectTable = () => {
         );
 
         const result = await response.json();
+        // console.log("client view data", result)
 
         if (!result?.status) {
           console.error(result?.message || 'API Error');
@@ -130,6 +158,50 @@ const ProjectTable = () => {
 
     fetchClients();
   }, [token, compid]);
+
+
+  const deleteClient = async (clientId) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("Authentication error");
+    return;
+  }
+
+  if (!window.confirm("Are you sure you want to delete this client?")) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "https://green-owl-255815.hostingersite.com/api/client/delete",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          client_id: clientId,
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!result?.status) {
+      throw new Error(result?.message || "Failed to delete client");
+    }
+
+    alert("Client deleted successfully");
+
+    // 🔁 Optional: reload / refetch list
+    window.location.reload();
+
+  } catch (err) {
+    alert(err.message);
+  }
+};
 
   const columns = [
   {
@@ -198,7 +270,7 @@ const ProjectTable = () => {
       return (
         <div className="hstack gap-3">
           <div className="avatar-text avatar-md">
-            {customer.name.charAt(0)}
+            {customer?.name?.charAt(0)}
           </div>
           <div>
             <span>{customer.name}</span>
@@ -276,7 +348,7 @@ const ProjectTable = () => {
           <FiEye />
         </a>
         <Dropdown
-          dropdownItems={actions}
+          dropdownItems={getActions(clientId, type, compid, deleteClient)}
           triggerClassNaclassName="avatar-md"
           triggerPosition="0,21"
           triggerIcon={<FiMoreHorizontal />}

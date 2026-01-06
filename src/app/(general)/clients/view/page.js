@@ -7,6 +7,7 @@ import TabProjectOverview from '@/components/ClientView/TabClientOverview'
 import LeadsEmptyCard from '@/components/leadsViewCreate/LeadsEmptyCard'
 import TabProjectConsignee from '@/components/ClientView/TabClientConsignee'
 import TabClientServices from '@/components/ClientView/TabClientServices'
+import TabFinancialSheet from '@/components/ClientView/TabFinancialSheet'
 import TabWagesSheet from '@/components/ClientView/TabWagesSheet'
 import TabDownloadSheet from '@/components/ClientView/TabDownloadSheet'
 import ClientViewHeader from '@/components/ClientView/ClientViewHeader'
@@ -21,7 +22,7 @@ const page = () => {
   const [compid, setCompid] = useState(null);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
-  console.log("first table data", tableData)
+  console.log("first table data", tableData);
 
   useEffect(() => {
     setToken(localStorage.getItem('token'));
@@ -55,6 +56,7 @@ const page = () => {
         );
 
         const result = await response.json();
+        console.log("client view api data", result)
 
         if (!result?.status) {
           console.error(result?.message || 'API Error');
@@ -73,8 +75,10 @@ const page = () => {
 
     fetchClients();
   }, [token, compid]);
+  
   const consigneeData = tableData.data?.consignees
   const servicesData = tableData.data?.services
+  const financialData = tableData.data?.financial_approval
 
   return (
     <>
@@ -85,6 +89,7 @@ const page = () => {
       <div className='main-content'>
         <div className='tab-content'>
           <TabProjectOverview data={tableData}/>
+          <div className="tab-pane fade" id="financialTab"><TabFinancialSheet data={financialData} /></div>
           <div className="tab-pane fade" id="activityTab"><TabProjectConsignee  data={consigneeData}/></div>
           <div className="tab-pane fade" id="timesheetsTab"><TabClientServices data={servicesData} /></div>
           <div className="tab-pane fade" id="milestonesTab"><TabWagesSheet /></div>

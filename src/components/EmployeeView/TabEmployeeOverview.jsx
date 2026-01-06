@@ -32,7 +32,7 @@ export const imageList = [
         user_img: "/images/avatar/5.png"
     },
 ]
-const TabProjectOverview = () => {
+const TabProjectOverview = ( data) => {
     const [show, setShow] = useState(false);
            const [fileUrl, setFileUrl] = useState("");
         
@@ -40,6 +40,8 @@ const TabProjectOverview = () => {
                setFileUrl(url);
                setShow(true);
            };
+
+const employeeData = data?.data;
     return (
         <>
         <div className="tab-pane fade active show" id="overviewTab">
@@ -49,7 +51,7 @@ const TabProjectOverview = () => {
                         <div className="card-body task-header d-md-flex align-items-center justify-content-between">
                             <div className="me-4">
                                 <h4 className="mb-0 fw-bold d-flex">
-                                    <span className="text-truncate-1-line">Employee Name  || Customer Name 
+                                    <span className="text-truncate-1-line">{employeeData?.name}  || {employeeData?.company?.company_name}
                                          <span className="badge bg-soft-primary text-primary mx-3">Replaceable</span>
                                          </span>
                                 </h4>
@@ -80,23 +82,23 @@ const TabProjectOverview = () => {
                             <div className="row">
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Employee Name</label>
-                                    <p>Akash deep sharma</p>
+                                    <p>{employeeData?.name}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label"> Client Contract No</label>
-                                    <p>XYZG1234ACB</p>
+                                    <p>{employeeData?.client?.contract_no}</p>
                                 </div>
                                <div className="col-md-4 mb-2">
                                     <label className="form-label">Client</label>
-                                    <p>Alphaman power</p>
+                                    <p>{employeeData?.client?.customer_name}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Consignee</label>
-                                    <p>Tech</p>
+                                    <p>{employeeData?.consignee?.consignee_name}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Designation </label>
-                                    <p>Developer</p>
+                                    <p>{employeeData?.designation}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Date Of Join </label>
@@ -104,51 +106,51 @@ const TabProjectOverview = () => {
                                 </div>
                                  <div className="col-md-4 mb-2">
                                     <label className="form-label">Date Of Birth </label>
-                                    <p>12 Aug, 1997</p>
+                                    <p>{employeeData?.dateOfBirth}</p>
                                 </div>
                                  <div className="col-md-4 mb-2">
                                     <label className="form-label">Gender </label>
-                                    <p>Male</p>
+                                    <p>{employeeData?.gender}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Religion </label>
-                                    <p>Hindu</p>
+                                    <p>{employeeData?.religion}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Marital status </label>
-                                    <p>Married</p>
+                                    <p>{employeeData?.maritalStatus}</p>
                                 </div>
                                  <div className="col-md-4 mb-2">
                                     <label className="form-label">Spouse Name </label>
-                                    <p>XYZG</p>
+                                    <p>{employeeData?.religion}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">No. Of Children </label>
-                                    <p>XYZG</p>
+                                    <p>{employeeData?.noOfChildren}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Aadhar No </label>
-                                    <p>5573 1920 7830 <FaEye  onClick={() => handleViewDocument("/images/gallery/aadhar.jpg")} style={{ cursor: "pointer", color: "blue" }} /></p>
+                                    <p>{employeeData?.aadhar_no} <FaEye  onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.aadhar_no_file}`)} style={{ cursor: "pointer", color: "blue" }} /></p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Pan Card No </label>
-                                    <p>IFRPS5623F <FaEye  onClick={() => handleViewDocument("/images/gallery/pan-card.jpg")} style={{ cursor: "pointer", color: "blue" }} /></p>
+                                    <p>{employeeData?.pan_card} <FaEye  onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.pan_card_file}`)} style={{ cursor: "pointer", color: "blue" }} /></p>
                                 </div>
                                  <div className="col-md-4 mb-2">
                                     <label className="form-label">IP No </label>
-                                    <p>8999999999  <FaEye  onClick={() => handleViewDocument("/images/gallery/pan-card.jpg")} style={{ cursor: "pointer", color: "blue" }} /></p>
+                                    <p>{employeeData?.ipn_no}  <FaEye  onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.ipn_file}`)("/images/gallery/pan-card.jpg")} style={{ cursor: "pointer", color: "blue" }} /></p>
                                 </div>
                                  <div className="col-md-4 mb-2">
                                     <label className="form-label">UAN </label>
-                                    <p>989789787878  <FaEye  onClick={() => handleViewDocument("/images/gallery/uan.avif")} style={{ cursor: "pointer", color: "blue" }} /></p>
+                                    <p>{employeeData?.uan_no}  <FaEye  onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.uan_file}`)} style={{ cursor: "pointer", color: "blue" }} /></p>
                                 </div>
                                  <div className="col-md-4 mb-2">
                                     <label className="form-label">Rent Agreement/ Electricity bill </label>
-                                    <p>1234767656hasdsf  <FaEye  onClick={() => handleViewDocument("/images/gallery/electricity-Bill.pdf")} style={{ cursor: "pointer", color: "blue" }} /></p>
+                                    <p>{employeeData?.rent_agreement}  <FaEye  onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.rent_agreement_file}`)} style={{ cursor: "pointer", color: "blue" }} /></p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Police Verification </label>
-                                    <p>632423536862  <FaEye  onClick={() => handleViewDocument("/images/gallery/policeverification.webp")} style={{ cursor: "pointer", color: "blue" }} /></p>
+                                    <p>{employeeData?.policeVerification}  <FaEye  onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.policeVerification_file}`)} style={{ cursor: "pointer", color: "blue" }} /></p>
                                 </div>
                                  
                             </div>
@@ -161,24 +163,21 @@ const TabProjectOverview = () => {
                             icon="feather-log-in"
                             color="primary"
                             title="Phone"
-                            value="9876543210"
+                            value={employeeData?.mobile_no}
                             col= "6"
                         />
                          <ContactCard
                             icon="feather-clipboard"
                             color="warning"
                             title="Email"
-                            value="akash@gmail.com"
+                            value={employeeData?.email}
                             col= "6"
                         />
                          <ContactCard
                             icon="feather-check"
                             color="success"
                             title="Address"
-                            value="C-203, Block Noida Sector 63"
-                            city="Gautam Buddha Nagar"
-                            state="Uttar Pradesh"
-                            country="India"
+                            value={employeeData?.address}
                             col= "12"
                         />
                     </div>
@@ -239,8 +238,8 @@ const ContactCard = ({ city,state,country,title, color, value,col }) => {
         <div className={`col-xxl-${col} col-xl-12 col-sm-4`}>
             <div className="card stretch stretch-full">
                 <div className="card-body">
-                    <p><span className={`fw-bold fs-5 text-${color}`}>{title}</span></p>
-                    <div><span className="fw-bold text-dark mb-0"></span> {value} {city} {state} {country}</div>
+                    <p><span className={`fw-bold fs-4 text-${color}`}>{title}</span></p>
+                    <div><span className="fw-bold text-dark mb-0"></span> {value}</div>
                 </div>
             </div>
         </div>

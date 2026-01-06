@@ -27,7 +27,7 @@ const TabProjectType = ({ setFormData, formData, error, setError }) => {
                         isRequired={true}
                         setFormData={setFormData}
                         formData={formData}
-                        setError={setError}
+                        setError={setError} 
                     />
 
                     <ProjectTypeCard

@@ -26,7 +26,7 @@ const isValidGSTIN = (value) =>
   // MULTIPLE CONSIGNEES
   const [consignees, setConsignees] = useState([
     {
-      id: 1,
+      id: '',
       items: [],
       modalOpen: false,
         editingRowId: null,
@@ -62,25 +62,28 @@ const isValidGSTIN = (value) =>
 };
 
   // Add New Consignee Block
-  const addConsignee = (e) => {
-    e.preventDefault();
+ const addConsignee = (e) => {
+  e.preventDefault();
 
-    setConsignees((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        items: [],
-        modalOpen: false,
-        modalData: {
-          designation: "",
-          experience: "",
-          qualification: "",
-          skill: "",
-          resources: "",
-        },
+  setConsignees(prev => [
+    ...prev,
+    {
+      id: `tmp-${Date.now()}`, // UI only
+      isNew: true,            // ✅ IMPORTANT
+      items: [],
+      modalOpen: false,
+      editingRowId: null,
+      modalData: {
+        designation: "",
+        experience: "",
+        qualification: "",
+        skill: "",
+        resources: "",
       },
-    ]);
-  };
+    },
+  ]);
+};
+
 
   // DELETE CONSIGNEE
   const deleteConsignee = (consigneeId, e) => {
@@ -153,13 +156,21 @@ const isValidGSTIN = (value) =>
       // ➕ ADD MODE
       return {
         ...c,
+        // items: [
+        //   ...c.items,
+        //   {
+        //     id: c.items.length + 1,
+        //     ...data,
+        //   },
+        // ],
         items: [
-          ...c.items,
-          {
-            id: c.items.length + 1,
-            ...data,
-          },
-        ],
+    ...c.items,
+    {
+      id: `tmp-${Date.now()}`, // UI key only
+      isNew: true,             // ✅ IMPORTANT
+      ...data,
+    },
+  ],
         modalOpen: false,
         modalData: {
           designation: "",
@@ -227,29 +238,76 @@ const handleSaveAndNext = async () => {
       return false;
     }
 
+    // const payload = {
+    //   client_id: client_id || null,
+    //   consignees: consignees.map((c) => ({
+
+    //     id: c.id || null,
+    //     consignee_name: c.consignee_name,
+    //     consigness_designation: c.consigness_designation,
+    //     consignee_contact_no: c.consignee_contact_no,
+    //     consignee_email: c.consignee_email,
+    //     consignee_gstin: c.consignee_gstin,
+    //     consignee_addess: c.consignee_addess,
+    //     dealing_contact: c.dealing_contact,
+    //     dealing_designation: c.dealing_designation,
+    //     dealing_hand_name: c.dealing_hand_name,
+    //     dealing_email: c.dealing_email,
+    //     designations: c.items.map((item) => ({
+    //       id: item.id || null,
+    //       name: item.designation,
+    //       skill: item.skill,
+    //       qualification: item.qualification,
+    //       experience_in_years: item.experience,
+    //       hire_employee: item.resources,
+    //       type: item.skill, 
+    //     })),
+    //   })),
+    // };
+
     const payload = {
-      client_id: client_id,
-      consignees: consignees.map((c) => ({
-        consignee_name: c.consignee_name,
-        consigness_designation: c.consigness_designation,
-        consignee_contact_no: c.consignee_contact_no,
-        consignee_email: c.consignee_email,
-        consignee_gstin: c.consignee_gstin,
-        consignee_addess: c.consignee_addess,
-        dealing_contact: c.dealing_contact,
-        dealing_designation: c.dealing_designation,
-        dealing_hand_name: c.dealing_hand_name,
-        dealing_email: c.dealing_email,
-        designations: c.items.map((item) => ({
+  client_id: client_id || null,
+  consignees: consignees.map(c => {
+    const consigneePayload = {
+      consignee_name: c.consignee_name,
+      consigness_designation: c.consigness_designation,
+      consignee_contact_no: c.consignee_contact_no,
+      consignee_email: c.consignee_email,
+      consignee_gstin: c.consignee_gstin,
+      consignee_addess: c.consignee_addess,
+      dealing_contact: c.dealing_contact,
+      dealing_designation: c.dealing_designation,
+      dealing_hand_name: c.dealing_hand_name,
+      dealing_email: c.dealing_email,
+
+      designations: c.items.map(item => {
+        const d = {
           name: item.designation,
           skill: item.skill,
           qualification: item.qualification,
           experience_in_years: item.experience,
           hire_employee: item.resources,
-          type: item.skill, 
-        })),
-      })),
+          type: item.skill,
+        };
+
+        // ✅ only existing designation
+        if (!item.isNew) {
+          d.id = item.id;
+        }
+
+        return d;
+      }),
     };
+
+    // ✅ only existing consignee
+    if (!c.isNew) {
+      consigneePayload.id = c.id;
+    }
+
+    return consigneePayload;
+  }),
+};
+
 
     const response = await fetch(`${API_BASE}/create/client/consignee`, {
       method: "POST",
@@ -295,7 +353,17 @@ useEffect(() => {
     const parsed = JSON.parse(saved);
 
     if (parsed?.consignees?.length) {
-      setConsignees(parsed.consignees);
+      // setConsignees(parsed.consignees);
+      setConsignees(
+  parsed.consignees.map(c => ({
+    ...c,
+    isNew: false, // ✅ existing
+    items: (c.items || []).map(d => ({
+      ...d,
+      isNew: false, // ✅ existing designation
+    })),
+  }))
+);
     }
   }
 }, []);

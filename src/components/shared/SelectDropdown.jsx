@@ -13,15 +13,23 @@ const SelectDropdown = ({ options, selectedOption, onSelectOption, className, de
 
     // 🔥 Sync with parent & defaultSelect
     useEffect(() => {
-  if (selectedOption) {
-    setLocalSelectedOption(selectedOption);
-  } else if (defaultSelect && Array.isArray(options)) {
-    const defaultOption = options.find(
-      opt => opt.label?.toLowerCase() === defaultSelect.toLowerCase()
-    );
-    setLocalSelectedOption(defaultOption || null);
+  if (!defaultSelect || !Array.isArray(options)) return;
+
+  let defaultLabel = '';
+
+  if (typeof defaultSelect === 'string') {
+    defaultLabel = defaultSelect;
+  } else if (typeof defaultSelect === 'object') {
+    defaultLabel = defaultSelect.label;
   }
-}, [selectedOption, defaultSelect, options]);
+
+  const defaultOption = options.find(
+    (opt) =>
+      opt.label?.toLowerCase() === defaultLabel?.toLowerCase()
+  );
+
+  setLocalSelectedOption(defaultOption || null);
+}, [defaultSelect, options]);
 
     // Click outside close
     useEffect(() => {

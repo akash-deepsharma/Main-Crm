@@ -280,13 +280,13 @@ export const menuList = [
                     {
                 id: 1,
                 name: "GeM Employee",
-                path: "/employees/list",
+                path: "/employees/list?type=GeM",
                 subdropdownMenu: false
             },
             {
                 id: 2,
                 name: " Corporate Employee",
-                path: "/",
+                path: "/employees/list?type=Corporate",
                 subdropdownMenu: false
             }
                 ]

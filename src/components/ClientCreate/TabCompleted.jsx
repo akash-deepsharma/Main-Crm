@@ -5,7 +5,6 @@ import React, { useEffect } from 'react'
 const TabCompleted = () => {
 
       useEffect(() => {
-    // ✅ clear client-related session data
         sessionStorage.removeItem('client_id')
         sessionStorage.removeItem('Consignee')
         sessionStorage.removeItem('Client_Services')

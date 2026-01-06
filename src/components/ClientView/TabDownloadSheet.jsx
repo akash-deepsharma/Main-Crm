@@ -182,6 +182,69 @@ console.log("downloadsheet data", downloadSheetData)
         </div>
       </div>
 
+            <div className="row">
+                <div className="col-xl-6">
+                    <div className="card stretch stretch-full">
+                        <div className="card-body">
+                            <h3 className='mb-4'>Financial Approval</h3>
+                            <div className="row">
+                                <div className="col-md-6 mb-2">
+                                    <label className="form-label">IFD Concurrence</label>
+                                    <p>{downloadSheetData?.financial_approval?.ifd_concurrence}</p>
+                                </div>
+                             <div className="col-md-6 mb-2">
+                                    <label className="form-label">Designation of Administrative Approval </label>
+                                    <p>{downloadSheetData?.financial_approval?.designation_admin_approval}</p>
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <label className="form-label">Designation of Financial Approval </label>
+                                    <p>{downloadSheetData?.financial_approval?.designation_financial_approval}</p>
+                                </div>
+                               
+                            </div>
+                          
+                            
+                        </div>
+                    </div>
+                </div>
+                <div className="col-xl-6">
+                    <div className="card stretch stretch-full">
+                        <div className="card-body">
+                              <h3 className='mb-4'>Paying Authority</h3>
+                            <div className="row">
+                                <div className="col-md-6 mb-2">
+                                    <label className="form-label">Role</label>
+                                    <p>{downloadSheetData?.financial_approval?.role}</p>
+                                </div>
+                             <div className="col-md-6 mb-2">
+                                    <label className="form-label">Payment Mode </label>
+                                    <p>{downloadSheetData?.financial_approval?.payment_mode}</p>
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <label className="form-label">Designation </label>
+                                    <p>{downloadSheetData?.financial_approval?.designation}</p>
+                                </div>
+                               <div className="col-md-6 mb-2">
+                                    <label className="form-label">Email ID </label>
+                                    <p>{downloadSheetData?.financial_approval?.email}</p>
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <label className="form-label">GSTIN </label>
+                                    <p>{downloadSheetData?.financial_approval?.gstin}</p>
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <label className="form-label">Address  </label>
+                                    <p>{downloadSheetData?.financial_approval?.address}</p>
+                                </div>
+                            </div>
+                          
+                            
+                        </div>
+                    </div>
+                </div>
+               
+            </div>
+
       <div className="row" id="section2">
         {downloadSheetData?.consignees?.map((item,index)=>(
 

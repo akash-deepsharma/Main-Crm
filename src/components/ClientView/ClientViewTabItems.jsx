@@ -21,6 +21,9 @@ const ClientViewTabItems = () => {
                             <button className="nav-link active" data-bs-toggle="tab" data-bs-target="#overviewTab">Overview</button>
                         </li>
                         <li className="nav-item" role="presentation">
+                            <button className="nav-link" data-bs-toggle="tab" data-bs-target="#financialTab">Financial / Paying Authority Details</button>
+                        </li>
+                        <li className="nav-item" role="presentation">
                             <button className="nav-link" data-bs-toggle="tab" data-bs-target="#activityTab">Consignee Details</button>
                         </li>
                         <li className="nav-item" role="presentation">

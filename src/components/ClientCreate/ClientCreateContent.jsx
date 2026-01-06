@@ -7,6 +7,7 @@ import TabProjectBudget from './TabProjectBudget';
 import TabProjectAssigned from './TabProjectAssigned';
 import TabAttachement from './TabAttachement';
 import TabCompleted from './TabCompleted';
+import { useSearchParams } from 'next/navigation';
 const TabProjectDetails = dynamic(() => import('./TabProjectDetails'), { ssr: false })
 const TabProjectTarget = dynamic(() => import('./TabProjectTarget'), { ssr: false })
 
@@ -19,10 +20,14 @@ const steps = [
     { name: "Attachment", required: false },
     { name: "Completed", required: false } 
 ];
+const BASE_URL = 'https://green-owl-255815.hostingersite.com/api';
+
 
 const ProjectCreateContent = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [error, setError] = useState(false)
+     const [token, setToken] = useState(null);
+       const [tableData, setTableData] = useState([]);
     const projectDetailsRef = useRef(null)
        const [loading, setLoading] = useState(false)
        const settingsRef = useRef(null)
@@ -165,6 +170,182 @@ useEffect(() => {
   const ClientId = sessionStorage.getItem("client_id");
   setClientId(ClientId);
 }, []);
+
+
+
+  useEffect(() => {
+    setToken(localStorage.getItem('token'));
+  }, []);
+
+  const searchParams = useSearchParams();
+  const type = searchParams.get('type');
+  const client_id = searchParams.get('client_id');
+  const compid = searchParams.get('company_id');
+
+  useEffect(() => {
+    if (!token || !compid) return;
+
+    const fetchClients = async () => {
+      try {
+        setLoading(true);
+
+        const params = new URLSearchParams({
+          company_id: compid,
+          client_type: type,
+          client_id: client_id,
+        });
+
+        const response = await fetch(
+          `${BASE_URL}/client/view?${params.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+        console.log("client view api data", result)
+
+        if (!result?.status) {
+          console.error(result?.message || 'API Error');
+          return;
+        }
+
+        const Client_details = {
+            formData: {
+          client_type: result.data.client_type ?? "GeM",
+          client_id: result.data.client_id ?? null,
+          contract_no: result.data.contract_no,
+          bid_no: result.data.bid_no,
+          service_start_date: result.data.service_start_date,
+          service_end_date: result.data.service_end_date,
+          customer_name: result.data.customer_name,
+          type: result.data.type,
+          ministry: result.data.ministry,
+          department: result.data.department,
+          department_nickname: result.data.department_nickname,
+          organisation_name: result.data.organisation_name,
+          office_zone: result.data.office_zone,
+          buyer_name: result.data.buyer_name,
+          designation: result.data.designation,
+          contact_no: result.data.contact_no,
+          email: result.data.email,
+          gstin: result.data.gstin,
+          address: result.data.address,
+          gst_percentage: result.data.gst_percentage,
+          apply_gst: Boolean(result.data.apply_gst),
+          apply_cgst_sgst: Boolean(result.data.apply_cgst_sgst),
+            },
+            startDate: new Date().toISOString(),
+        };
+        sessionStorage.setItem(
+          "Client_details",
+          JSON.stringify(Client_details)
+        );
+
+
+        const financial = result.data.financial_approval;
+
+        const Financial_Approval = {
+        formData: {
+            client_id: financial.client_id,
+            ifd_concurrence: financial.ifd_concurrence,
+            designation_admin_approval: financial.designation_admin_approval,
+            designation_financial_approval: financial.designation_financial_approval,
+            role: financial.role,
+            payment_mode: financial.payment_mode,
+            designation: financial.designation,
+            email: financial.email,
+            gstin: financial.gstin,
+            address: financial.address,
+        },
+        };
+
+        sessionStorage.setItem(
+        "Financial_Approval",
+        JSON.stringify(Financial_Approval)
+        );
+
+        const consignees = result.data.consignees || [];
+
+const ConsigneeData = {
+  consignees: consignees.map((consignee, cIndex) => ({
+    id: consignee.id ?? cIndex + 1,
+
+    items: (consignee.designations || []).map((d, dIndex) => ({
+      id: d.id ?? dIndex + 1 ,
+      designation: d.name ?? "",
+      experience: d.experience_in_years ?? "",
+      qualification: d.qualification ?? "",
+      skill: d.skill ?? "",
+      resources: d.hire_employee ?? "",
+    })),
+
+    modalOpen: false,
+    editingRowId: null,
+
+    modalData: {
+      designation: "",
+      experience: "",
+      qualification: "",
+      skill: "",
+      resources: "",
+    },
+
+    consignee_name: consignee.consignee_name ?? "",
+    consigness_designation: consignee.consigness_designation ?? "",
+    consignee_contact_no: consignee.consignee_contact_no ?? "",
+    consignee_email: consignee.consignee_email ?? "",
+    consignee_gstin: consignee.consignee_gstin ?? "",
+    consignee_addess: consignee.consignee_addess ?? "",
+
+    dealing_hand_name: consignee.dealing_hand_name ?? "",
+    dealing_designation: consignee.dealing_designation ?? "",
+    dealing_contact: consignee.dealing_contact ?? "",
+    dealing_email: consignee.dealing_email ?? "",
+  })),
+};
+
+sessionStorage.setItem(
+  "Consignee",
+  JSON.stringify(ConsigneeData)
+);
+
+
+       const servicesData = {
+  services: result.data.services ?? [],
+  totals: result.data.totals ?? {},
+  savedAt: new Date().toISOString(),
+};
+
+sessionStorage.setItem(
+  "Client_Services",
+  JSON.stringify(servicesData)
+);
+
+      sessionStorage.setItem(
+        "Client_Services",
+        JSON.stringify(result.data.services)
+      );
+
+      
+
+
+      } catch (error) {
+        console.error('Fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, [token, compid]);
+
+
+
+
+
 
     return (
        

@@ -14,6 +14,9 @@ const TabProjectSettings = forwardRef(({ clientId }, ref) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 const client_id = sessionStorage.getItem('client_id')
+  // const searchParams = useSearchParams();
+  //   const client_Id = searchParams.get('client_id');
+
 
   const [formData, setFormData] = useState({
     client_id: Number(client_id),
@@ -45,6 +48,7 @@ useEffect(() => {
       [name]: value,
     }))
   }
+
 
   
   const handleSaveAndNext = async () => {

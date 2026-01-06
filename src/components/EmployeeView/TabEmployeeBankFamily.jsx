@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { FaEye } from 'react-icons/fa'
 
-const TabEmployeeBankFamily = () => {
+const TabEmployeeBankFamily = (data) => {
     const [show, setShow] = useState(false);
        const [fileUrl, setFileUrl] = useState("");
     
@@ -11,6 +11,9 @@ const TabEmployeeBankFamily = () => {
            setFileUrl(url);
            setShow(true);
        };
+
+       const employeeData = data?.data;
+console.log( "emploeyeedd test data", )
     return (
         <>
         <div className="tab-pane fade active show" id="overviewTab">
@@ -22,27 +25,27 @@ const TabEmployeeBankFamily = () => {
                             <div className="row">
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Father Name</label>
-                                    <p>raj</p>
+                                    <p>{employeeData?.Fathername}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Father Contact </label>
-                                    <p>cmo</p>
+                                    <p>{employeeData?.FatherContact}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Spouse Name </label>
-                                    <p>98765432</p>
+                                    <p>{employeeData?.SpouseName}</p>
                                 </div>
                                <div className="col-md-6 mb-2">
                                     <label className="form-label">Spouse Contact </label>
-                                    <p>moweqetalu@mailinator.com</p>
+                                    <p>{employeeData?.SpouseContact}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Child Name </label>
-                                    <p>27ABCDE1234F2Z5</p>
+                                    <p>{employeeData?.ChildName}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Family Photo </label>
-                                    <p  onClick={() => handleViewDocument("/images/gallery/family-photo.avif")} style={{ cursor: "pointer", color: "blue" }}> view <FaEye /> </p>
+                                    <p  onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.familyPhoto}`)} style={{ cursor: "pointer", color: "blue" }}> view <FaEye /> </p>
                                 </div>
                             </div>
                         </div>
@@ -55,19 +58,19 @@ const TabEmployeeBankFamily = () => {
                             <div className="row">
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Bank name</label>
-                                    <p>Punjab National Bank</p>
+                                    <p>{employeeData?.bankName}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
-                                    <label className="form-label">Branch Branch  - </label>
-                                    <p>DDRR Noida</p>
+                                    <label className="form-label">Branch Branch </label>
+                                    <p>{employeeData?.branchLocation}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">IFSC Code </label>
-                                    <p>23KLJDLAD</p>
+                                    <p>{employeeData?.ifsc}</p>
                                 </div>
                                <div className="col-md-6 mb-2">
                                     <label className="form-label">Account no. </label>
-                                    <p>323230203840823423</p>
+                                    <p>{employeeData?.accountNo}</p>
                                 </div>
                                 
                             </div>

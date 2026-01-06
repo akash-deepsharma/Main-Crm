@@ -2,7 +2,7 @@
 import React, { useEffect, useState,forwardRef, useImperativeHandle } from 'react'
 import DatePicker from 'react-datepicker'
 import useDatePicker from '@/hooks/useDatePicker'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const API_BASE = 'https://green-owl-255815.hostingersite.com/api'
 
@@ -11,8 +11,9 @@ const TabProjectDetails = forwardRef(({ clientId, clientType }, ref) => {
     const [loading, setLoading] = useState(false)
    const router = useRouter();
    const client_Type = clientType
-   console.log( "clientId from first step" , clientId)
-
+const searchParams = useSearchParams();
+  const client_Id = searchParams.get('client_id');
+  console.log( "clientId form url", client_Id)
 useEffect(() => {
   const companyId = sessionStorage.getItem("selected_company");
 
@@ -24,7 +25,7 @@ useEffect(() => {
 
     const [formData, setFormData] = useState({
         client_type: client_Type,
-        client_id: clientId,
+        client_id: client_Id || null,
         contract_no: '',
         bid_no: '',
         service_start_date: '',
@@ -91,6 +92,7 @@ if (!token) {
     const payload = {
       user_id: 1,
       client_type: client_Type,
+       client_id: client_Id || null,
       company_id: Number(company_id),
       contract_no: formData.contract_no,
       service_title: 'Service Contract', // REQUIRED by API

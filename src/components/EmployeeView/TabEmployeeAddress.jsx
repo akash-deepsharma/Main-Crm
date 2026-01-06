@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { FaEye } from 'react-icons/fa'
 
-const TabEmployeeAddress = () => {
+const TabEmployeeAddress = (data) => {
      const [show, setShow] = useState(false);
     const [fileUrl, setFileUrl] = useState("");
 
@@ -11,6 +11,8 @@ const TabEmployeeAddress = () => {
         setFileUrl(url);
         setShow(true);
     };
+    const employeeData = data?.data;
+console.log( "emploeyeedd test data", )
     return (
         <>
         <div className="tab-pane fade active show" id="overviewTab">
@@ -22,23 +24,23 @@ const TabEmployeeAddress = () => {
                             <div className="row">
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Address </label>
-                                    <p>Gali No. 9 Durgapuram </p>
+                                    <p>{employeeData?.presentAddress} </p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">City </label>
-                                    <p>Bluandshahr</p>
+                                    <p>{employeeData?.presentCity}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">State  </label>
-                                    <p>Uttar Pradesh</p>
+                                    <p>{employeeData?.presentState}</p>
                                 </div>
                                <div className="col-md-4 mb-2">
                                     <label className="form-label">Country </label>
-                                    <p>India</p>
+                                    <p>{employeeData?.presentCountry}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Zip Code </label>
-                                    <p>203001</p>
+                                    <p>{employeeData?.presentZipCode}</p>
                                 </div>  
                             </div>
                         </div>
@@ -51,23 +53,23 @@ const TabEmployeeAddress = () => {
                             <div className="row">
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Address </label>
-                                    <p>Gali No. 9 Durgapuram </p>
+                                    <p>{employeeData?.permanentAddress} </p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">City </label>
-                                    <p>Bluandshahr</p>
+                                    <p>{employeeData?.permanentCity}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">State  </label>
-                                    <p>Uttar Pradesh</p>
+                                    <p>{employeeData?.permanentState}</p>
                                 </div>
                                <div className="col-md-4 mb-2">
                                     <label className="form-label">Country </label>
-                                    <p>India</p>
+                                    <p>{employeeData?.permanentCountry}</p>
                                 </div>
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Zip Code </label>
-                                    <p>203001</p>
+                                    <p>{employeeData?.permanentZipCode}</p>
                                 </div>
                             </div>
                         </div>
