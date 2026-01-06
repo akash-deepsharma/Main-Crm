@@ -22,7 +22,8 @@ const TabEmployeeType = ({ setFormData, formData, error, setError }) => {
                         icon={"feather-user"}
                         title={"Gem Employee"}
                         description={"Create Gem Employee"}
-                        id={"project_personal"}
+                        // id={"project_personal"}
+                        id={"GeM"}
                         name={"project-type"}
                         isRequired={true}
                         setFormData={setFormData}
@@ -34,7 +35,9 @@ const TabEmployeeType = ({ setFormData, formData, error, setError }) => {
                         icon={"feather-users"}
                         title={"Corporate Employee"}
                         description={"Create corporate Employee"}
-                        id={"project_team"}
+                        // id={"project_team"}
+
+                        id={"corporate"}
                         name={"project-type"}
                         isRequired={false}
                         setFormData={setFormData}
@@ -57,9 +60,14 @@ export const EmployeeTypeCard = ({
 
     const handleOnChange = (e) => {
         const id = e.target.id;
+        const selectedId = e.target.id;
+        console.log('Selected Employee Type:', selectedId);
 
+        // console.log('this is my fsdfsdform data',formData);
         // Only projectType remains
-        setFormData({ ...formData, projectType: id });
+       const fomrrr =  setFormData({ ...formData, projectType: id });
+        // console.log('this is my fsdfsdform data',fomrrr);
+
         setError(false);
     };
 
@@ -74,6 +82,7 @@ export const EmployeeTypeCard = ({
                 onChange={handleOnChange}
                 checked={formData.projectType === id}
             />
+            
             <span className="card card-body d-flex flex-row justify-content-between align-items-center ">
                 <span className="hstack gap-3">
                     <span className="avatar-text">
