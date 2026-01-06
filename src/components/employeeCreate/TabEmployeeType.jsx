@@ -2,7 +2,7 @@ import React from 'react'
 import getIcon from '@/utils/getIcon'
 import { FiAlertTriangle } from 'react-icons/fi'
 
-const TabEmployeeType = ({ setFormData, formData, error, setError }) => {
+const TabEmployeeType = ({ setFormData, formData, error, setError,onSelectType }) => {
     return (
         <section className="step-body mt-4 body current">
             <form id="project-type">
@@ -19,31 +19,31 @@ const TabEmployeeType = ({ setFormData, formData, error, setError }) => {
 
                     {/* ONLY THESE TWO CARDS */}
                     <EmployeeTypeCard
-                        icon={"feather-user"}
-                        title={"Gem Employee"}
-                        description={"Create Gem Employee"}
-                        // id={"project_personal"}
-                        id={"GeM"}
-                        name={"project-type"}
-                        isRequired={true}
-                        setFormData={setFormData}
-                        formData={formData}
-                        setError={setError}
-                    />
+  icon={"feather-user"}
+  title={"Gem Employee"}
+  description={"Create Gem Employee"}
+  id={"GeM"}
+  name={"project-type"}
+  isRequired={true}
+  setFormData={setFormData}
+  formData={formData}
+  setError={setError}
+  onSelectType={onSelectType}
+/>
 
-                    <EmployeeTypeCard
-                        icon={"feather-users"}
-                        title={"Corporate Employee"}
-                        description={"Create corporate Employee"}
-                        // id={"project_team"}
+<EmployeeTypeCard
+  icon={"feather-users"}
+  title={"Corporate Employee"}
+  description={"Create corporate Employee"}
+  id={"corporate"}
+  name={"project-type"}
+  isRequired={false}
+  setFormData={setFormData}
+  formData={formData}
+  setError={setError}
+  onSelectType={onSelectType}
+/>
 
-                        id={"corporate"}
-                        name={"project-type"}
-                        isRequired={false}
-                        setFormData={setFormData}
-                        formData={formData}
-                        setError={setError}
-                    />
                 </fieldset>
             </form>
         </section>
@@ -54,49 +54,54 @@ export default TabEmployeeType
 
 
 export const EmployeeTypeCard = ({
-    icon, title, description, id, isRequired, name,
-    setFormData, formData, setError
+  icon,
+  title,
+  description,
+  id,
+  isRequired,
+  name,
+  setFormData,
+  formData,
+  setError,
+  onSelectType, // ✅ NEW
 }) => {
 
-    const handleOnChange = (e) => {
-        const id = e.target.id;
-        const selectedId = e.target.id;
-        console.log('Selected Employee Type:', selectedId);
+  const handleOnChange = (e) => {
+    const selectedId = e.target.id;
 
-        // console.log('this is my fsdfsdform data',formData);
-        // Only projectType remains
-       const fomrrr =  setFormData({ ...formData, projectType: id });
-        // console.log('this is my fsdfsdform data',fomrrr);
+    setFormData({ ...formData, employeeType: selectedId });
+    setError(false);
 
-        setError(false);
-    };
+    // ✅ AUTO MOVE TO NEXT STEP
+    onSelectType?.();
+  };
 
-    return (
-        <label className="w-100" htmlFor={id}>
-            <input
-                className="card-input-element"
-                type="radio"
-                name={name}
-                id={id}
-                required={isRequired}
-                onChange={handleOnChange}
-                checked={formData.projectType === id}
+  return (
+    <label className="w-100" htmlFor={id}>
+      <input
+        className="card-input-element"
+        type="radio"
+        name={name}
+        id={id}
+        required={isRequired}
+        onChange={handleOnChange}
+        checked={formData.employeeType === id}
+      />
+
+      <span className="card card-body d-flex flex-row justify-content-between align-items-center">
+        <span className="hstack gap-3">
+          <span className="avatar-text">
+            {React.cloneElement(getIcon(icon), { size: "16", strokeWidth: "1.6" })}
+          </span>
+          <span>
+            <span className="d-block fs-13 fw-bold text-dark">{title}</span>
+            <span
+              className="d-block text-muted mb-0"
+              dangerouslySetInnerHTML={{ __html: description }}
             />
-            
-            <span className="card card-body d-flex flex-row justify-content-between align-items-center ">
-                <span className="hstack gap-3">
-                    <span className="avatar-text">
-                        {React.cloneElement(getIcon(icon), { size: "16", strokeWidth: "1.6" })}
-                    </span>
-                    <span>
-                        <span className="d-block fs-13 fw-bold text-dark">{title}</span>
-                        <span
-                            className="d-block text-muted mb-0"
-                            dangerouslySetInnerHTML={{ __html: description }}
-                        />
-                    </span>
-                </span>
-            </span>
-        </label>
-    )
-}
+          </span>
+        </span>
+      </span>
+    </label>
+  );
+};

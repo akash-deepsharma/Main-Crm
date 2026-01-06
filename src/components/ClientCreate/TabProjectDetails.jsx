@@ -22,8 +22,7 @@ useEffect(() => {
     router.replace("/company");
   }
 }, [router]);
-
-    const [formData, setFormData] = useState({
+ const [formData, setFormData] = useState({
         client_type: client_Type,
         client_id: client_Id || null,
         contract_no: '',
@@ -47,6 +46,7 @@ useEffect(() => {
         apply_gst: false,
         apply_cgst_sgst: false,
     })
+   
 
     useEffect(() => {
         setStartDate(new Date())

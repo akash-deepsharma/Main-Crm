@@ -1,16 +1,11 @@
 'use client'
-import React, { useState } from 'react'
+import React, {  useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-// import TabProjectType from './TabEmployeeType'
-// // import TabProjectSettings from './TabEmployeeEducation';
-// import TabProjectBudget from './TabFamilyBank';
-// import TabProjectAssigned from './TabProjectAssigned';
 import TabAttachement from './TabAttachement';
 import TabCompleted from './TabCompleted';
 import TabEmployeeType from './TabEmployeeType';
 import TabEmployeeEducation from './TabEmployeeEducation';
 import TabFamilyBank from './TabFamilyBank';
-// import TabAddressDetails from './TabAddressDetails';
 const TabEmployeeDetails = dynamic(() => import('./TabEmployeeDetails'), { ssr: false })
 const TabAddressDetails = dynamic(() => import('./TabAddressDetails'), { ssr: false })
 
@@ -19,27 +14,47 @@ const steps = [
     { name: "Employee Details", required: true }, // Step 1
     { name: "Education Details", required: false }, // Step 2
     { name: "Family / Bank Details", required: false },  // Step 3 → Not required anymore
-    // { name: "Assigned", required: false }, // Step 4 → Not required anymore
     { name: "Address Details", required: false },  // Step 5
     { name: "Attachment", required: false }, // Step 6
     { name: "Completed", required: false }  // Step 7
 ];
 
 const EmployeeCreateContent = () => {
+
     const [currentStep, setCurrentStep] = useState(0);
     const [error, setError] = useState(false)
+    const [loading, setLoading] = useState(false)
+     const employeeDetailsRef = useRef(null)
+     const employeeEductaionRef = useRef(null)
+     const familyBankRef = useRef(null)
+     const AddressRef = useRef(null)
+     const employeeAttachmentRef = useRef(null)
+     const [clientId, setClientId] = useState(null);
+    const [submittedSteps, setSubmittedSteps] = useState({
+            0: false,
+            1: false,
+            2: false,
+            3: false,
+            4: false,
+            5: false,
+            });
     const [formData, setFormData] = useState({
-        projectType: "",
+        employeeType: "",
         projectManage: "",
         projectBudgets: "",
         budgetsSpend: "",
     });
 
+useEffect(() => {
+//   const id = sessionStorage.getItem("selected_company");
+  const ClientId = sessionStorage.getItem("client_id");
+  setClientId(ClientId);
+}, []);
     const validateFields = () => {
-    const { projectType } = formData;
+    const { employeeType } = formData;
 
     // Only step 0 is required
-    if (currentStep === 0 && projectType === "") {
+    if (currentStep === 0 && employeeType === "") {
         setError(true);
         return false;
     }
@@ -47,12 +62,50 @@ const EmployeeCreateContent = () => {
     return true;
 };
 
-    const handleNext = (e) => {
-        e.preventDefault()
-        if (validateFields()) {
-            setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-        }
-    };
+  const handleNext = async (e) => {
+  e.preventDefault()
+
+  // STEP 0 validation
+  if (currentStep === 0) {
+    if (!validateFields()) return
+    setSubmittedSteps(prev => ({ ...prev, 0: true }))
+  }
+
+  // STEP 1 submit
+  if (currentStep === 1) {
+    const success = await employeeDetailsRef.current?.submit()
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 1: true }))
+  }
+
+  // STEP 2 submit (Settings)
+  if (currentStep === 2) {
+    const success = await employeeEductaionRef.current?.submit()
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 2: true }))
+  }
+    if (currentStep === 3) {
+    const success = await familyBankRef.current?.submit()
+    console.log(`what is the staturs ${currentStep}`, success)
+
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 3: true }))
+  }
+   if (currentStep === 4) {
+    const success = await AddressRef.current?.submit()
+    console.log(`what is the staturs ${currentStep}`, success)
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 4: true }))
+  }
+
+    if (currentStep === 5) {
+    const success = await employeeAttachmentRef.current?.submit()
+    if (!success) return
+    setSubmittedSteps(prev => ({ ...prev, 5: true }))
+  }
+
+  setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
+}
 
     // Handle prev button click
     const handlePrev = (e) => {
@@ -60,67 +113,22 @@ const EmployeeCreateContent = () => {
         setCurrentStep((prev) => Math.max(prev - 1, 0));
     };
 
-    // Handle tab click to change step
-   const handleTabClick = (e, index) => {
-    e.preventDefault();
+  // Handle tab click to change step
+  const handleTabClick = (e, index) => {
+  e.preventDefault()
 
-    // If you are leaving a required step, validate
-    if (steps[currentStep].required && !validateFields()) {
-        return;
+  // Prevent jumping ahead without submit
+  for (let i = 0; i < index; i++) {
+    if (steps[i].required && !submittedSteps[i]) {
+      alert(`Please complete "${steps[i].name}" first`)
+      return
     }
+  }
 
-    // Otherwise allow navigation freely
-    setCurrentStep(index);
-};
+  setCurrentStep(index)
+}
 
 
-const previtems = [
-    {
-        id: 1,
-        product: "",
-        qty: 0,
-        price: 0
-    },
-]
-const [items, setItems] = useState(previtems);
-
-    const addItem = () => {
-        const newItem = {
-            id: items.length + 1,
-            product: '',
-            qty: 1,
-            price: 0
-        };
-        setItems([...items, newItem]);
-    };
-
-    const removeItem =()=>{
-        items.pop()
-      
-        setItems(items)
-    }
-    
-    const handleInputChange = (id, field, value) => {
-        const updatedItems = items.map(item => {
-            if (item.id === id) {
-                const updatedItem = { ...item, [field]: value };
-                if (field === 'qty' || field === 'price') {
-                    updatedItem.total = updatedItem.qty * updatedItem.price;
-                }
-                return updatedItem;
-            }
-            return item;
-        });
-        setItems(updatedItems);
-    };
-
-    const subTotal = items.reduce((accumulator, currentValue) => {
-        return accumulator + (currentValue.price * currentValue.qty);
-    }, 0);
-
-    const vat = (subTotal * 0.1).toFixed(2)
-    const vatNumber = Number(vat);
-    const total = Number(subTotal + vatNumber).toFixed(2)
 
     return (
        
@@ -142,27 +150,29 @@ const [items, setItems] = useState(previtems);
                     </div>
 
                     <div className="content clearfix">
-                        {currentStep === 0 && <TabEmployeeType setFormData={setFormData} formData={formData} error={error} setError={setError} />}
-                        {currentStep === 1 && <TabEmployeeDetails />}
-                        {currentStep === 2 && <TabEmployeeEducation />}
-                        {currentStep === 3 && <TabFamilyBank setFormData={setFormData} formData={formData} error={error} setError={setError} />}
-                        {currentStep === 4 && <TabAddressDetails />}
-                        {currentStep === 5 && <TabAttachement />}
+                        {currentStep === 0 && <TabEmployeeType setFormData={setFormData} formData={formData} error={error} setError={setError}  onSelectType={() => {
+      setSubmittedSteps(prev => ({ ...prev, 0: true }));
+      setCurrentStep(1);
+    }} />}
+                        {currentStep === 1 && <TabEmployeeDetails ref={employeeDetailsRef} clientId={clientId}  clientType={formData.employeeType}  onNext={() => setCurrentStep(prev => prev + 0)}/>}
+                        {currentStep === 2 && <TabEmployeeEducation ref={employeeEductaionRef} clientId={clientId}/>}
+                        {currentStep === 3 && <TabFamilyBank ref={familyBankRef} clientId={clientId}  setFormData={setFormData} formData={formData} error={error} setError={setError} />}
+                        {currentStep === 4 && <TabAddressDetails  ref={AddressRef} error={error} setError={setError}/>}
+                        {currentStep === 5 && <TabAttachement ref={employeeAttachmentRef}  error={error} setError={setError} />}
                         {currentStep === 6 && <TabCompleted />}
                     </div>
 
                     {/* Buttons */}
-                    <div className="actions clearfix">
+                     <div className="actions clearfix">
                         <ul>
-                            <li className={`${currentStep === 0 ? "disabled" : ""} ${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handlePrev(e)} disabled={currentStep === 0}>
-                                <a href="#">Previous</a>
+                            <li className={`${currentStep === 0 ? "disabled" : ""} ${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={handlePrev} disabled={currentStep === 0}>
+                            <a href="#">Previous</a>
                             </li>
-                            <li className={`${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handleNext(e)} disabled={currentStep === steps.length - 1}>
-                                <a href="#">Next</a>
+                            <li className={`${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={handleNext} disabled={currentStep === steps.length - 1}>
+                            <a href="#">{loading ? 'Saving...' : 'Next'}</a>
                             </li>
                         </ul>
-
-                    </div>
+                        </div>
                 </div>
             </div>
             

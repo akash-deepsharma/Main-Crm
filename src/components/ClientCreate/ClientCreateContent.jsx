@@ -42,6 +42,7 @@ const ProjectCreateContent = () => {
         4: false,
         5: false,
         });
+
     const [formData, setFormData] = useState({
         projectType: "",
         projectManage: "",
@@ -369,9 +370,7 @@ sessionStorage.setItem(
                     <div className="content clearfix">
                         {currentStep === 0 && <TabProjectType setFormData={setFormData} formData={formData} error={error} setError={setError} />}
                         {currentStep === 1 && <TabProjectDetails ref={projectDetailsRef} clientId={clientId}  clientType={formData.projectType} onNext={() => setCurrentStep(prev => prev + 0)} />}
-                        {currentStep === 2 && (
-                        <TabProjectSettings ref={settingsRef} clientId={clientId} />
-                        )}
+                        {currentStep === 2 && (<TabProjectSettings ref={settingsRef} clientId={clientId} />)}
                         {currentStep === 3 && <TabProjectBudget ref={budgetRef} setFormData={setFormData} formData={formData} error={error} setError={setError} />}
                         {currentStep === 4 && <TabProjectTarget ref={serviceDetailRef} clientId={clientId}/>}
                         {currentStep === 5 && <TabAttachement ref={attachmentRef} clientId={clientId}/>}
