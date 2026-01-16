@@ -6,9 +6,9 @@
 * In this file 'bootstrap' overwrite variables gose here.
 * This overwrite variables @include on boostrap.scss file.
 * Please check this file @include on boostrap.scss file.
-*
+*@use "sass:color";
 */
-
+@use "sass:color";
 // Gray Color
 $white: #ffffff;
 $gray-100: #eff0f6;
