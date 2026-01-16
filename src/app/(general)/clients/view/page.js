@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectViewHeader from '@/components/ClientView/ClientViewHeader'
 import ProjectViewTabItems from '@/components/ClientView/ClientViewTabItems'
@@ -127,6 +127,8 @@ const page = () => {
   const financialData = tableData.data?.financial_approval
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
+
     <>
       <PageHeader>
         <ClientViewHeader />
@@ -144,6 +146,7 @@ const page = () => {
         </div>
       </div>
     </>
+    </Suspense>
   )
 }
 
