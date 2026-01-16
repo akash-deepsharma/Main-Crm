@@ -11,6 +11,7 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
   const [pan_number, setPanNumber] = useState("");
   const [pan_document, setPanDocument] = useState("");
   const [gst_number, setGstNumber] = useState("");
+  const [address, setAddress] = useState("");
   const [gst_document, setGstDocument] = useState("");
   const [company_logo, setCompanyLogo] = useState("");
 
@@ -88,6 +89,7 @@ const BASE_URL = "https://green-owl-255815.hostingersite.com/api";
     formData.append("company_phone", company_phone);
     formData.append("pan_number", pan_number);
     formData.append("gst_number", gst_number);
+    formData.append("address", address);
     formData.append("type", type);
 
     // ✅ Files (append only if present)
@@ -182,13 +184,23 @@ const BASE_URL = "https://green-owl-255815.hostingersite.com/api";
                   required
                 />
               </div>
-              <div className="col-lg-6 mb-3">
+              <div className="col-lg-12 mb-3">
                 <input
                   type="text"
                   className="form-control"
                   placeholder="Company GST Number"
                   value={gst_number}
                   onChange={(e) => setGstNumber(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="col-lg-12 mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   required
                 />
               </div>

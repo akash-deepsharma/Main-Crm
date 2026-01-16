@@ -22,7 +22,7 @@ const TabProjectType = ({ setFormData, formData, error, setError }) => {
                         icon={"feather-user"}
                         title={"Gem Client"}
                         description={"If you need more info, please check it out"}
-                        id={"project_personal"}
+                         id={"GeM"}
                         name={"project-type"}
                         isRequired={true}
                         setFormData={setFormData}
@@ -34,7 +34,7 @@ const TabProjectType = ({ setFormData, formData, error, setError }) => {
                         icon={"feather-users"}
                         title={"Corporate Client"}
                         description={"Corporate Attandance to manage users"}
-                        id={"project_team"}
+                          id={"corporate"}
                         name={"project-type"}
                         isRequired={false}
                         setFormData={setFormData}
@@ -55,12 +55,14 @@ export const ProjectTypeCard = ({
     setFormData, formData, setError
 }) => {
 
+    
     const handleOnChange = (e) => {
         const id = e.target.id;
 
         // Only projectType remains
         setFormData({ ...formData, projectType: id });
         setError(false);
+        // console.log('sd1',id);
     };
 
     return (

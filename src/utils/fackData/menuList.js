@@ -300,6 +300,20 @@ export const menuList = [
         ]
     },
     {
+        id: 9,
+        name: " Wages",
+        path: "#",
+        icon: 'feather-user-plus',
+        dropdownMenu: [            
+            {
+                id: 1,
+                name: " Set wages",
+                path: "/wages",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
         id: 10,
         name: "Attendance",
         path: "#",
@@ -346,13 +360,13 @@ export const menuList = [
                     {
                         id: 1,
                         name: "GeM Client",
-                        path: "/salary/list",
+                        path: "/salary/list?type=GeM",
                         subdropdownMenu: false
                     },
                     {
                         id: 2,
                         name: " Corporate Client",
-                        path: "/",
+                        path: "/salary/list?type=Corporate",
                         subdropdownMenu: false
                     }
                 ]

@@ -2,164 +2,179 @@
 import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import TabProjectType from './TabProjectType'
-import TabProjectSettings from './TabProjectSettings';
-import TabProjectBudget from './TabProjectBudget';
-import TabProjectAssigned from './TabProjectAssigned';
-import TabAttachement from './TabAttachement';
-import TabCompleted from './TabCompleted';
+import TabProjectSettings from './TabProjectSettings'
+import TabAttachement from './TabAttachement'
+import TabCompleted from './TabCompleted'
+
 const TabProjectDetails = dynamic(() => import('./TabProjectDetails'), { ssr: false })
-const TabProjectTarget = dynamic(() => import('./TabProjectTarget'), { ssr: false })
 
 const steps = [
-    { name: "Type", required: true },
-    { name: "Select Cleint", required: true },
-    { name: "Employees Data", required: false },
-    { name: "Attachment", required: false },
-    { name: "Completed", required: false } 
-];
+  { name: "Type", required: true },
+  { name: "Select Client", required: true },
+  { name: "Attachment", required: false },
+  { name: "Employees Data", required: false },
+  { name: "Completed", required: false }
+]
 
 const ProjectCreateContent = () => {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [error, setError] = useState(false)
-    const [formData, setFormData] = useState({
-        projectType: "",
-        projectManage: "",
-        projectBudgets: "",
-        budgetsSpend: "",
-    });
 
-    const validateFields = () => {
-    const { projectType } = formData;
+  // 🔑 SHARED STATE
+  const [selectedClient, setSelectedClient] = useState(null)
+  const [selectedConsignee, setSelectedConsignee] = useState(null)
 
-    // Only step 0 is required
-    if (currentStep === 0 && projectType === "") {
-        setError(true);
-        return false;
+  const [currentStep, setCurrentStep] = useState(0)
+  const [error, setError] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+
+  // Add month/year state to pass between steps
+  const [attachmentData, setAttachmentData] = useState({
+    month: "",
+    year: "",
+    fileName: "",
+    fileUrl: ""
+  })
+
+  const [formData, setFormData] = useState({
+    projectType: "",
+    projectManage: "",
+    projectBudgets: "",
+    budgetsSpend: "",
+  })
+
+  const validateFields = () => {
+    if (currentStep === 0 && !formData.projectType) {
+      setError(true)
+      return false
     }
+    return true
+  }
 
-    return true;
-};
-
-    const handleNext = (e) => {
-        e.preventDefault()
-        if (validateFields()) {
-            setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-        }
-    };
-
-    // Handle prev button click
-    const handlePrev = (e) => {
-        e.preventDefault()
-        setCurrentStep((prev) => Math.max(prev - 1, 0));
-    };
-
-    // Handle tab click to change step
-   const handleTabClick = (e, index) => {
-    e.preventDefault();
-
-    // If you are leaving a required step, validate
-    if (steps[currentStep].required && !validateFields()) {
-        return;
+  const handleNext = async (e) => {
+    e.preventDefault()
+    
+    // If current step is Attachment (step 2), handle upload first
+    if (currentStep === 2) {
+      await handleAttachmentNext()
+    } else {
+      // For other steps, normal validation
+      if (validateFields()) {
+        setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
+      }
     }
+  }
 
-    // Otherwise allow navigation freely
-    setCurrentStep(index);
-};
+  const handlePrev = (e) => {
+    e.preventDefault()
+    setCurrentStep(prev => Math.max(prev - 1, 0))
+  }
 
+  const handleTabClick = (e, index) => {
+    e.preventDefault()
+    if (steps[currentStep].required && !validateFields()) return
+    setCurrentStep(index)
+  }
 
-const previtems = [
-    {
-        id: 1,
-        product: "",
-        qty: 0,
-        price: 0
-    },
-]
-const [items, setItems] = useState(previtems);
-
-    const addItem = () => {
-        const newItem = {
-            id: items.length + 1,
-            product: '',
-            qty: 1,
-            price: 0
-        };
-        setItems([...items, newItem]);
-    };
-
-    const removeItem =()=>{
-        items.pop()
-      
-        setItems(items)
+  // Updated handler for Attachment step
+  const handleAttachmentNext = async (uploadedData) => {
+    if (uploadedData) {
+      // Store uploaded data for next steps
+      setAttachmentData(uploadedData)
     }
     
-    const handleInputChange = (id, field, value) => {
-        const updatedItems = items.map(item => {
-            if (item.id === id) {
-                const updatedItem = { ...item, [field]: value };
-                if (field === 'qty' || field === 'price') {
-                    updatedItem.total = updatedItem.qty * updatedItem.price;
-                }
-                return updatedItem;
-            }
-            return item;
-        });
-        setItems(updatedItems);
-    };
+    if (validateFields()) {
+      setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
+    }
+  }
 
-    const subTotal = items.reduce((accumulator, currentValue) => {
-        return accumulator + (currentValue.price * currentValue.qty);
-    }, 0);
+  return (
+    <div className="col-lg-12">
+      <div className="card border-top-0">
+        <div className="card-body p-0 wizard">
 
-    const vat = (subTotal * 0.1).toFixed(2)
-    const vatNumber = Number(vat);
-    const total = Number(subTotal + vatNumber).toFixed(2)
+          {/* STEPS */}
+          <div className="steps clearfix">
+            <ul role="tablist">
+              {steps.map((step, index) => (
+                <li
+                  key={index}
+                  className={`${currentStep === index ? "current" : ""} ${error && currentStep === index ? "error" : ""}`}
+                  onClick={(e) => handleTabClick(e, index)}
+                >
+                  <a href="#" className="d-block fw-bold">{step.name}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-    return (
-       
-        <div className="col-lg-12">
-            <div className="card border-top-0">
-                <div className="card-body p-0 wizard" id="project-create-steps">
-                    <div className='steps clearfix'>
-                        <ul role="tablist">
-                            {steps.map((step, index) => (
-                                <li
-                                    key={index}
-                                    className={`${currentStep === index ? "current" : ""} ${currentStep === index && error ? "error" : ""}`}
-                                    onClick={(e) => handleTabClick(e, index)}
-                                >
-                                    <a href="#" className='d-block fw-bold'>{step.name}</a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+          {/* CONTENT */}
+          <div className="content clearfix">
 
-                    <div className="content clearfix">
-                        {currentStep === 0 && <TabProjectType setFormData={setFormData} formData={formData} error={error} setError={setError} />}
-                        {currentStep === 1 && <TabProjectDetails />}
-                        {currentStep === 2 && <TabProjectSettings />}
-                        {currentStep === 3 && <TabAttachement />}
-                        {currentStep === 4 && <TabCompleted />}
-                    </div>
+            {currentStep === 0 && (
+              <TabProjectType
+                formData={formData}
+                setFormData={setFormData}
+                error={error}
+                setError={setError}
+              />
+            )}
 
-                    {/* Buttons */}
-                    <div className="actions clearfix">
-                        <ul>
-                            <li className={`${currentStep === 0 ? "disabled" : ""} ${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handlePrev(e)} disabled={currentStep === 0}>
-                                <a href="#">Previous</a>
-                            </li>
-                            <li className={`${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handleNext(e)} disabled={currentStep === steps.length - 1}>
-                                <a href="#">Next</a>
-                            </li>
-                        </ul>
+            {currentStep === 1 && (
+              <TabProjectDetails
+                clientType={formData.projectType}
+                selectedClient={selectedClient}
+                setSelectedClient={setSelectedClient}
+                selectedConsignee={selectedConsignee}
+                setSelectedConsignee={setSelectedConsignee}
+              />
+            )}
 
-                    </div>
-                </div>
-            </div>
-            
+            {currentStep === 2 && (
+              <TabAttachement 
+                onNext={handleAttachmentNext}
+                setIsUploading={setIsUploading}
+                currentStep={currentStep}
+              />
+            )}
+
+            {currentStep === 3 && (
+              <TabProjectSettings
+                clientType={formData.projectType}
+                initialClient={selectedClient}
+                initialConsignee={selectedConsignee}
+                attachmentData={attachmentData} // Pass month/year to next step
+              />
+            )}
+
+            {currentStep === 4 && <TabCompleted />}
+
+          </div>
+
+          {/* ACTIONS */}
+          <div className="actions clearfix">
+            <ul>
+              <li
+                className={`${currentStep === 0 ? "disabled" : ""}`}
+                onClick={handlePrev}
+              >
+                <a href="#">Previous</a>
+              </li>
+
+              <li
+                className={`${currentStep === steps.length - 1 ? "d-none" : ""}`}
+                onClick={handleNext}
+                disabled={isUploading}
+              >
+                <a href="#">
+                  {currentStep === 2 && isUploading ? "Uploading..." : "Next"}
+                </a>
+              </li>
+            </ul>
+          </div>
+
         </div>
-
-    )
+      </div>
+    </div>
+  )
 }
 
 export default ProjectCreateContent

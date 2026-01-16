@@ -27,7 +27,11 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
   const client_Type = clientType;
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
+  
+  // Validation state
+  const [errors, setErrors] = useState({});
 
+  // console.log( "client type sept 1", client_Type)
   const [selectedContract, setSelectedContract] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedConsignee, setSelectedConsignee] = useState(null);
@@ -74,87 +78,300 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
     about: "",
   });
 
-  // Initialize from session storage
-  useEffect(() => {
-    const savedEmployee = sessionStorage.getItem("employee_step1");
-
-    if (savedEmployee) {
-      const data = JSON.parse(savedEmployee);
-      
-      // Restore all employee fields
-      setEmployee(prev => ({
-        ...prev,
-        ...data,
-        dob: data.dob ? new Date(data.dob) : null,
-      }));
-
-      // Restore Jodit editor
-      setValue(data.about || "");
-      
-      // Restore dropdown selections
-      if (data.contract_id && contractOptions.length > 0) {
-        const contract = contractOptions.find(opt => opt.value === data.contract_id);
-        if (contract) {
-          setSelectedContract(contract);
-        }
-      }
-
-      if (data.consignee_id && consigneeOptions.length > 0) {
-        const consignee = consigneeOptions.find(opt => opt.value === data.consignee_id);
-        if (consignee) {
-          setSelectedConsignee(consignee);
-        }
-      }
-
-      if (data.designation_id && designationOptions.length > 0) {
-        const designation = designationOptions.find(opt => opt.value === data.designation_id);
-        if (designation) {
-          setSelectedDesignation(designation);
-        }
-      }
-
-      // Restore gender
-      if (data.gender) {
-        const gender = GenderOptions.find(opt => opt.value === data.gender);
-        if (gender) {
-          setSelectedGender(gender);
-        }
-      }
-
-      // Restore shift
-      if (data.shift) {
-        const shift = ShiftOptions.find(opt => opt.value === data.shift);
-        if (shift) {
-          setSelectedShift(shift);
-        }
-      }
-
-      // Restore religion
-      if (data.religion) {
-        const religion = ReligionOptions.find(opt => opt.value === data.religion);
-        if (religion) {
-          setSelectedReligion(religion);
-        }
-      }
-
-      // Restore marital status
-      if (data.marital_status) {
-        const marital = MaritalOptions.find(opt => opt.value === data.marital_status);
-        if (marital) {
-          setSelectedMarital(marital);
-        }
+  // Validation functions
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Required fields validation
+    if (!employee.contract_id) {
+      newErrors.contract_id = "Contract is required";
+    }
+    
+    if (!employee.name?.trim()) {
+      newErrors.name = "Employee name is required";
+    }
+    
+    // Email validation
+    if (employee.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    // Mobile number validation (10 digits only)
+    if (!employee.mobile_no) {
+      newErrors.mobile_no = "Mobile number is required";
+    } else if (!/^[6-9]\d{9}$/.test(employee.mobile_no)) {
+      newErrors.mobile_no = "Please enter a valid 10-digit mobile number starting with 6-9";
+    }
+    
+    // Total experience validation (numeric only, 0-50 years)
+    if (employee.total_experience) {
+      if (!/^\d+$/.test(employee.total_experience)) {
+        newErrors.total_experience = "Experience must be a number only";
+      } else if (parseInt(employee.total_experience) > 50) {
+        newErrors.total_experience = "Experience cannot exceed 50 years";
       }
     }
-  }, [contractOptions, consigneeOptions, designationOptions]);
+    
+    // Date of Birth validation (must be at least 18 years ago)
+    if (employee.dob) {
+      const today = new Date();
+      const minDate = new Date();
+      minDate.setFullYear(today.getFullYear() - 18);
+      
+      if (employee.dob > minDate) {
+        newErrors.dob = "Employee must be at least 18 years old";
+      }
+    }
+    
+    // IP Number validation (format: 2-4 letters followed by 4-6 digits)
+    if (!employee.ip_no) {
+      newErrors.ip_no = "IP number is required";
+    } else if (!/^[A-Z]{2,4}\d{4,6}$/.test(employee.ip_no)) {
+      newErrors.ip_no = "Format: 2-4 letters followed by 4-6 digits (e.g., ABC12345)";
+    }
+    
+    // UAN validation (12 digits only)
+    if (!employee.uan) {
+      newErrors.uan = "UAN is required";
+    } else if (!/^\d{12}$/.test(employee.uan)) {
+      newErrors.uan = "UAN must be exactly 12 digits";
+    }
+    
+    // Aadhar validation (12 digits only)
+    if (!employee.aadhar) {
+      newErrors.aadhar = "Aadhar number is required";
+    } else if (!/^\d{12}$/.test(employee.aadhar)) {
+      newErrors.aadhar = "Aadhar must be exactly 12 digits";
+    }
+    
+    // PAN validation (format: 5 letters, 4 digits, 1 letter)
+    if (!employee.pan) {
+      newErrors.pan = "PAN number is required";
+    } else if (!/^[A-Z]{5}\d{4}[A-Z]{1}$/.test(employee.pan)) {
+      newErrors.pan = "Format: 5 letters, 4 digits, 1 letter (e.g., ABCDE1234F)";
+    }
+    
+    // Address proof validation
+    if (!employee.address_proof?.trim()) {
+      newErrors.address_proof = "Address proof is required";
+    }
+    
+    // Reference validation
+    if (!employee.reference?.trim()) {
+      newErrors.reference = "Reference is required";
+    }
+    
+    // Number of children validation (single digit 0-9)
+    if (employee.no_of_children) {
+      if (!/^\d$/.test(employee.no_of_children)) {
+        newErrors.no_of_children = "Enter single digit only (0-9)";
+      } else if (parseInt(employee.no_of_children) > 9) {
+        newErrors.no_of_children = "Maximum 9 children allowed";
+      }
+    }
+    
+    // About employee validation
+    if (!employee.about?.trim()) {
+      newErrors.about = "About employee is required";
+    }
+    
+    return newErrors;
+  };
+
+  // Input handlers with format restrictions
+  const handlePhoneInput = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    const formattedValue = value.slice(0, 10); // Limit to 10 digits
+    
+    setEmployee(prev => ({
+      ...prev,
+      mobile_no: formattedValue
+    }));
+    clearError("mobile_no");
+  };
+
+  const handleChildrenInput = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    const formattedValue = value.slice(0, 1); // Limit to 1 digit
+    
+    setEmployee(prev => ({
+      ...prev,
+      no_of_children: formattedValue
+    }));
+    clearError("no_of_children");
+  };
+
+  const handleExperienceInput = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    const formattedValue = value.slice(0, 2); // Limit to 2 digits (max 50)
+    
+    setEmployee(prev => ({
+      ...prev,
+      total_experience: formattedValue
+    }));
+    clearError("total_experience");
+  };
+
+  const handleUANAadharInput = (e) => {
+    const { name, value } = e.target;
+    const formattedValue = value.replace(/\D/g, '').slice(0, 12); // Only digits, max 12
+    
+    setEmployee(prev => ({
+      ...prev,
+      [name]: formattedValue
+    }));
+    clearError(name);
+  };
+
+  const handlePANInput = (e) => {
+    const value = e.target.value.toUpperCase(); // Convert to uppercase
+    const formattedValue = value.replace(/[^A-Z0-9]/g, ''); // Only letters and numbers
+    const slicedValue = formattedValue.slice(0, 10); // PAN is always 10 chars
+    
+    setEmployee(prev => ({
+      ...prev,
+      pan: slicedValue
+    }));
+    clearError("pan");
+  };
+
+  const handleIPInput = (e) => {
+    const value = e.target.value.toUpperCase(); // Convert to uppercase
+    const formattedValue = value.replace(/[^A-Z0-9]/g, ''); // Only letters and numbers
+    const slicedValue = formattedValue.slice(0, 10); // Max 10 chars (4 letters + 6 digits)
+    
+    setEmployee(prev => ({
+      ...prev,
+      ip_no: slicedValue
+    }));
+    clearError("ip_no");
+  };
+
+  // Format validation for PAN on blur
+  const validatePANOnBlur = () => {
+    if (employee.pan && !/^[A-Z]{5}\d{4}[A-Z]{1}$/.test(employee.pan)) {
+      setErrors(prev => ({
+        ...prev,
+        pan: "Format: 5 letters, 4 digits, 1 letter (e.g., ABCDE1234F)"
+      }));
+    } else {
+      clearError("pan");
+    }
+  };
+
+  // Format validation for IP on blur
+  const validateIPOnBlur = () => {
+    if (employee.ip_no && !/^[A-Z]{2,4}\d{4,6}$/.test(employee.ip_no)) {
+      setErrors(prev => ({
+        ...prev,
+        ip_no: "Format: 2-4 letters followed by 4-6 digits (e.g., ABC12345)"
+      }));
+    } else {
+      clearError("ip_no");
+    }
+  };
+
+  // Clear error when field changes
+  const clearError = (fieldName) => {
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[fieldName];
+      return newErrors;
+    });
+  };
+
+  // Initialize from session storage
+// Initialize from session storage
+useEffect(() => {
+  const savedEmployee = sessionStorage.getItem("employee_step1");
+
+  if (savedEmployee) {
+    const data = JSON.parse(savedEmployee);
+    
+    // Restore all employee fields
+    setEmployee(prev => ({
+      ...prev,
+      ...data,
+      dob: data.dob ? new Date(data.dob) : null,
+    }));
+
+    // Restore Jodit editor
+    setValue(data.about || "");
+    
+    // Restore dropdown selections
+    if (data.contract_id && contractOptions.length > 0) {
+      const contract = contractOptions.find(opt => opt.value === data.contract_id);
+      if (contract) {
+        setSelectedContract(contract);
+      }
+    }
+
+    if (data.consignee_id && consigneeOptions.length > 0) {
+      const consignee = consigneeOptions.find(opt => opt.value === data.consignee_id);
+      if (consignee) {
+        setSelectedConsignee(consignee);
+      }
+    }
+
+    if (data.designation_id && designationOptions.length > 0) {
+      const designation = designationOptions.find(opt => opt.value === data.designation_id);
+      if (designation) {
+        setSelectedDesignation(designation);
+      }
+    }
+
+    // Restore gender
+    if (data.gender) {
+      const gender = GenderOptions.find(opt => opt.value === data.gender);
+      if (gender) {
+        setSelectedGender(gender);
+      }
+    }
+
+    // Restore shift
+    if (data.shift) {
+      const shift = ShiftOptions.find(opt => opt.value === data.shift);
+      if (shift) {
+        setSelectedShift(shift);
+      }
+    }
+
+    // Restore religion
+    if (data.religion) {
+      const religion = ReligionOptions.find(opt => opt.value === data.religion);
+      if (religion) {
+        setSelectedReligion(religion);
+      }
+    }
+
+    // Restore marital status
+    if (data.marital_status) {
+      const marital = MaritalOptions.find(opt => opt.value === data.marital_status);
+      if (marital) {
+        setSelectedMarital(marital);
+      }
+    }
+
+    // Restore replaced employee selection
+    if (data.replaced_employee) {
+      const replaced = ReplacedOptions.find(opt => opt.value === data.replaced_employee);
+      if (replaced) {
+        setSelectedReplaced(replaced);
+      }
+    }
+  }
+}, [contractOptions, consigneeOptions, designationOptions]);
 
   // Fetch contracts
   useEffect(() => {
+    const company_id = sessionStorage.getItem("selected_company");
+    // console.log( company_id)
     const fetchContracts = async () => {
       try {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          `${API_BASE}/client/employee/view`,
+          `${API_BASE}/client/employee/view?company_id=${company_id}?client_type=${client_Type}`,
           {
             method: "GET",
             headers: {
@@ -200,6 +417,7 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
 
   const handleContractChange = async (option) => {
     setSelectedContract(option);
+    clearError("contract_id");
 
     setEmployee((prev) => ({
       ...prev,
@@ -326,6 +544,7 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
       ...prev,
       [name]: value,
     }));
+    clearError(name);
   };
 
   const handleSelectChange = (key, option) => {
@@ -333,104 +552,138 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
       ...prev,
       [key]: option?.value ?? null,
     }));
+    clearError(key);
   };
 
   const handleSaveAndNext = async (e) => {
-    const token = localStorage.getItem("token");
-    const company_id = sessionStorage.getItem("selected_company");
-
-    if (!company_id) {
-      alert("Company not selected");
-      router.replace("/company");
-      return false;
+  // Validate form before submission
+  const validationErrors = validateForm();
+  
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    
+    // Scroll to first error
+    const firstErrorField = Object.keys(validationErrors)[0];
+    const element = document.querySelector(`[name="${firstErrorField}"]`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.focus();
     }
+    
+    alert("Please fix the validation errors before proceeding.");
+    return false;
+  }
 
-    if (!token) {
-      alert("Auth error");
-      return false;
-    }
+  const token = localStorage.getItem("token");
+  const company_id = sessionStorage.getItem("selected_company");
 
-    try {
-      setLoading(true);
+  if (!company_id) {
+    alert("Company not selected");
+    router.replace("/company");
+    return false;
+  }
 
-      const employeeId = sessionStorage.getItem("employee_id");
+  if (!token) {
+    alert("Auth error");
+    return false;
+  }
 
-      const payload = {
-        id: employeeId ? Number(employeeId) : undefined,
-        company_id: Number(company_id),
-        client_id: clientId || null,
-        client_type: client_Type,
-        step: "1",
-        contract_id: employee.contract_id,
-        client_name: employee.client_name,
-        consignee_id: employee.consignee_id,
-        designation_id: employee.designation_name,
-        designation: employee.designation_id,
-        name: employee.name,
-        email: employee.email,
-        mobile_no: employee.mobile_no,
-        total_experience: employee.total_experience,
-        dob: formatDate(employee.dob),
-        gender: employee.gender,
-        shift: employee.shift,
-        religion: employee.religion,
-        marital_status: employee.marital_status,
-        no_of_children: employee.no_of_children,
-        ip_no: employee.ip_no,
-        uan: employee.uan,
-        aadhar: employee.aadhar,
-        pan: employee.pan,
-        address_proof: employee.address_proof,
-        reference: employee.reference,
-        about: employee.about,
-      };
+  try {
+    setLoading(true);
 
-      const response = await fetch(
-        `${API_BASE}/employee/store`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+    const employeeId = sessionStorage.getItem("employee_id");
 
-      const result = await response.json();
-      console.log( "result", result)
-      if (result?.status === true) {
-        const employeeId = result.employee.id;
+    // Convert replaced_employee to boolean
+    const replacedEmployeeBool = employee.replaced_employee === "yes" ? true : 
+                                employee.replaced_employee === "no" ? false : null;
 
-        // Store employee id
-        sessionStorage.setItem("employee_id", employeeId);
+    const payload = {
+      id: employeeId ? Number(employeeId) : undefined,
+      company_id: Number(company_id),
+      client_id: clientId || null,
+      client_type: client_Type,
+      step: "1",
+      contract_id: employee.contract_id,
+      client_name: employee.client_name,
+      consignee_id: employee.consignee_id,
+      designation_id: employee.designation_name,
+      designation: employee.designation_id,
+      name: employee.name,
+      email: employee.email,
+      mobile_no: employee.mobile_no,
+      total_experience: employee.total_experience,
+      dob: formatDate(employee.dob),
+      gender: employee.gender,
+      shift: employee.shift,
+      religion: employee.religion,
+      marital_status: employee.marital_status,
+      no_of_children: employee.no_of_children,
+      ip_no: employee.ip_no,
+      uan: employee.uan,
+      aadhar: employee.aadhar,
+      pan: employee.pan,
+      address_proof: employee.address_proof,
+      reference: employee.reference,
+      about: employee.about,
+      replaced_employee: replacedEmployeeBool, // यहाँ boolean format में भेजें
+    };
 
-        // Store full employee form data
-        sessionStorage.setItem(
-          "employee_step1",
-          JSON.stringify({
-            ...result,
-            id: employeeId,
-            dob: employee.dob ? formatDate(employee.dob) : null,
-          })
-        );
-        
-        console.log("Saved successfully", result);
-        return true;
-      } else {
-        throw new Error(result.message || "Failed to save employee details");
+    const response = await fetch(
+      `${API_BASE}/employee/store`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       }
-    } catch (err) {
-      alert(err.message);
-      return false;
-    } finally {
-      setLoading(false);
+    );
+
+    const result = await response.json();
+    console.log("result", result);
+    
+    if (result?.status === true) {
+      const employeeId = result.employee.id;
+
+      // Store employee id
+      sessionStorage.setItem("employee_id", employeeId);
+
+      // Store full employee form data
+      sessionStorage.setItem(
+        "employee_step1",
+        JSON.stringify({
+          ...employee,
+          id: employeeId,
+          dob: employee.dob ? formatDate(employee.dob) : null,
+          replaced_employee: employee.replaced_employee, // Store as string for UI
+        })
+      );
+      
+      console.log("Saved successfully", result);
+      return true;
+    } else {
+      throw new Error(result.message || "Failed to save employee details");
     }
-  };
+  } catch (err) {
+    alert(err.message);
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
 
   useImperativeHandle(ref, () => ({
     submit: handleSaveAndNext,
   }));
+
+  // Helper function to render error message
+  const renderErrorMessage = (fieldName) => {
+    if (errors[fieldName]) {
+      return <div className="text-danger small mt-1">{errors[fieldName]}</div>;
+    }
+    return null;
+  };
 
   return (
     <section className="step-body mt-4 body current stepChange">
@@ -451,7 +704,9 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 selectedOption={selectedContract}
                 defaultSelect="SContract"
                 onSelectOption={handleContractChange}
+                className={errors.contract_id ? "is-invalid" : ""}
               />
+              {renderErrorMessage("contract_id")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -484,43 +739,50 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-              <label className="form-label">Employee Name</label>
+              <label className="form-label">Employee Name <span className="text-danger">*</span></label>
               <input
-                className="form-control"
+                className={`form-control ${errors.name ? "is-invalid" : ""}`}
                 name="name"
                 value={employee.name}
                 onChange={handleInputChange}
               />
+              {renderErrorMessage("name")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
               <label className="form-label">Email</label>
               <input
-                className="form-control"
+                className={`form-control ${errors.email ? "is-invalid" : ""}`}
                 name="email"
                 value={employee.email}
                 onChange={handleInputChange}
               />
+              {renderErrorMessage("email")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-              <label className="form-label">Mobile No</label>
+              <label className="form-label">Mobile No <span className="text-danger">*</span></label>
               <input
-                className="form-control"
+                className={`form-control ${errors.mobile_no ? "is-invalid" : ""}`}
                 name="mobile_no"
                 value={employee.mobile_no}
-                onChange={handleInputChange}
+                onChange={handlePhoneInput}
+                maxLength="10"
+                placeholder="10 digits only"
               />
+              {renderErrorMessage("mobile_no")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-              <label className="form-label">Total Experience</label>
+              <label className="form-label">Total Experience (Years)</label>
               <input 
-                className="form-control"
+                className={`form-control ${errors.total_experience ? "is-invalid" : ""}`}
                 name="total_experience"
                 value={employee.total_experience}
-                onChange={handleInputChange}
+                onChange={handleExperienceInput}
+                placeholder="Digits only (0-50)"
               />
+              {renderErrorMessage("total_experience")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -542,11 +804,17 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
               <label className="form-label">Date of Birth</label>
               <DatePicker
                 selected={employee.dob}
-                onChange={(date) =>
-                  setEmployee((prev) => ({ ...prev, dob: date }))
-                }
-                className="form-control"
+                onChange={(date) => {
+                  setEmployee((prev) => ({ ...prev, dob: date }));
+                  clearError("dob");
+                }}
+                className={`form-control ${errors.dob ? "is-invalid" : ""}`}
+                maxDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
+                showYearDropdown
+                dropdownMode="select"
+                dateFormat="dd/MM/yyyy"
               />
+              {renderErrorMessage("dob")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -615,11 +883,14 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${errors.no_of_children ? "is-invalid" : ""}`}
                 name="no_of_children"
                 value={employee.no_of_children}
-                onChange={handleInputChange}
+                onChange={handleChildrenInput}
+                placeholder="Single digit (0-9)"
+                maxLength="1"
               />
+              {renderErrorMessage("no_of_children")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -627,11 +898,14 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 IP No <span className="text-danger">*</span>
               </label>
               <input
-                className="form-control"
+                className={`form-control ${errors.ip_no ? "is-invalid" : ""}`}
                 name="ip_no"
                 value={employee.ip_no}
-                onChange={handleInputChange}
+                onChange={handleIPInput}
+                onBlur={validateIPOnBlur}
+                placeholder="e.g., ABC12345"
               />
+              {renderErrorMessage("ip_no")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -639,11 +913,14 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 UAN <span className="text-danger">*</span>
               </label>
               <input
-                className="form-control"
+                className={`form-control ${errors.uan ? "is-invalid" : ""}`}
                 name="uan"
                 value={employee.uan}
-                onChange={handleInputChange}
+                onChange={handleUANAadharInput}
+                maxLength="12"
+                placeholder="12 digits only"
               />
+              {renderErrorMessage("uan")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -651,11 +928,14 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 Aadhar no <span className="text-danger">*</span>
               </label>
               <input
-                className="form-control"
+                className={`form-control ${errors.aadhar ? "is-invalid" : ""}`}
                 name="aadhar"
                 value={employee.aadhar}
-                onChange={handleInputChange}
+                onChange={handleUANAadharInput}
+                maxLength="12"
+                placeholder="12 digits only"
               />
+              {renderErrorMessage("aadhar")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -663,11 +943,15 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 Pan Card no <span className="text-danger">*</span>
               </label>
               <input
-                className="form-control"
+                className={`form-control ${errors.pan ? "is-invalid" : ""}`}
                 name="pan"
                 value={employee.pan}
-                onChange={handleInputChange}
+                onChange={handlePANInput}
+                onBlur={validatePANOnBlur}
+                placeholder="e.g., ABCDE1234F"
+                style={{ textTransform: "uppercase" }}
               />
+              {renderErrorMessage("pan")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -676,11 +960,12 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 <span className="text-danger">*</span>
               </label>
               <input
-                className="form-control"
+                className={`form-control ${errors.address_proof ? "is-invalid" : ""}`}
                 name="address_proof"
                 value={employee.address_proof}
                 onChange={handleInputChange}
               />
+              {renderErrorMessage("address_proof")}
             </div>
 
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
@@ -688,11 +973,12 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 Reference <span className="text-danger">*</span>
               </label>
               <input
-                className="form-control"
+                className={`form-control ${errors.reference ? "is-invalid" : ""}`}
                 name="reference"
                 value={employee.reference}
                 onChange={handleInputChange}
               />
+              {renderErrorMessage("reference")}
             </div>
 
             <div className="mb-4">
@@ -705,8 +991,10 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
                 onChange={(html) => {
                   setValue(html);
                   setEmployee(prev => ({ ...prev, about: html }));
+                  clearError("about");
                 }}
               />
+              {renderErrorMessage("about")}
             </div>
           </div>
         </fieldset>

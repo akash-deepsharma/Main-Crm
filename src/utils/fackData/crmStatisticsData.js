@@ -2,7 +2,7 @@ export const crmStatisticsData = [
     {
         id: 1,
         title: "Government Client",
-        total_number: "76",
+        total_number: "76s",
         completed_number: "45",
         progress: "40.88%",
         progress_info: "31 Completed",

@@ -151,9 +151,9 @@ useEffect(() => {
 
                     <div className="content clearfix">
                         {currentStep === 0 && <TabEmployeeType setFormData={setFormData} formData={formData} error={error} setError={setError}  onSelectType={() => {
-      setSubmittedSteps(prev => ({ ...prev, 0: true }));
-      setCurrentStep(1);
-    }} />}
+                            setSubmittedSteps(prev => ({ ...prev, 0: true }));
+                            setCurrentStep(1);
+                          }} />}
                         {currentStep === 1 && <TabEmployeeDetails ref={employeeDetailsRef} clientId={clientId}  clientType={formData.employeeType}  onNext={() => setCurrentStep(prev => prev + 0)}/>}
                         {currentStep === 2 && <TabEmployeeEducation ref={employeeEductaionRef} clientId={clientId}/>}
                         {currentStep === 3 && <TabFamilyBank ref={familyBankRef} clientId={clientId}  setFormData={setFormData} formData={formData} error={error} setError={setError} />}

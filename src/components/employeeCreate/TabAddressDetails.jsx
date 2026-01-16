@@ -10,6 +10,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [sameAsPresent, setSameAsPresent] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
   /* =========================
      STATE
@@ -74,32 +75,176 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
   }, [initialData]);
 
   /* =========================
+     VALIDATION FUNCTIONS
+  ========================== */
+
+  const validateZipCode = (zipCode, fieldName) => {
+    if (!zipCode) {
+      return `${fieldName} is required`;
+    }
+    
+    // For India: 6 digits
+    if (presentAddress.presentCountry.toLowerCase() === 'india' || 
+        permanentAddress.permanentCountry.toLowerCase() === 'india') {
+      if (!/^\d{6}$/.test(zipCode)) {
+        return "Indian ZIP code must be 6 digits";
+      }
+    }
+    // For US: 5 digits or 5+4 format
+    else if (presentAddress.presentCountry.toLowerCase() === 'united states' || 
+             permanentAddress.permanentCountry.toLowerCase() === 'united states') {
+      if (!/^\d{5}(-\d{4})?$/.test(zipCode)) {
+        return "US ZIP code format: 12345 or 12345-6789";
+      }
+    }
+    // For UK: Various formats
+    else if (presentAddress.presentCountry.toLowerCase() === 'united kingdom' || 
+             permanentAddress.permanentCountry.toLowerCase() === 'united kingdom') {
+      if (!/^[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2}$/.test(zipCode.toUpperCase())) {
+        return "UK postcode format: e.g., SW1A 1AA";
+      }
+    }
+    // Generic validation for other countries: 3-10 alphanumeric characters
+    else if (!/^[A-Z0-9\s-]{3,10}$/i.test(zipCode)) {
+      return "Enter a valid ZIP/Postal code (3-10 characters)";
+    }
+    
+    return null;
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate present address fields
+    if (!presentAddress.presentAddress?.trim()) {
+      newErrors.presentAddress = "Present address is required";
+    }
+    
+    if (!presentAddress.presentCity?.trim()) {
+      newErrors.presentCity = "Present city is required";
+    } else if (!/^[A-Za-z\s]{2,50}$/.test(presentAddress.presentCity)) {
+      newErrors.presentCity = "Enter a valid city name";
+    }
+    
+    if (!presentAddress.presentState?.trim()) {
+      newErrors.presentState = "Present state is required";
+    } else if (!/^[A-Za-z\s]{2,50}$/.test(presentAddress.presentState)) {
+      newErrors.presentState = "Enter a valid state name";
+    }
+    
+    if (!presentAddress.presentCountry?.trim()) {
+      newErrors.presentCountry = "Present country is required";
+    } else if (!/^[A-Za-z\s]{2,50}$/.test(presentAddress.presentCountry)) {
+      newErrors.presentCountry = "Enter a valid country name";
+    }
+    
+    const zipError = validateZipCode(presentAddress.presentZipCode, "Present ZIP code");
+    if (zipError) {
+      newErrors.presentZipCode = zipError;
+    }
+
+    // Validate permanent address fields (only if not same as present)
+    if (!sameAsPresent) {
+      if (!permanentAddress.permanentAddress?.trim()) {
+        newErrors.permanentAddress = "Permanent address is required";
+      }
+      
+      if (!permanentAddress.permanentCity?.trim()) {
+        newErrors.permanentCity = "Permanent city is required";
+      } else if (!/^[A-Za-z\s]{2,50}$/.test(permanentAddress.permanentCity)) {
+        newErrors.permanentCity = "Enter a valid city name";
+      }
+      
+      if (!permanentAddress.permanentState?.trim()) {
+        newErrors.permanentState = "Permanent state is required";
+      } else if (!/^[A-Za-z\s]{2,50}$/.test(permanentAddress.permanentState)) {
+        newErrors.permanentState = "Enter a valid state name";
+      }
+      
+      if (!permanentAddress.permanentCountry?.trim()) {
+        newErrors.permanentCountry = "Permanent country is required";
+      } else if (!/^[A-Za-z\s]{2,50}$/.test(permanentAddress.permanentCountry)) {
+        newErrors.permanentCountry = "Enter a valid country name";
+      }
+      
+      const permanentZipError = validateZipCode(permanentAddress.permanentzipcode, "Permanent ZIP code");
+      if (permanentZipError) {
+        newErrors.permanentzipcode = permanentZipError;
+      }
+    } else {
+      // If same as present, copy validation from present fields
+      const permanentZipError = validateZipCode(permanentAddress.permanentzipcode, "Permanent ZIP code");
+      if (permanentZipError) {
+        newErrors.permanentzipcode = permanentZipError;
+      }
+    }
+
+    setValidationErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const clearError = (fieldName) => {
+    setValidationErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[fieldName];
+      return newErrors;
+    });
+  };
+
+  /* =========================
      HANDLERS
   ========================== */
 
   const handlePresentAddressChange = (e) => {
     const { name, value } = e.target;
+    
+    // Format based on field type
+    let formattedValue = value;
+    if (name === 'presentZipCode') {
+      formattedValue = value.toUpperCase().replace(/[^A-Z0-9\s-]/g, '');
+    } else if (name === 'presentCity' || name === 'presentState' || name === 'presentCountry') {
+      formattedValue = value.replace(/[^A-Za-z\s]/g, '');
+    }
+    
     setPresentAddress(prev => ({
       ...prev,
-      [name]: value
+      [name]: formattedValue
     }));
+
+    // Clear error for this field
+    clearError(name);
 
     // If "same as present" is checked, update permanent address too
     if (sameAsPresent) {
       const permanentField = name.replace('present', 'permanent');
       setPermanentAddress(prev => ({
         ...prev,
-        [permanentField]: value
+        [permanentField]: formattedValue
       }));
+      
+      // Also clear error for corresponding permanent field
+      clearError(permanentField);
     }
   };
 
   const handlePermanentAddressChange = (e) => {
     const { name, value } = e.target;
+    
+    // Format based on field type
+    let formattedValue = value;
+    if (name === 'permanentzipcode') {
+      formattedValue = value.toUpperCase().replace(/[^A-Z0-9\s-]/g, '');
+    } else if (name === 'permanentCity' || name === 'permanentState' || name === 'permanentCountry') {
+      formattedValue = value.replace(/[^A-Za-z\s]/g, '');
+    }
+    
     setPermanentAddress(prev => ({
       ...prev,
-      [name]: value
+      [name]: formattedValue
     }));
+
+    // Clear error for this field
+    clearError(name);
   };
 
   const handleSameAsPresentChange = (e) => {
@@ -115,40 +260,51 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
         permanentCountry: presentAddress.presentCountry,
         permanentzipcode: presentAddress.presentZipCode
       });
+
+      // Clear all permanent address errors
+      const permanentFields = ['permanentAddress', 'permanentCity', 'permanentState', 'permanentCountry', 'permanentzipcode'];
+      permanentFields.forEach(field => clearError(field));
     }
   };
 
-  /* =========================
-     VALIDATION
-  ========================== */
-
-  const validateForm = () => {
-    // Check required fields for present address
-    const requiredPresentFields = ['presentAddress', 'presentCity', 'presentState', 'presentCountry', 'presentZipCode'];
-    for (const field of requiredPresentFields) {
-      if (!presentAddress[field]?.trim()) {
-        alert(`Please fill in Present ${field.replace('present', '').replace(/([A-Z])/g, ' $1').trim()}`);
-        return false;
-      }
+  // Handle ZIP code input with formatting
+  const handleZipCodeInput = (e, fieldName, setAddressFunction) => {
+    const { value } = e.target;
+    let formattedValue = value.toUpperCase().replace(/[^A-Z0-9\s-]/g, '');
+    
+    // Auto-format for US ZIP codes
+    if ((presentAddress.presentCountry.toLowerCase() === 'united states' || 
+         permanentAddress.permanentCountry.toLowerCase() === 'united states') && 
+        formattedValue.length === 5 && !formattedValue.includes('-')) {
+      formattedValue = formattedValue.slice(0, 5);
     }
-
-    // Check required fields for permanent address
-    const requiredPermanentFields = ['permanentAddress', 'permanentCity', 'permanentState', 'permanentCountry', 'permanentzipcode'];
-    for (const field of requiredPermanentFields) {
-      if (!permanentAddress[field]?.trim()) {
-        alert(`Please fill in Permanent ${field.replace('permanent', '').replace(/([A-Z])/g, ' $1').trim()}`);
-        return false;
-      }
-    }
-
-    return true;
+    
+    setAddressFunction(prev => ({
+      ...prev,
+      [fieldName]: formattedValue
+    }));
+    
+    clearError(fieldName);
   };
 
   /* =========================
-     SUBMIT (API) - CORRECTED VERSION
+     SUBMIT (API)
   ========================== */
 
   const handleSaveAddressDetails = async () => {
+    // Validate form before submission
+    if (!validateForm()) {
+      // Scroll to first error
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const element = document.querySelector(`[name="${firstErrorField}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+      
+      return false;
+    }
+
     const token = localStorage.getItem("token");
     const employeeId = sessionStorage.getItem("employee_id");
 
@@ -158,24 +314,17 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
       return false;
     }
 
-    // Validate form
-    if (!validateForm()) {
-      return false;
-    }
-
     try {
       setLoading(true);
 
-      // CORRECTION: Create a single object with all address fields
+      // Create payload
       const addressPayload = {
-        // Present address fields
         presentAddress: presentAddress.presentAddress,
         presentCity: presentAddress.presentCity,
         presentState: presentAddress.presentState,
         presentCountry: presentAddress.presentCountry,
         presentZipCode: presentAddress.presentZipCode,
         
-        // Permanent address fields
         permanentAddress: permanentAddress.permanentAddress,
         permanentCity: permanentAddress.permanentCity,
         permanentState: permanentAddress.permanentState,
@@ -186,23 +335,12 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
       console.log("Address payload:", addressPayload);
 
       const formData = new FormData();
-
-      // Append employee_id and step
       formData.append("employee_id", employeeId);
-      formData.append("step", "4"); // Assuming address is step 4
+      formData.append("step", "4");
       
-      // CORRECTION: Append each address field individually
       Object.keys(addressPayload).forEach(key => {
         formData.append(key, addressPayload[key]);
       });
-
-      // OR if your API expects a JSON string for address_details:
-      // formData.append("address_details", JSON.stringify(addressPayload));
-
-      console.log("FormData entries:");
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
 
       const response = await fetch(`${API_BASE}/employee/store`, {
         method: "POST",
@@ -238,6 +376,17 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
   }));
 
   /* =========================
+     HELPER FUNCTION
+  ========================== */
+
+  const renderErrorMessage = (fieldName) => {
+    if (validationErrors[fieldName]) {
+      return <div className="text-danger small mt-1">{validationErrors[fieldName]}</div>;
+    }
+    return null;
+  };
+
+  /* =========================
      UI
   ========================== */
 
@@ -258,13 +407,14 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.presentAddress ? "is-invalid" : ""}`}
                 name="presentAddress"
                 value={presentAddress.presentAddress}
                 onChange={handlePresentAddressChange}
                 placeholder="Enter present address"
                 required
               />
+              {renderErrorMessage("presentAddress")}
             </div>
 
             <div className="col-lg-4 col-md-6 mb-4">
@@ -273,13 +423,14 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.presentCity ? "is-invalid" : ""}`}
                 name="presentCity"
                 value={presentAddress.presentCity}
                 onChange={handlePresentAddressChange}
                 placeholder="Enter city"
                 required
               />
+              {renderErrorMessage("presentCity")}
             </div>
 
             <div className="col-lg-4 col-md-6 mb-4">
@@ -288,13 +439,14 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.presentState ? "is-invalid" : ""}`}
                 name="presentState"
                 value={presentAddress.presentState}
                 onChange={handlePresentAddressChange}
                 placeholder="Enter state"
                 required
               />
+              {renderErrorMessage("presentState")}
             </div>
 
             <div className="col-lg-4 col-md-6 mb-4">
@@ -303,28 +455,36 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.presentCountry ? "is-invalid" : ""}`}
                 name="presentCountry"
                 value={presentAddress.presentCountry}
                 onChange={handlePresentAddressChange}
                 placeholder="Enter country"
                 required
               />
+              {renderErrorMessage("presentCountry")}
             </div>
 
             <div className="col-lg-4 col-md-6 mb-4">
               <label className="fw-semibold text-dark">
-                ZIP Code <span className="text-danger">*</span>
+                ZIP/Postal Code <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.presentZipCode ? "is-invalid" : ""}`}
                 name="presentZipCode"
                 value={presentAddress.presentZipCode}
-                onChange={handlePresentAddressChange}
-                placeholder="Enter ZIP code"
+                onChange={(e) => handleZipCodeInput(e, 'presentZipCode', setPresentAddress)}
+                placeholder={
+                  presentAddress.presentCountry.toLowerCase() === 'india' ? "6 digits (e.g., 110001)" :
+                  presentAddress.presentCountry.toLowerCase() === 'united states' ? "12345 or 12345-6789" :
+                  presentAddress.presentCountry.toLowerCase() === 'united kingdom' ? "SW1A 1AA" :
+                  "Enter ZIP/Postal code"
+                }
+                maxLength="10"
                 required
               />
+              {renderErrorMessage("presentZipCode")}
             </div>
           </div>
 
@@ -363,7 +523,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.permanentAddress ? "is-invalid" : ""}`}
                 name="permanentAddress"
                 value={permanentAddress.permanentAddress}
                 onChange={handlePermanentAddressChange}
@@ -371,6 +531,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
                 required
                 disabled={sameAsPresent}
               />
+              {renderErrorMessage("permanentAddress")}
               {sameAsPresent && (
                 <small className="text-muted">Auto-filled from present address</small>
               )}
@@ -382,7 +543,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.permanentCity ? "is-invalid" : ""}`}
                 name="permanentCity"
                 value={permanentAddress.permanentCity}
                 onChange={handlePermanentAddressChange}
@@ -390,6 +551,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
                 required
                 disabled={sameAsPresent}
               />
+              {renderErrorMessage("permanentCity")}
               {sameAsPresent && (
                 <small className="text-muted">Auto-filled from present address</small>
               )}
@@ -401,7 +563,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.permanentState ? "is-invalid" : ""}`}
                 name="permanentState"
                 value={permanentAddress.permanentState}
                 onChange={handlePermanentAddressChange}
@@ -409,6 +571,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
                 required
                 disabled={sameAsPresent}
               />
+              {renderErrorMessage("permanentState")}
               {sameAsPresent && (
                 <small className="text-muted">Auto-filled from present address</small>
               )}
@@ -420,7 +583,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.permanentCountry ? "is-invalid" : ""}`}
                 name="permanentCountry"
                 value={permanentAddress.permanentCountry}
                 onChange={handlePermanentAddressChange}
@@ -428,6 +591,7 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
                 required
                 disabled={sameAsPresent}
               />
+              {renderErrorMessage("permanentCountry")}
               {sameAsPresent && (
                 <small className="text-muted">Auto-filled from present address</small>
               )}
@@ -435,18 +599,25 @@ const TabAddressDetails = forwardRef(({ error, initialData }, ref) => {
 
             <div className="col-lg-4 col-md-6 mb-4">
               <label className="fw-semibold text-dark">
-                ZIP Code <span className="text-danger">*</span>
+                ZIP/Postal Code <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${validationErrors.permanentzipcode ? "is-invalid" : ""}`}
                 name="permanentzipcode"
                 value={permanentAddress.permanentzipcode}
-                onChange={handlePermanentAddressChange}
-                placeholder="Enter ZIP code"
+                onChange={(e) => handleZipCodeInput(e, 'permanentzipcode', setPermanentAddress)}
+                placeholder={
+                  permanentAddress.permanentCountry.toLowerCase() === 'india' ? "6 digits (e.g., 110001)" :
+                  permanentAddress.permanentCountry.toLowerCase() === 'united states' ? "12345 or 12345-6789" :
+                  permanentAddress.permanentCountry.toLowerCase() === 'united kingdom' ? "SW1A 1AA" :
+                  "Enter ZIP/Postal code"
+                }
+                maxLength="10"
                 required
                 disabled={sameAsPresent}
               />
+              {renderErrorMessage("permanentzipcode")}
               {sameAsPresent && (
                 <small className="text-muted">Auto-filled from present address</small>
               )}

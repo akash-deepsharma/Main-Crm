@@ -21,6 +21,7 @@ const page = () => {
  const [token, setToken] = useState(null);
   const [compid, setCompid] = useState(null);
   const [tableData, setTableData] = useState([]);
+  const [wagesData, setWagesData] = useState([]);
   const [loading, setLoading] = useState(false);
   console.log("first table data", tableData);
 
@@ -75,6 +76,51 @@ const page = () => {
 
     fetchClients();
   }, [token, compid]);
+
+
+
+  useEffect(() => {
+    if (!token || !compid) return;
+
+    const fetchwagesData = async () => {
+      try {
+        setLoading(true);
+
+        const params = new URLSearchParams({
+          company_id: compid,
+          client_type: type,
+          client_id: client_id,
+        });
+
+        const response = await fetch(
+          `${BASE_URL}/client/wages?${params.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+        console.log("client view wages api data", result)
+
+        if (!result?.status) {
+          console.error(result?.message || 'API Error');
+          return;
+        }
+
+     
+
+        setWagesData(result);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchwagesData();
+  }, [token, compid]);
   
   const consigneeData = tableData.data?.consignees
   const servicesData = tableData.data?.services
@@ -92,7 +138,7 @@ const page = () => {
           <div className="tab-pane fade" id="financialTab"><TabFinancialSheet data={financialData} /></div>
           <div className="tab-pane fade" id="activityTab"><TabProjectConsignee  data={consigneeData}/></div>
           <div className="tab-pane fade" id="timesheetsTab"><TabClientServices data={servicesData} /></div>
-          <div className="tab-pane fade" id="milestonesTab"><TabWagesSheet /></div>
+          <div className="tab-pane fade" id="milestonesTab"><TabWagesSheet data={wagesData}/></div>
           <div className="tab-pane fade" id="discussionsTab"><TabDownloadSheet data={tableData}/></div>
           {/* <div className="tab-pane fade" id="discussionsTab"><LeadsEmptyCard title="No discussions yet!" description="There is no discussions on this project" /></div> */}
         </div>

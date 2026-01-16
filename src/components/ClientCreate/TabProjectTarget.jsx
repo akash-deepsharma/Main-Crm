@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle, useMemo } from "react";
 // import useJoditConfig from "@/hooks/useJoditConfig";
 import SelectDropdown from "@/components/shared/SelectDropdown";
 
@@ -141,17 +141,28 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
     setTotals((prev) => ({ ...prev, [field]: value }));
   };
 
-  const Gender = [
-    { value: "Male", label: "Male", color: "#3454d1" },
-    { value: "Female", label: "Female", color: "#41b2c4" },
-    { value: "Any", label: "Any", color: "#ea4d4d" },
-  ];
+  // const Gender = [
+  //   { value: "Male", label: "Male", color: "#3454d1" },
+  //   { value: "Female", label: "Female", color: "#41b2c4" },
+  //   { value: "Any", label: "Any", color: "#ea4d4d" },
+  // ];
 
-  const Skill = [
-    { value: "Semi-Skilled", label: "Semi-Skilled", color: "#3454d1" },
-    { value: "Skilled", label: "Skilled", color: "#41b2c4" },
-    { value: "Any", label: "Any", color: "#ea4d4d" },
-  ];
+  // const Skill = [
+  //   { value: "Semi-Skilled", label: "Semi-Skilled", color: "#3454d1" },
+  //   { value: "Skilled", label: "Skilled", color: "#41b2c4" },
+  //   { value: "Any", label: "Any", color: "#ea4d4d" },
+  // ];
+  const Gender = useMemo(() => [
+  { value: "Male", label: "Male", color: "#3454d1" },
+  { value: "Female", label: "Female", color: "#41b2c4" },
+  { value: "Any", label: "Any", color: "#ea4d4d" },
+], []);
+
+const Skill = useMemo(() => [
+  { value: "Semi-Skilled", label: "Semi-Skilled", color: "#3454d1" },
+  { value: "Skilled", label: "Skilled", color: "#41b2c4" },
+  { value: "Any", label: "Any", color: "#ea4d4d" },
+], []);
 
   const handleAddService = (e) => {
     e.preventDefault();

@@ -238,33 +238,6 @@ const handleSaveAndNext = async () => {
       return false;
     }
 
-    // const payload = {
-    //   client_id: client_id || null,
-    //   consignees: consignees.map((c) => ({
-
-    //     id: c.id || null,
-    //     consignee_name: c.consignee_name,
-    //     consigness_designation: c.consigness_designation,
-    //     consignee_contact_no: c.consignee_contact_no,
-    //     consignee_email: c.consignee_email,
-    //     consignee_gstin: c.consignee_gstin,
-    //     consignee_addess: c.consignee_addess,
-    //     dealing_contact: c.dealing_contact,
-    //     dealing_designation: c.dealing_designation,
-    //     dealing_hand_name: c.dealing_hand_name,
-    //     dealing_email: c.dealing_email,
-    //     designations: c.items.map((item) => ({
-    //       id: item.id || null,
-    //       name: item.designation,
-    //       skill: item.skill,
-    //       qualification: item.qualification,
-    //       experience_in_years: item.experience,
-    //       hire_employee: item.resources,
-    //       type: item.skill, 
-    //     })),
-    //   })),
-    // };
-
     const payload = {
   client_id: client_id || null,
   consignees: consignees.map(c => {
@@ -336,15 +309,6 @@ const handleSaveAndNext = async () => {
   }
 };
 
-
-//   useEffect(() => {
-//     const saved = sessionStorage.getItem("Consignee");
-
-//     if (saved) {
-//       const { formData } = JSON.parse(saved);
-//       setFormData(formData);
-//     }
-//   }, []);
 
 useEffect(() => {
   const saved = sessionStorage.getItem("Consignee");

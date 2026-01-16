@@ -1,121 +1,186 @@
+// ProjectCreateContent.js - Modified version
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import TabProjectType from './TabProjectType'
 import TabProjectSettings from './TabProjectSettings';
-import TabProjectBudget from './TabProjectBudget';
-import TabProjectAssigned from './TabProjectAssigned';
-import TabAttachement from './TabAttachement';
 import TabCompleted from './TabCompleted';
+
 const TabProjectDetails = dynamic(() => import('./TabProjectDetails'), { ssr: false })
-const TabProjectTarget = dynamic(() => import('./TabProjectTarget'), { ssr: false })
 
 const steps = [
     { name: "Type", required: true },
-    { name: "Select Cleint", required: true },
-    { name: "Employees Data", required: false },
+    { name: "Select Client", required: true },
+    { name: "Employees Data", required: true }, // Changed to required
     { name: "Completed", required: false } 
 ];
 
 const ProjectCreateContent = () => {
     const [currentStep, setCurrentStep] = useState(0);
-    const [error, setError] = useState(false)
+    const [error, setError] = useState(false);
+    const [stepErrors, setStepErrors] = useState({});
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [processingResults, setProcessingResults] = useState(null);
+    
+    // Ref to hold the validation function from TabProjectSettings
+    const processValidationRef = useRef(null);
+    
     const [formData, setFormData] = useState({
         projectType: "",
+        selectedClient: null,
+        selectedMonth: "",
+        selectedYear: "",
         projectManage: "",
         projectBudgets: "",
         budgetsSpend: "",
     });
 
     const validateFields = () => {
-    const { projectType } = formData;
+        const errors = {};
+        
+        if (currentStep === 0 && formData.projectType === "") {
+            errors.step0 = "Project type is required";
+        }
+        
+        if (currentStep === 1) {
+            if (!formData.selectedClient) {
+                errors.step1 = "Please select a client";
+            }
+            if (!formData.selectedMonth) {
+                errors.step1Month = "Please select a month";
+            }
+            if (!formData.selectedYear) {
+                errors.step1Year = "Please select a year";
+            }
+        }
+        
+        setStepErrors(errors);
+        
+        if (Object.keys(errors).length > 0) {
+            setError(true);
+            return false;
+        }
+        
+        setError(false);
+        return true;
+    };
 
-    // Only step 0 is required
-    if (currentStep === 0 && projectType === "") {
-        setError(true);
-        return false;
-    }
-
-    return true;
-};
-
-    const handleNext = (e) => {
-        e.preventDefault()
-        if (validateFields()) {
+    const handleNext = async (e) => {
+        e.preventDefault();
+        setProcessingResults(null);
+        
+        // Special validation for step 1
+        if (currentStep === 1) {
+            if (!formData.selectedClient || !formData.selectedMonth || !formData.selectedYear) {
+                const errors = {};
+                if (!formData.selectedClient) errors.step1 = "Please select a client";
+                if (!formData.selectedMonth) errors.step1Month = "Please select a month";
+                if (!formData.selectedYear) errors.step1Year = "Please select a year";
+                setStepErrors(errors);
+                setError(true);
+                return;
+            }
+            
+            if (validateFields()) {
+                setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+            }
+        }
+        
+        // For step 2 (Employees Data), process before moving to next
+        else if (currentStep === 2) {
+            setIsProcessing(true);
+            setStepErrors(prev => ({ ...prev, step2: null }));
+            
+            try {
+                console.log("🔄 Step 2: Processing employees data...");
+                
+                // Call the process validation function if available
+                if (processValidationRef.current) {
+                    const result = await processValidationRef.current();
+                    
+                    console.log("📋 Process validation result:", result);
+                    setProcessingResults(result);
+                    
+                    if (result.success) {
+                        console.log("✅ Employee processing successful, moving to next step");
+                        setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+                    } else {
+                        // Show error but don't proceed
+                        console.log("❌ Employee processing failed");
+                        setStepErrors(prev => ({
+                            ...prev,
+                            step2: result.message || "Failed to process employees. Please check and try again."
+                        }));
+                    }
+                } else {
+                    console.log("⚠️ No validation function available, proceeding anyway");
+                    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+                }
+            } catch (error) {
+                console.error("🔥 Error during employee processing:", error);
+                setStepErrors(prev => ({
+                    ...prev,
+                    step2: `Processing error: ${error.message}`
+                }));
+                setProcessingResults({
+                    success: false,
+                    message: error.message
+                });
+            } finally {
+                setIsProcessing(false);
+            }
+        }
+        
+        // For other steps, just validate and proceed
+        else if (validateFields()) {
             setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
         }
     };
 
-    // Handle prev button click
     const handlePrev = (e) => {
-        e.preventDefault()
+        e.preventDefault();
+        setProcessingResults(null);
         setCurrentStep((prev) => Math.max(prev - 1, 0));
     };
 
-    // Handle tab click to change step
-   const handleTabClick = (e, index) => {
-    e.preventDefault();
-
-    // If you are leaving a required step, validate
-    if (steps[currentStep].required && !validateFields()) {
-        return;
-    }
-
-    // Otherwise allow navigation freely
-    setCurrentStep(index);
-};
-
-
-const previtems = [
-    {
-        id: 1,
-        product: "",
-        qty: 0,
-        price: 0
-    },
-]
-const [items, setItems] = useState(previtems);
-
-    const addItem = () => {
-        const newItem = {
-            id: items.length + 1,
-            product: '',
-            qty: 1,
-            price: 0
-        };
-        setItems([...items, newItem]);
-    };
-
-    const removeItem =()=>{
-        items.pop()
-      
-        setItems(items)
-    }
-    
-    const handleInputChange = (id, field, value) => {
-        const updatedItems = items.map(item => {
-            if (item.id === id) {
-                const updatedItem = { ...item, [field]: value };
-                if (field === 'qty' || field === 'price') {
-                    updatedItem.total = updatedItem.qty * updatedItem.price;
-                }
-                return updatedItem;
+    const handleTabClick = (e, index) => {
+        e.preventDefault();
+        
+        if (index !== currentStep && steps[currentStep].required) {
+            if (!validateFields()) {
+                return;
             }
-            return item;
-        });
-        setItems(updatedItems);
+        }
+        
+        setCurrentStep(index);
     };
 
-    const subTotal = items.reduce((accumulator, currentValue) => {
-        return accumulator + (currentValue.price * currentValue.qty);
-    }, 0);
+    const handleFormDataUpdate = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        
+        if (currentStep === 0 && field === 'projectType') {
+            setStepErrors(prev => ({ ...prev, step0: null }));
+        } else if (currentStep === 1) {
+            if (field === 'selectedClient') {
+                setStepErrors(prev => ({ ...prev, step1: null }));
+            } else if (field === 'selectedMonth') {
+                setStepErrors(prev => ({ ...prev, step1Month: null }));
+            } else if (field === 'selectedYear') {
+                setStepErrors(prev => ({ ...prev, step1Year: null }));
+            }
+        }
+    };
 
-    const vat = (subTotal * 0.1).toFixed(2)
-    const vatNumber = Number(vat);
-    const total = Number(subTotal + vatNumber).toFixed(2)
+    // Function to set the validation function from child
+    const setProcessValidation = (validationFn) => {
+        console.log("📝 Setting process validation function");
+        processValidationRef.current = validationFn;
+    };
 
     return (
-       
         <div className="col-lg-12">
             <div className="card border-top-0">
                 <div className="card-body p-0 wizard" id="project-create-steps">
@@ -124,40 +189,117 @@ const [items, setItems] = useState(previtems);
                             {steps.map((step, index) => (
                                 <li
                                     key={index}
-                                    className={`${currentStep === index ? "current" : ""} ${currentStep === index && error ? "error" : ""}`}
+                                    className={`${currentStep === index ? "current" : ""} ${Object.keys(stepErrors).some(key => key.startsWith(`step${index}`)) ? "error" : ""}`}
                                     onClick={(e) => handleTabClick(e, index)}
                                 >
-                                    <a href="#" className='d-block fw-bold'>{step.name}</a>
+                                    <a href="#" className='d-block fw-bold'>
+                                        {step.name}
+                                        {step.required && <span className="text-danger ms-1">*</span>}
+                                    </a>
                                 </li>
                             ))}
                         </ul>
                     </div>
 
                     <div className="content clearfix ">
-                        {currentStep === 0 && <TabProjectType setFormData={setFormData} formData={formData} error={error} setError={setError} />}
-                        {currentStep === 1 && <TabProjectDetails />}
-                        {currentStep === 2 && <TabProjectSettings  />}
+                        {currentStep === 0 && (
+                            <TabProjectType 
+                                setFormData={setFormData} 
+                                formData={formData} 
+                                error={stepErrors.step0} 
+                                setError={(error) => setStepErrors(prev => ({ ...prev, step0: error }))}
+                                onUpdate={handleFormDataUpdate}
+                            />
+                        )}
+                        {currentStep === 1 && (
+                            <TabProjectDetails 
+                                formData={formData}
+                                onUpdate={handleFormDataUpdate}
+                                errors={stepErrors}
+                                setError={(errors) => setStepErrors(prev => ({ ...prev, ...errors }))}
+                            />
+                        )}
+                        {currentStep === 2 && (
+                            <>
+                                <TabProjectSettings 
+                                    formData={formData}
+                                    onNextStepValidation={setProcessValidation}
+                                />
+                                
+                                {/* Processing Results Display */}
+                                {/* {processingResults && (
+                                    <div className={`alert ${processingResults.success ? 'alert-success' : 'alert-danger'} mt-3 mb-0`}>
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 className="mb-1">
+                                                    {processingResults.success ? '✅ Processing Successful' : '❌ Processing Failed'}
+                                                </h6>
+                                                <p className="mb-1">{processingResults.message}</p>
+                                                
+                                                {processingResults.results && processingResults.results.length > 0 && (
+                                                    <div className="mt-2">
+                                                        <small>
+                                                            <strong>Details:</strong>
+                                                            <ul className="mb-0 mt-1">
+                                                                <li>Total: {processingResults.results.length} employees</li>
+                                                                <li>Successful: {processingResults.results.filter(r => r.success).length}</li>
+                                                                <li>Failed: {processingResults.results.filter(r => !r.success).length}</li>
+                                                            </ul>
+                                                        </small>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )} */}
+                                
+                                {/* Step 2 Error */}
+                                {stepErrors.step2 && (
+                                    <div className="alert alert-danger mt-3 mb-0">
+                                        <strong>Error:</strong> {stepErrors.step2}
+                                    </div>
+                                )}
+                            </>
+                        )}
                         {currentStep === 3 && <TabCompleted />}
                     </div>
 
                     {/* Buttons */}
                     <div className="actions clearfix mt-0 ">
                         <ul>
-                            <li className={`${currentStep === 0 ? "disabled" : ""} ${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handlePrev(e)} disabled={currentStep === 0}>
+                            <li 
+                                className={`${currentStep === 0 ? "disabled" : ""} ${currentStep === steps.length - 1 ? "d-none" : ""}`} 
+                                onClick={handlePrev} 
+                            >
                                 <a href="#">Previous</a>
                             </li>
-                            <li className={`${currentStep === steps.length - 1 ? "d-none" : ""}`} onClick={(e) => handleNext(e)} disabled={currentStep === steps.length - 1}>
-                                <a href="#">Next</a>
+                            <li 
+                                className={`${currentStep === steps.length - 1 ? "d-none" : ""}`} 
+                                onClick={handleNext}
+                                disabled={isProcessing}
+                            >
+                                <a href="#" className={isProcessing ? 'disabled' : ''}>
+                                    {isProcessing ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                                            {currentStep === 2 ? 'Processing Employees...' : 'Processing...'}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {currentStep === 2 ? 'Process & Next' : 'Next'}
+                                            {currentStep === 2 && (
+                                                <small className="d-block text-muted fs-10">Will submit all "Process" status employees</small>
+                                            )}
+                                        </>
+                                    )}
+                                </a>
                             </li>
                         </ul>
-
                     </div>
                 </div>
             </div>
-            
         </div>
-
-    )
+    );
 }
 
-export default ProjectCreateContent
+export default ProjectCreateContent;

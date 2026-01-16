@@ -1,92 +1,128 @@
 import React, { useEffect, useState } from 'react'
 import SelectDropdown from '@/components/shared/SelectDropdown'
-import MultiSelectTags from '@/components/shared/MultiSelectTags';
-import DatePicker from 'react-datepicker';
-import useDatePicker from '@/hooks/useDatePicker';
-import useJoditConfig from '@/hooks/useJoditConfig';
-import JoditEditor from 'jodit-react';
+import useDatePicker from '@/hooks/useDatePicker'
+import useJoditConfig from '@/hooks/useJoditConfig'
 
-const TabProjectDetails = () => {
+const TabProjectDetails = ({
+  clientType,
+  selectedClient,
+  setSelectedClient,
+  selectedConsignee,
+  setSelectedConsignee
+}) => {
 
-    const [selectedClient, setSelectedClient] = useState(null);
-    const [selectedConsignee, setSelectedConsignee] = useState(null);
+  const [clients, setClients] = useState([])
+  const [consignees, setConsignees] = useState([])
+  const [loadingClients, setLoadingClients] = useState(false)
+  const [loadingConsignees, setLoadingConsignees] = useState(false)
 
-    const { startDate, endDate, setStartDate, setEndDate, renderFooter } = useDatePicker();
-    const config = useJoditConfig()
-    const [value, setValue] = useState('');
+  const { setStartDate } = useDatePicker()
+  useJoditConfig()
 
-    useEffect(() => {
-        setStartDate(new Date())
-        setValue(`
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-        `)
-    }, []);
+  useEffect(() => {
+    setStartDate(new Date())
+    const companyId = sessionStorage.getItem('selected_company')
 
-   const Clients = [
-    { value: "Select Client", label: "Select Client", color: "#3454d1" },
-    { value: "Client One", label: "Client One", color: "#3454d1" },
-    { value: "Client Two", label: "Client Two", color: "#41b2c4" },
-    { value: "Client Three", label: "Client Three", color: "#ea4d4d" },
-    { value: "Client Four", label: "Client Four", color: "#ffa21d" },
-    { value: "Client Five", label: "Client Five", color: "#17c666" },
-];
-      const Consignee = [
-        { value: "Select Consignee", label: "Select Consignee", color: "#3454d1" },
-        { value: "Consignee One", label: "Consignee One", color: "#3454d1" },
-        { value: "Consignee Two", label: "Consignee Two", color: "#41b2c4" },
-        { value: "Consignee Three", label: "Consignee Three", color: "#ea4d4d" },
-        { value: "Consignee Four", label: "Consignee Four", color: "#ffa21d" },
-        { value: "Consignee Five", label: "Consignee Five", color: "#17c666" },
-    ];
+    if (clientType && companyId) {
+      fetchClients(clientType, companyId)
+    }
+  }, [clientType])
 
-    return (
-        <section className="step-body mt-4 body current stepChange h-100">
-            <form id="project-details">
-                <fieldset>
+  const fetchClients = async (type, companyId) => {
+    try {
+      setLoadingClients(true)
+      const token = localStorage.getItem('token')
 
-                    <div className="mb-5">
-                        <h2 className="fs-16 fw-bold">Select Client</h2>
-                        <p className="text-muted">Client details go here.</p>
-                    </div>
+      const res = await fetch(
+        `https://green-owl-255815.hostingersite.com/api/client/empl/view?client_type=${type}&company_id=${companyId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
 
-                    <fieldset>
-                        <div className="row mb-5 pb-5">
+      const result = await res.json()
 
-                            {/* Select Client */}
-                            <div className="col-lg-3 mb-4">
-                                <label className="fw-semibold text-dark">
-                                    Select Client <span className="text-danger">*</span>
-                                </label>
+      if (result?.status && Array.isArray(result.data)) {
+        const options = result.data.map(c => ({
+          value: c.id,
+          label: c.contract_no || `Client ${c.id}`
+        }))
 
-                                <SelectDropdown
-                                    options={Clients}
-                                    selectedOption={selectedClient}
-                                    defaultSelect="Select Client"
-                                    onSelectOption={(opt) => setSelectedClient(opt)}
-                                />
-                            </div>
+        setClients(options)
 
-                            {/* Select Consignee */}
-                            <div className="col-lg-3 mb-4">
-                                <label className="fw-semibold text-dark">
-                                    Select Consignee <span className="text-danger">*</span>
-                                </label>
+        if (options.length === 1) {
+          setSelectedClient(options[0])
+          fetchConsignees(options[0].value)
+        }
+      }
+    } finally {
+      setLoadingClients(false)
+    }
+  }
 
-                                <SelectDropdown
-                                    options={Consignee}
-                                    selectedOption={selectedConsignee}
-                                    defaultSelect="Select Consignee"
-                                    onSelectOption={(opt) => setSelectedConsignee(opt)}
-                                />
-                            </div>
+  const fetchConsignees = async (clientId) => {
+    try {
+      setLoadingConsignees(true)
+      const token = localStorage.getItem('token')
 
-                        </div>
-                    </fieldset>
+      const res = await fetch(
+        `https://green-owl-255815.hostingersite.com/api/client/consignee/${clientId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
 
-                </fieldset>
-            </form>
-        </section>
-    )
+      const result = await res.json()
+
+      if (result?.status && Array.isArray(result.data)) {
+        const options = result.data.map(c => ({
+          value: c.id,
+          label: c.consignee_name || `Consignee ${c.id}`
+        }))
+        setConsignees(options)
+
+        if (options.length === 1) {
+          setSelectedConsignee(options[0])
+        }
+      } else {
+        setConsignees([])
+        setSelectedConsignee(null)
+      }
+    } finally {
+      setLoadingConsignees(false)
+    }
+  }
+
+  const handleClientSelect = (option) => {
+    setSelectedClient(option)
+    setSelectedConsignee(null)
+    if (option?.value) fetchConsignees(option.value)
+  }
+
+  return (
+    <section className="step-body mt-4 body current stepChange">
+      <div className="row">
+
+        <div className="col-lg-3 mb-4">
+          <label>Select Client *</label>
+          <SelectDropdown
+            options={clients}
+            selectedOption={selectedClient}
+            defaultSelect={loadingClients ? "Loading..." : "Select Client"}
+            onSelectOption={handleClientSelect}
+          />
+        </div>
+
+        <div className="col-lg-3 mb-4">
+          <label>Select Consignee *</label>
+          <SelectDropdown
+            options={consignees}
+            selectedOption={selectedConsignee}
+            defaultSelect={loadingConsignees ? "Loading..." : "Select Consignee"}
+            onSelectOption={setSelectedConsignee}
+            isDisabled={!selectedClient}
+          />
+        </div>
+
+      </div>
+    </section>
+  )
 }
 
 export default TabProjectDetails

@@ -85,7 +85,7 @@ const TabAttachement = forwardRef(({ error }, ref) => {
       }
 
       // CORRECTED: Using the correct API endpoint for documents
-      const response = await fetch(`${API_BASE}/employee/store-documents`, {
+      const response = await fetch(`${API_BASE}/employee/document/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -97,7 +97,7 @@ const TabAttachement = forwardRef(({ error }, ref) => {
       const result = await response.json();
       console.log("API Response:", result);
 
-      if (result?.status === true) {
+      if (result?.status === true || result?.status === 'true') {
         console.log("Documents saved successfully", result);
         return true;
       } else {

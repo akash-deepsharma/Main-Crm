@@ -2,7 +2,23 @@ import React from 'react'
 import getIcon from '@/utils/getIcon'
 import { FiAlertTriangle } from 'react-icons/fi'
 
-const TabProjectType = ({ setFormData, formData, error, setError }) => {
+const TabProjectType = ({ setFormData, formData, error, setError, onUpdate }) => {
+    
+    const handleOnChange = (e) => {
+        const id = e.target.id;
+        
+        // Update form data
+        setFormData({ ...formData, projectType: id });
+        
+        // Call the onUpdate callback
+        if (onUpdate) {
+            onUpdate('projectType', id);
+        }
+        
+        // Clear error
+        setError(false);
+    };
+
     return (
         <section className="step-body mt-4 body current">
             <form id="project-type">
@@ -11,35 +27,33 @@ const TabProjectType = ({ setFormData, formData, error, setError }) => {
                         <h2 className="fs-16 fw-bold">Client type</h2>
                         <p className="text-muted">Select Client type first to Create Salary</p>
                         {error && (
-                            <label id="project-type-error" className="error">
-                                <FiAlertTriangle /> This field is required.
-                            </label>
+                            <div className="alert alert-danger mt-2 py-2 px-3 d-inline-flex align-items-center">
+                                <FiAlertTriangle className="me-2" />
+                                <span>{error}</span>
+                            </div>
                         )}
                     </div>
 
-                    {/* ONLY THESE TWO CARDS */}
                     <ProjectTypeCard
                         icon={"feather-user"}
                         title={"Gem Client"}
                         description={"If you need more info, please check it out"}
-                        id={"project_personal"}
+                        id={"GeM"}
                         name={"project-type"}
                         isRequired={true}
-                        setFormData={setFormData}
-                        formData={formData}
-                        setError={setError}
+                        onChange={handleOnChange}
+                        checked={formData.projectType === "GeM"}
                     />
 
                     <ProjectTypeCard
                         icon={"feather-users"}
                         title={"Corporate Client"}
                         description={"Create Corporate Salary "}
-                        id={"project_team"}
+                        id={"Corporate"}
                         name={"project-type"}
                         isRequired={false}
-                        setFormData={setFormData}
-                        formData={formData}
-                        setError={setError}
+                        onChange={handleOnChange}
+                        checked={formData.projectType === "Corporate"}
                     />
                 </fieldset>
             </form>
@@ -49,20 +63,10 @@ const TabProjectType = ({ setFormData, formData, error, setError }) => {
 
 export default TabProjectType
 
-
 export const ProjectTypeCard = ({
     icon, title, description, id, isRequired, name,
-    setFormData, formData, setError
+    onChange, checked
 }) => {
-
-    const handleOnChange = (e) => {
-        const id = e.target.id;
-
-        // Only projectType remains
-        setFormData({ ...formData, projectType: id });
-        setError(false);
-    };
-
     return (
         <label className="w-100" htmlFor={id}>
             <input
@@ -71,8 +75,8 @@ export const ProjectTypeCard = ({
                 name={name}
                 id={id}
                 required={isRequired}
-                onChange={handleOnChange}
-                checked={formData.projectType === id}
+                onChange={onChange}
+                checked={checked}
             />
             <span className="card card-body d-flex flex-row justify-content-between align-items-center ">
                 <span className="hstack gap-3">
