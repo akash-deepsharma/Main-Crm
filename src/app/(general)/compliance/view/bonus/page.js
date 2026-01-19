@@ -1,8 +1,11 @@
 import React from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import PaymentHeader from '@/components/payment/PaymentHeader'
-import InvoiceBonusView from '@/components/Invoice/InvoiceBonusView'
-
+// import InvoiceBonusView from '@/components/Invoice/InvoiceBonusView'
+const InvoiceBonusView = dynamic(
+  () => import('@/components/Invoice/InvoiceBonusView'),
+  { ssr: false }
+)
 const page = () => {
   return (
     <>
