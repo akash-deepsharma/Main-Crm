@@ -17,7 +17,7 @@ const TabProjectType = ({ setFormData, formData, error, setError }) => {
                         )}
                     </div>
 
-                    {/* ONLY THESE TWO CARDS */}
+                    {/* ONLY THESE TWO CARDS */}    
                     <ProjectTypeCard
                         icon={"feather-user"}
                         title={"Gem Client"}

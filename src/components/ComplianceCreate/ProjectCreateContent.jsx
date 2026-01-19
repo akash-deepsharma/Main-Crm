@@ -13,7 +13,7 @@ const TabProjectTarget = dynamic(() => import('./TabProjectTarget'), { ssr: fals
 const steps = [
     { name: "Type", required: true },
     { name: "Select Cleint", required: true },
-    { name: "Confermation", required: false },
+    // { name: "Confermation", required: false },
     { name: "Completed", required: false } 
 ];
 
@@ -135,9 +135,14 @@ const [items, setItems] = useState(previtems);
 
                     <div className="content clearfix">
                         {currentStep === 0 && <TabProjectType setFormData={setFormData} formData={formData} error={error} setError={setError} />}
-                        {currentStep === 1 && <TabProjectDetails />}
-                        {currentStep === 2 && <TabAttachement />}
-                        {currentStep === 3 && <TabCompleted />}
+                        {/* {currentStep === 1 && <TabProjectDetails />} */}
+                        {currentStep === 1 && (
+    <TabProjectDetails
+      formData={formData}   
+    />
+  )}
+                        {/* {currentStep === 2 && <TabAttachement />} */}
+                        {currentStep === 2 && <TabCompleted />}
                     </div>
 
                     {/* Buttons */}

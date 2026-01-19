@@ -1,29 +1,34 @@
-'use client'
-import React, { useState, memo, useEffect } from 'react'
+'use client';
+
+import React, { useState, useEffect, memo } from 'react';
 import Table from '@/components/shared/table/Table';
-import { FiAlertOctagon, FiArchive, FiClock, FiEdit3, FiEye, FiMoreHorizontal, FiPrinter, FiTrash2 } from 'react-icons/fi'
+import {
+    FiClock,
+    FiEdit3,
+    FiEye,
+    FiMoreHorizontal,
+    FiTrash2,
+} from 'react-icons/fi';
 import Dropdown from '@/components/shared/Dropdown';
 import SelectDropdown from '@/components/shared/SelectDropdown';
-import Input from '../shared/Input';
-import { taskAssigneeOptions } from '@/utils/options';
 
+/* ------------------ ACTIONS ------------------ */
 const actions = [
-    { label: "Edit", icon: <FiEdit3 /> },
-    { label: "Remind", icon: <FiClock /> },
-    { type: "divider" },
-    { label: "Delete", icon: <FiTrash2 /> },
+    { label: 'Edit', icon: <FiEdit3 /> },
+    { label: 'Remind', icon: <FiClock /> },
+    { type: 'divider' },
+    { label: 'Delete', icon: <FiTrash2 /> },
 ];
 
+/* ------------------ STATUS OPTIONS ------------------ */
 const statusOptions = [
-    { value: "bonus", label: "Bonus", color: "#3454d1", slug: "bonus" },
-    { value: "arrer", label: "Arrer", color: "#ffa21d", slug: "arrer" },
-    { value: "epfo", label: "EPFO", color: "#17c666", slug: "epfo" },
-    { value: "esic", label: "ESIC", color: "#ea4d4d", slug: "esic" },
+    { value: 'bonus', label: 'Bonus', color: '#3454d1' },
+    { value: 'arrer', label: 'Arrer', color: '#ffa21d' },
+    { value: 'epfo', label: 'EPFO', color: '#17c666' },
+    { value: 'esic', label: 'ESIC', color: '#ea4d4d' },
 ];
 
-const assigned = taskAssigneeOptions;
-
-// ⬇️ FIXED DROPDOWN CELL
+/* ------------------ STATUS CELL ------------------ */
 const TableCell = memo(({ options, defaultSelect, onStatusChange }) => {
     const [selectedValue, setSelectedValue] = useState(defaultSelect);
 
@@ -31,13 +36,14 @@ const TableCell = memo(({ options, defaultSelect, onStatusChange }) => {
         setSelectedValue(defaultSelect);
     }, [defaultSelect]);
 
-    const selectedOption = options.find(opt => opt.value === selectedValue);
+    const selectedOption = options.find(
+        (opt) => opt.value === selectedValue
+    );
 
     return (
         <SelectDropdown
             options={options}
             value={selectedValue}
-            defaultSelect={selectedValue}
             selectedOption={selectedOption}
             onSelectOption={(option) => {
                 setSelectedValue(option.value);
@@ -47,181 +53,193 @@ const TableCell = memo(({ options, defaultSelect, onStatusChange }) => {
     );
 });
 
-// TABLE DATA
-const ComplianceClientTableData = [
-    {
-        id: 1,
-        "project-name": {
-            title: "Spark: This name could work well for a project related to innovation.",
-            img: "/images/brand/app-store.png",
-            description: "Lorem ipsum dolor.",
-        },
-        customer: { name: "Alexandra Della", img: "/images/avatar/1.png" },
-        phone: "9876543210",
-        email: "alexandra@gmail.com",
-        organisation: "National Security Guard (NSG)",
-        ministry: "Ministry of Home Affairs",
-        assigned: { assigned, defaultSelect: 'arcie.tones@gmail.com' },
-        status: { statusOptions, defaultSelect: "bonus" },
-    },
-    {
-        id: 2,
-        "project-name": {
-            title: "Nexus: This name could work well for connectivity and innovation.",
-            img: "/images/brand/dropbox.png",
-            description: "Lorem ipsum dolor.",
-        },
-        customer: { name: "Green Cute", img: "/images/avatar/2.png" },
-        phone: "9876543210",
-        email: "green@gmail.com",
-        organisation: "National Security Guard (NSG)",
-        ministry: "Ministry of Home Affairs",
-        assigned: { assigned, defaultSelect: 'jon.tones@gmail.com' },
-        status: { statusOptions, defaultSelect: "epfo" },
-    },
-];
-
+/* ------------------ MAIN COMPONENT ------------------ */
 const ProjectTable = () => {
+    const [data, setData] = useState([]);
+    const [rowStatus, setRowStatus] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // FIX: store & update selected status for each row
-    const [rowStatus, setRowStatus] = useState(
-        ComplianceClientTableData.map(item => item.status.defaultSelect)
-    );
+    useEffect(() => {
+        fetchClientData();
+    }, []);
 
-    const updateRowStatus = (rowIndex, newStatus) => {
+    /* ------------------ API CALL ------------------ */
+    const fetchClientData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const company_id = sessionStorage.getItem('selected_company');
+            const client_type = 'GeM';
+            const token = localStorage.getItem('token');
+
+            if (!company_id) throw new Error('Company not selected');
+            if (!token) throw new Error('Token missing');
+
+            const response = await fetch(
+                `https://green-owl-255815.hostingersite.com/api/client/employee/view?company_id=${company_id}&client_type=${client_type}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'API Error');
+            }
+
+            if (result.status && Array.isArray(result.data)) {
+                setData(result.data);
+                setRowStatus(result.data.map(() => 'bonus'));
+            } else {
+                setData([]);
+            }
+        } catch (err) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const updateRowStatus = (index, value) => {
         const updated = [...rowStatus];
-        updated[rowIndex] = newStatus;
+        updated[index] = value;
         setRowStatus(updated);
     };
 
+    /* ------------------ TABLE COLUMNS ------------------ */
     const columns = [
-        // CHECKBOX
         {
-            accessorKey: 'id',
-            header: ({ table }) => {
-                const checkboxRef = React.useRef(null);
-                useEffect(() => {
-                    if (checkboxRef.current) {
-                        checkboxRef.current.indeterminate =
-                            table.getIsSomeRowsSelected();
-                    }
-                }, [table.getIsSomeRowsSelected()]);
-
-                return (
-                    <input
-                        type="checkbox"
-                        className="custom-table-checkbox"
-                        ref={checkboxRef}
-                        checked={table.getIsAllRowsSelected()}
-                        onChange={table.getToggleAllRowsSelectedHandler()}
-                    />
-                );
-            },
+            id: 'contract_no', // Add id
+            accessorKey: 'contract_no',
+            header: () => 'Contract No',
             cell: ({ row }) => (
-                <input
-                    type="checkbox"
-                    className="custom-table-checkbox"
-                    checked={row.getIsSelected()}
-                    disabled={!row.getCanSelect()}
-                    onChange={row.getToggleSelectedHandler()}
+                <div>
+                    <div className="fw-bold">{row.original.contract_no}</div>
+                    <small className="text-muted">
+                        {row.original.service_title}
+                    </small>
+                </div>
+            ),
+        },
+        {
+            id: 'customer_name', // Add id
+            accessorKey: 'customer_name',
+            header: () => 'Customer',
+            cell: ({ row }) => (
+                <div>
+                    <div className="fw-bold">{row.original.customer_name}</div>
+                    <small className="text-muted">{row.original.email}</small>
+                </div>
+            ),
+        },
+        {
+            id: 'organisation', // Add id
+            accessorKey: 'organisation_name',
+            header: () => 'Organisation',
+            cell: ({ row }) => (
+                <div>
+                    <div>{row.original.organisation_name}</div>
+                    <small className="text-muted">
+                        {row.original.ministry}
+                    </small>
+                </div>
+            ),
+        },
+        {
+            id: 'contact', // Add id
+            accessorKey: 'contact_no',
+            header: () => 'Contact',
+            cell: ({ row }) => (
+                <div>
+                    <div>{row.original.contact_no}</div>
+                    <small className="text-muted">
+                        {row.original.buyer_name}
+                    </small>
+                </div>
+            ),
+        },
+        {
+            id: 'dates', // Add id
+            header: () => 'Dates',
+            cell: ({ row }) => (
+                <div>
+                    <div>
+                        From:{' '}
+                        {new Date(
+                            row.original.service_start_date
+                        ).toLocaleDateString()}
+                    </div>
+                    <div>
+                        To:{' '}
+                        {new Date(
+                            row.original.service_end_date
+                        ).toLocaleDateString()}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            id: 'status', // Add id
+            header: () => 'Status',
+            cell: ({ row }) => (
+                <TableCell
+                    options={statusOptions}
+                    defaultSelect={rowStatus[row.index] || 'bonus'}
+                    onStatusChange={(value) =>
+                        updateRowStatus(row.index, value)
+                    }
                 />
             ),
-            meta: { headerClassName: 'width-30' },
         },
-
-        // CLIENT NAME
         {
-            accessorKey: 'project-name',
-            header: () => 'Client Name',
-            cell: (info) => {
-                const roles = info.getValue();
-                return (
-                    <div className="hstack gap-4">
-                        <div className="avatar-image border-0">
-                            <img src={roles?.img} alt="" className="img-fluid" />
-                        </div>
-                        <div>
-                            <a href="#" className="text-truncate-1-line">{roles?.title}</a>
-                        </div>
-                    </div>
-                );
-            },
-        },
+            id: 'actions', // Add id
+            header: () => 'Actions',
+            cell: ({ row }) => (
+                <div className="hstack gap-2 justify-content-end">
+                    <a
+                          href={`/compliance/arrer/?status=arrer&client_id=${row.original.id}`}
 
-        // CUSTOMER
-        {
-            accessorKey: 'customer',
-            header: () => 'Customer',
-            cell: (info) => {
-                const roles = info.getValue();
-                return (
-                    <a href="#" className="hstack gap-3">
-                        <div className="avatar-image avatar-md">
-                            <img src={roles?.img} alt="" className="img-fluid" />
-                        </div>
-                        <div>
-                            <span>{roles?.name}</span>
-                            <small className="text-muted">{roles?.email}</small>
-                        </div>
+                        className="avatar-text avatar-md"
+                    >
+                        <FiEye />
                     </a>
-                );
-            }
-        },
-
-        { accessorKey: 'organisation', header: () => 'Organisation Name' },
-        { accessorKey: 'ministry', header: () => 'Ministry' },
-        { accessorKey: 'phone', header: () => 'Phone' },
-        { accessorKey: 'email', header: () => 'E-mail' },
-
-        // STATUS DROPDOWN
-        {
-            accessorKey: 'status',
-            header: () => 'Status',
-            cell: (info) => {
-                const rowIndex = info.row.index;
-                const { statusOptions } = info.getValue();
-
-                return (
-                    <TableCell
-                        options={statusOptions}
-                        defaultSelect={rowStatus[rowIndex]}  // FIXED 🔥
-                        onStatusChange={(value) => updateRowStatus(rowIndex, value)}
+                    <a
+                        href={`/compliance/edit/${row.original.id}`}
+                        className="avatar-text avatar-md"
+                    >
+                        <FiEdit3 />
+                    </a>
+                    <Dropdown
+                        dropdownItems={actions}
+                        triggerClassNaclassName="avatar-md"
+                        triggerPosition="0,21"
+                        triggerIcon={<FiMoreHorizontal />}
                     />
-                );
-            },
-        },
-
-        // ACTIONS
-        {
-            accessorKey: 'actions',
-            header: () => "Actions",
-            cell: ({ row }) => {
-                const index = row.index;
-                const selectedStatus = rowStatus[index];
-                const slug = selectedStatus || "bonus";
-
-                return (
-                    <div className="hstack gap-2 justify-content-end">
-                        <a href={`/compliance/${slug}`} className="avatar-text avatar-md">
-                            <FiEye />
-                        </a>
-                        <a href={`/compliance/view/${slug}`} className="avatar-text avatar-md">
-                            <FiEye />
-                        </a>
-                        <Dropdown
-                            dropdownItems={actions}
-                            triggerClassNaclassName="avatar-md"
-                            triggerPosition={"0,21"}
-                            triggerIcon={<FiMoreHorizontal />}
-                        />
-                    </div>
-                );
-            },
-            meta: { headerClassName: 'text-end' },
+                </div>
+            ),
         },
     ];
 
-    return <Table data={ComplianceClientTableData} columns={columns} />;
+    /* ------------------ UI STATES ------------------ */
+    if (loading) return <div className="text-center py-4">Loading...</div>;
+    if (error)
+        return (
+            <div className="text-center py-4 text-danger">
+                Error: {error}
+            </div>
+        );
+    if (!data.length)
+        return <div className="text-center py-4">No data found</div>;
+
+    return <Table data={data} columns={columns} />;
 };
 
 export default ProjectTable;
