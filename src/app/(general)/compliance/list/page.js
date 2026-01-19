@@ -1,8 +1,13 @@
+"use client"
 import React from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectsListHeader from '@/components/ClientList/ClientListHeader'
-import ProjectTable from '@/components/ClientComplianceList/ProjectTable'
-
+import dynamic from 'next/dynamic'
+// import ProjectTable from '@/components/ClientComplianceList/ProjectTable'
+const ProjectTable = dynamic(
+  () => import('@/components/ClientComplianceList/ProjectTable'),
+  { ssr: false }
+)
 const page = () => {
     return (
         <>
