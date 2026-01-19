@@ -2,98 +2,98 @@
 
 
 // Import Google Fonts
-@import  url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Josefin+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Maven+Pro:wght@400;500;600;700;800;900&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Noto+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=Work+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Josefin+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Maven+Pro:wght@400;500;600;700;800;900&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Noto+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=Work+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap");
 
 
-@use "themes/_bs-custom-variables";
-// @use "bootstrap/scss/bootstrap";
-@use "bootstrap/bootstrap.scss";
+@import "themes/_bs-custom-variables";
+// @import "bootstrap/scss/bootstrap";
+@import "bootstrap/bootstrap.scss";
 // Variables
-@use "themes/variables";
+@import "themes/variables";
 
 // General
-@use "themes/components/general";
+@import "themes/components/general";
 
 // Layouts
-@use "themes/layouts/nxl-common";
-@use "themes/layouts/nxl-header";
-@use "themes/layouts/nxl-navigation";
-@use "themes/layouts/nxl-sidebar";
+@import "themes/layouts/nxl-common";
+@import "themes/layouts/nxl-header";
+@import "themes/layouts/nxl-navigation";
+@import "themes/layouts/nxl-sidebar";
 
 // Modals
-@use "themes/components/search";
-@use "themes/components/language";
+@import "themes/components/search";
+@import "themes/components/language";
 
 // Applications
-@use "themes/applications/apps-common";
-@use "themes/applications/chat";
-@use "themes/applications/email";
-@use "themes/applications/tasks";
-@use "themes/applications/notes";
-@use "themes/applications/calendar";
-@use "themes/applications/storage";
+@import "themes/applications/apps-common";
+@import "themes/applications/chat";
+@import "themes/applications/email";
+@import "themes/applications/tasks";
+@import "themes/applications/notes";
+@import "themes/applications/calendar";
+@import "themes/applications/storage";
 
 
 // Componants
-@use "themes/components/alert";
-@use "themes/components/accordion";
-@use "themes/components/badge";
-@use "themes/components/button";
-@use "themes/components/card";
-@use "themes/components/dropdown";
-@use "themes/components/form";
-@use "themes/components/modal";
-@use "themes/components/navs-tabs";
-@use "themes/components/table";
-@use "themes/components/offcanvas";
-@use "themes/components/miscellaneous";
-@use "themes/components/selectDropdown";
+@import "themes/components/alert";
+@import "themes/components/accordion";
+@import "themes/components/badge";
+@import "themes/components/button";
+@import "themes/components/card";
+@import "themes/components/dropdown";
+@import "themes/components/form";
+@import "themes/components/modal";
+@import "themes/components/navs-tabs";
+@import "themes/components/table";
+@import "themes/components/offcanvas";
+@import "themes/components/miscellaneous";
+@import "themes/components/selectDropdown";
 
 // Widgets
-@use "themes/widgets/widgets-lists";
-@use "themes/widgets/widgets-tables";
-@use "themes/widgets/widgets-charts";
-@use "themes/widgets/widgets-statistics";
-@use "themes/widgets/widgets-miscellaneous";
+@import "themes/widgets/widgets-lists";
+@import "themes/widgets/widgets-tables";
+@import "themes/widgets/widgets-charts";
+@import "themes/widgets/widgets-statistics";
+@import "themes/widgets/widgets-miscellaneous";
 
 // Pages
-@use "themes/pages/icon-lauouts";
-@use "themes/pages/authentication";
-@use "themes/pages/dashboard";
-@use "themes/pages/analytics";
-@use "themes/pages/proposal";
-@use "themes/pages/invoice-create";
-@use "themes/pages/customers-view";
-@use "themes/pages/customers-create";
-@use "themes/pages/projects";
-@use "themes/pages/report-sales";
-@use "themes/pages/report-leads";
-@use "themes/pages/report-projects";
-@use "themes/pages/report-tmesheets";
-@use "themes/pages/help-knowledgebase";
-@use "themes/pages/setting";
+@import "themes/pages/icon-lauouts";
+@import "themes/pages/authentication";
+@import "themes/pages/dashboard";
+@import "themes/pages/analytics";
+@import "themes/pages/proposal";
+@import "themes/pages/invoice-create";
+@import "themes/pages/customers-view";
+@import "themes/pages/customers-create";
+@import "themes/pages/projects";
+@import "themes/pages/report-sales";
+@import "themes/pages/report-leads";
+@import "themes/pages/report-projects";
+@import "themes/pages/report-tmesheets";
+@import "themes/pages/help-knowledgebase";
+@import "themes/pages/setting";
 
 // Pluginss
-@use "themes/plugins/pace";
-@use "themes/plugins/select2";
-@use "themes/plugins/daterange";
-@use "themes/plugins/dataTables";
-@use "themes/plugins/sweetalert2";
-@use "themes/plugins/circle-progress";
-@use "themes/plugins/custom-steps";
-@use "themes/plugins/countdown";
-@use "themes/plugins/react-calendar";
+@import "themes/plugins/pace";
+@import "themes/plugins/select2";
+@import "themes/plugins/daterange";
+@import "themes/plugins/dataTables";
+@import "themes/plugins/sweetalert2";
+@import "themes/plugins/circle-progress";
+@import "themes/plugins/custom-steps";
+@import "themes/plugins/countdown";
+@import "themes/plugins/react-calendar";
 
 /*!
 <--!----------------------------------------------------------------!-->
 * Customizer CSS
 <--!----------------------------------------------------------------!-->
 */
-@use "themes/options/theme-options";
+@import "themes/options/theme-options";
 
 /*!
 <--!----------------------------------------------------------------!-->
 * Responsive CSS
 <--!----------------------------------------------------------------!-->
 */
-@use "themes/layouts/nxl-responsive";
+@import "themes/layouts/nxl-responsive";
