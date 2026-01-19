@@ -36,7 +36,7 @@ const TabProjectOverview = () => {
   const [customOtRate, setCustomOtRate] = useState("");
   const [optionalAllowances, setOptionalAllowances] = useState({});
   const [additionalAllowance, setAdditionalAllowance] = useState({ enabled: false, amount: "" });
-
+console.log("modal data", modalData)
   // Client type options
   const clientTypeOptions = [
     { value: "GeM", label: "GeM" },
