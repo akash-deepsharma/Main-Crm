@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectViewHeader from '@/components/ClientView/ClientViewHeader'
@@ -10,8 +11,13 @@ import TabWagesSheet from '@/components/ClientView/TabWagesSheet'
 import TabDownloadSheet from '@/components/ClientView/TabDownloadSheet'
 import ClientViewHeader from '@/components/ClientView/ClientViewHeader'
 import ClientViewTabItems from '@/components/ClientView/ClientViewTabItems'
-import TabProjectOverview from '@/components/EmployeeSalaryView/TabProjectOverview'
+import dynamic from 'next/dynamic'
+// import TabProjectOverview from '@/components/EmployeeSalaryView/TabProjectOverview'
 
+const TabProjectOverview = dynamic(
+  () => import('@/components/EmployeeSalaryView/TabProjectOverview'),
+  { ssr: false }
+)
 const page = () => {
   return (
     <>
