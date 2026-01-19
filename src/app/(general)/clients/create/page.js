@@ -2,10 +2,10 @@ import React from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectCreateContent from '@/components/ClientCreate/ClientCreateContent'
 import ProjectCreateHeader from '@/components/ClientCreate/ClientCreateHeader'
-import { Suspense } from "react";
+// import { Suspense } from "react";
 const page = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    // <Suspense fallback={<div>Loading...</div>}>
     <>
       <PageHeader>
         <ProjectCreateHeader />
@@ -16,7 +16,7 @@ const page = () => {
         </div>
       </div>
     </>
-</Suspense>
+// </Suspense>
   )
 }
 
