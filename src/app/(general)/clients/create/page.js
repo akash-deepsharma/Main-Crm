@@ -1,22 +1,11 @@
 import React from 'react'
-import PageHeader from '@/components/shared/pageHeader/PageHeader'
-import ProjectCreateContent from '@/components/ClientCreate/ClientCreateContent'
-import ProjectCreateHeader from '@/components/ClientCreate/ClientCreateHeader'
-// import { Suspense } from "react";
+import { Suspense } from "react";
+import ClientCreate from '@/components/ClientCreate/ClientCreate';
 const page = () => {
   return (
-    // <Suspense fallback={<div>Loading...</div>}>
-    <>
-      <PageHeader>
-        <ProjectCreateHeader />
-      </PageHeader>
-      <div className='main-content'>
-        <div className='row'>
-          <ProjectCreateContent />
-        </div>
-      </div>
-    </>
-// </Suspense>
+    <Suspense fallback={<div>Loading...</div>}>
+    <ClientCreate/>
+</Suspense>
   )
 }
 

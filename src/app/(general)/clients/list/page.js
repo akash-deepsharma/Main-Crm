@@ -1,22 +1,12 @@
-import React from 'react'
-import PageHeader from '@/components/shared/pageHeader/PageHeader'
-import ProjectsListHeader from '@/components/ClientList/ClientListHeader'
-import ProjectTable from '@/components/ClientList/ClientTable'
+import ClientList from '@/components/ClientCreate/ClientList'
+import React, { Suspense } from 'react'
+
 
 const page = () => {
     return (
-        // <Suspense fallback={<div>Loading...</div>}>
-        <>
-            <PageHeader>
-                <ProjectsListHeader />
-            </PageHeader>
-            <div className='main-content'>
-                <div className='row'>
-                    <ProjectTable />
-                </div>
-            </div>
-        </>
-        // </Suspense>
+        <Suspense fallback={<div>Loading...</div>}>
+            <ClientList />
+        </Suspense>
     )
 }
 
