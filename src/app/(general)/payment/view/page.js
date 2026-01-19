@@ -1,8 +1,13 @@
+"use client"
 import React from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import PaymentHeader from '@/components/payment/PaymentHeader'
-import InvoiceView from '@/components/payment/InvoiceView'
-
+import dynamic from 'next/dynamic'
+// import InvoiceView from '@/components/payment/InvoiceView'
+const InvoiceView = dynamic(
+  () => import('@/components/payment/InvoiceView'),
+  { ssr: false }
+)
 const page = () => {
   return (
     <>
