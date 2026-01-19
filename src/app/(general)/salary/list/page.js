@@ -7,7 +7,7 @@ import ProjectsListHeader from '@/components/SalaryList/ProjectsListHeader'
 import dynamic from 'next/dynamic'
 
 const ProjectTable = dynamic(
-  () => import('@/components/components/SalaryList/ProjectTable'),
+  () => import('@/components/SalaryList/ProjectTable'),
   { ssr: false }
 )
 
