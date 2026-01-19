@@ -1,6 +1,12 @@
-import UpdatePassword from '@/components/authentication/UpdatePassword'
+"use client"
+// import UpdatePassword from '@/components/authentication/UpdatePassword'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import React from 'react'
+const UpdatePassword = dynamic(
+  () => import('@/components/authentication/UpdatePassword'),
+  { ssr: false }
+)
 
 const page = () => {
   return (
