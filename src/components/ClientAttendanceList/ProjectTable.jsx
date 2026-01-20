@@ -3,6 +3,7 @@ import React, { useState, memo, useEffect } from 'react'
 import Table from '@/components/shared/table/Table';
 import { FiEdit3, FiEye, FiMoreHorizontal, FiTrash2, FiClock } from 'react-icons/fi'
 import Dropdown from '@/components/shared/Dropdown';
+import { useSearchParams, useRouter } from "next/navigation";
 
 const TableCell = memo(({ options }) => {
     const { text, color } = options;
@@ -17,7 +18,10 @@ const ProjectTable = () => {
     const [tableData, setTableData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+  const searchParams = useSearchParams();
 
+      const inputType = searchParams.get("type");
+console.log('this is my type',inputType);
     useEffect(() => {
         fetchClientData();
     }, []);
@@ -40,7 +44,7 @@ const ProjectTable = () => {
             }
             
             // API URL with default client_type
-            const apiUrl = `https://green-owl-255815.hostingersite.com/api/client-with-attendance?company_id=${company_id}&client_type=GeM`;
+            const apiUrl = `https://green-owl-255815.hostingersite.com/api/client-with-attendance?company_id=${company_id}&client_type=${inputType}`;
             
             const response = await fetch(apiUrl, {
                 method: 'GET',

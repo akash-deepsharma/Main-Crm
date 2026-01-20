@@ -1,3 +1,4 @@
+"use client"
 import React,{ useEffect, useState } from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectViewHeader from '@/components/ClientView/ClientViewHeader'

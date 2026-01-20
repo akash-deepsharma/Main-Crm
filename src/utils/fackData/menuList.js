@@ -327,13 +327,16 @@ export const menuList = [
                     {
                         id: 1,
                         name: "GeM Client",
-                        path: "/attendance/list",
+                        path: "/attendance/list?type=GeM",
                         subdropdownMenu: false
                     },
                     {
                         id: 2,
                         name: " Corporate Client",
-                        path: "/",
+                         path: "/attendance/list?type=corporate",
+// path: "/attendance/list",
+
+                        // path: "/",
                         subdropdownMenu: false
                     }
                 ]
