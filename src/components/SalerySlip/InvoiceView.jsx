@@ -42,6 +42,8 @@ const printDiv = async (id) => {
     useCORS: true,
   });
 
+
+  //gitt add adding 
   const imgData = canvas.toDataURL("image/png");
 
   const printWindow = window.open("", "_blank", "width=900,height=1000");
