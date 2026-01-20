@@ -11,7 +11,7 @@ const page = () => {
       </PageHeader>
       <div className='main-content'>
         <div className='tab-content'>
-          <TabProjectOverview />
+          <TabProjectOverview  />
         </div>
       </div>
     </>

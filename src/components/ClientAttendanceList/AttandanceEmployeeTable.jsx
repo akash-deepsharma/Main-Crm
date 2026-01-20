@@ -1,37 +1,140 @@
 'use client'
 import React, { useState, memo, useEffect } from 'react'
 import Table from '@/components/shared/table/Table';
-import { FiAlertOctagon, FiArchive, FiClock, FiEdit3, FiEye, FiMoreHorizontal, FiPrinter, FiTrash2 } from 'react-icons/fi'
-import Dropdown from '@/components/shared/Dropdown';
-import SelectDropdown from '@/components/shared/SelectDropdown';
-import { employeeSalaryTableData } from '@/utils/fackData/employeeSalaryTableData';
+import { FiEye } from 'react-icons/fi'
+import { useSearchParams, useRouter } from 'next/navigation'; // useRouter import किया
 
-const actions = [
-    { label: "Edit", icon: <FiEdit3 /> },
-    { label: "Print", icon: <FiPrinter /> },
-    { label: "Remind", icon: <FiClock /> },
-    { type: "divider" },
-    { label: "Archive", icon: <FiArchive /> },
-    { label: "Report Spam", icon: <FiAlertOctagon />, },
-    { type: "divider" },
-    { label: "Delete", icon: <FiTrash2 />, },
-];
+const AttandanceEmployeeTable = ({ }) => {
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const searchParams = useSearchParams();
+    const router = useRouter(); // router initialize किया
+    const clientId = searchParams.get('client_id');
 
+    useEffect(() => {
+        if (clientId) {
+            fetchAttendanceData();
+        }
+    }, [clientId]);
 
-const TableCell = memo(({ options, defaultSelect }) => {
-    const [selectedOption, setSelectedOption] = useState(null);
+    const fetchAttendanceData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            console.log("token is here", token);
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
 
-    return (
-        <SelectDropdown
-            options={options}
-            defaultSelect={defaultSelect}
-            selectedOption={selectedOption}
-            onSelectOption={(option) => setSelectedOption(option)}
-        />
-    );
-});
+            console.log('Fetching attendance for client ID:', clientId);
+            
+            const response = await fetch(
+                `https://green-owl-255815.hostingersite.com/api/client-wise-attendance?client_id=${clientId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                }
+            );
+            
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-const AttandanceEmployeeTable = () => {
+            const result = await response.json();
+            console.log('API Response:', result);
+
+            if (result.status && result.data) {
+                // Format the API data to match your table structure
+                const formattedData = result.data.map(item => ({
+                    id: item.id,
+                    employee: {
+                        id: item.employee_rand_id,
+                        name: item.employee_name,
+                        email: item.employee?.email || `${item.employee_name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+                        img: item.employee?.img || null
+                    },
+                    'employee-id': item.employee_id,
+                    'employee-rand-id': item.employee_rand_id, // New field for salary slip
+                    'employee-name': {
+                        title: item.employee_name,
+                        img: item.employee?.img || null
+                    },
+                    // Designation data from API - check both post and employee.designation
+                    designation: item.employee?.designation?.name || 
+                                (item.post === "271" ? "STP Operator" : 
+                                 item.post === "272" ? "Pump Operator" : 
+                                 `Post ${item.post}`) || 'Not specified',
+                    designation_details: item.employee?.designation || {
+                        id: item.post,
+                        name: item.employee?.designation?.name || 'Not specified'
+                    },
+                    present_days: item.total || 0,
+                    extra_hours: item.extra_hr || 0,
+                    month: item.month || 'N/A',
+                    year: item.year || 'N/A',
+                    // Monthly attendance summary - combining month and year
+                    month_year: `${item.month || 'N/A'} ${item.year || ''}`.trim(),
+                    // Daily attendance data for detailed view
+                    daily_attendance: {
+                        day_1: item.day_1 || '',
+                        day_2: item.day_2 || '',
+                        day_3: item.day_3 || '',
+                        day_4: item.day_4 || '',
+                        day_5: item.day_5 || '',
+                        day_6: item.day_6 || '',
+                        day_7: item.day_7 || '',
+                        day_8: item.day_8 || '',
+                        day_9: item.day_9 || '',
+                        day_10: item.day_10 || '',
+                        day_11: item.day_11 || '',
+                        day_12: item.day_12 || '',
+                        day_13: item.day_13 || '',
+                        day_14: item.day_14 || '',
+                        day_15: item.day_15 || '',
+                        day_16: item.day_16 || '',
+                        day_17: item.day_17 || '',
+                        day_18: item.day_18 || '',
+                        day_19: item.day_19 || '',
+                        day_20: item.day_20 || '',
+                        day_21: item.day_21 || '',
+                        day_22: item.day_22 || '',
+                        day_23: item.day_23 || '',
+                        day_24: item.day_24 || '',
+                        day_25: item.day_25 || '',
+                        day_26: item.day_26 || '',
+                        day_27: item.day_27 || '',
+                        day_28: item.day_28 || '',
+                        day_29: item.day_29 || '',
+                        day_30: item.day_30 || '',
+                        day_31: item.day_31 || '',
+                    }
+                }));
+                
+                console.log('Formatted Data:', formattedData);
+                setAttendanceData(formattedData);
+            } else {
+                console.log('No data found or API returned false status');
+                setAttendanceData([]);
+                if (result.message) {
+                    throw new Error(result.message);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching attendance data:', error);
+            setError(error.message || 'Failed to fetch attendance data');
+            setAttendanceData([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const columns = [
         {
@@ -68,130 +171,220 @@ const AttandanceEmployeeTable = () => {
                 headerClassName: 'width-30',
             },
         },
-{
-            accessorKey: 'employee-id',
-            header: () => 'Employee ID',
-            cell: (info) => {
-                const roles = info.getValue();
-                return (
-                    <a href="#" className="hstack gap-3">
-                        {
-                            roles?.img ?
-                                <div className="avatar-image avatar-md">
-                                    <img src={roles?.img} alt="" className="img-fluid" />
-                                </div>
-                                :
-                                <div className="text-white avatar-text user-avatar-text avatar-md">{roles?.name.substring(0, 1)}</div>
-                        }
-                        <div>
-                            <span className="text-truncate-1-line">{roles?.name}</span>
-                            <small className="fs-12 fw-normal text-muted">{roles?.email}</small>
-                        </div>
-                    </a>
-                )
-            }
-        },
         {
-            accessorKey: 'employee-name',
-            header: () => 'Employee-name',
+            accessorKey: 'employee',
+            header: () => 'Employee',
             cell: (info) => {
-                const roles = info.getValue();
+                const employee = info.getValue();
+                const firstNameLetter = employee?.name?.charAt(0)?.toUpperCase() || '?';
                 return (
-                    <div className="hstack gap-4">
-                        <div className="avatar-image border-0">
-                            <img src={roles?.img} alt="" className="img-fluid" />
-                        </div>
+                    <div className="hstack gap-3">
+                        {employee?.img ? (
+                            <div className="avatar-image avatar-md">
+                                <img src={employee.img} alt={employee.name} className="img-fluid" />
+                            </div>
+                        ) : (
+                            <div className="text-white avatar-text user-avatar-text avatar-md bg-primary">
+                                {firstNameLetter}
+                            </div>
+                        )}
                         <div>
-                            <a href="projects-view.html" className="text-truncate-1-line">{roles?.title}</a>
-                            
+                            <span className="text-truncate-1-line d-block">{employee?.name || 'Unknown'}</span>
+                            <small className="fs-12 fw-normal text-muted">{employee?.email || 'No email'}</small>
                         </div>
                     </div>
                 )
-            },
-            meta: {
-                className: 'project-name-td'
             }
         },
         {
+            accessorKey: 'employee-id',
+            header: () => 'Employee ID',
+            cell: (info) => (
+                <span className="text-muted">{info.getValue() || 'N/A'}</span>
+            )
+        },
+        {
             accessorKey: 'designation',
-            header: () => 'DESIGNATION',
-        },
-        
-        {
-            accessorKey: 'esi_no',
-            header: () => 'ESI NO',
-        }, 
-        {
-            accessorKey: 'epf_uan_no',
-            header: () => 'EPF UAN NO',
-        },
-        {   
-            accessorKey: 'month_days',
-            header: () => 'MONTH DAYS',
-        }, 
-        {
-            accessorKey: 'days',
-            header: () => 'Days',
+            header: () => 'Designation',
+            cell: (info) => (
+                <span>{info.getValue() || 'Not specified'}</span>
+            )
         },
         {
-            accessorKey: 'Extra_hr',
-            header: () => 'Extra Hr',
+            accessorKey: 'present_days',
+            header: () => 'Present Days',
+            cell: (info) => (
+                <span className="badge bg-success">{info.getValue()} Days</span>
+            )
         },
         {
-            accessorKey: 'rate',
-            header: () => 'RATE',
+            accessorKey: 'extra_hours',
+            header: () => 'Extra Hours',
+            cell: (info) => (
+                <span className="badge bg-warning">{info.getValue()} Hrs</span>
+            )
         },
-         {
-            accessorKey: 'total_basic',
-            header: () => 'TOTAL BASIC',
-        },
-         {
-            accessorKey: 'annual_bonus',
-            header: () => 'ANNUAL BONUS',
-        },
-         {
-            accessorKey: 'pf_12',
-            header: () => 'PF E’R 12%',
-        },
-         {
-            accessorKey: 'esic_75',
-            header: () => 'ESIC E’R 0.75%',
-        },
-         {
-            accessorKey: 'pf_13',
-            header: () => 'PF E’R 13%',
-        },
-         {
-            accessorKey: 'esic_325',
-            header: () => 'ESIC E’R 3.25%',
-        },
-         {
-            accessorKey: 'total_salary',
-            header: () => 'TOTAL SALARY',
+        {
+            accessorKey: 'month_year',
+            header: () => 'Month',
+            cell: (info) => (
+                <span>{info.getValue() || 'N/A'}</span>
+            )
         },
         {
             accessorKey: 'actions',
             header: () => "Actions",
             cell: info => (
                 <div className="hstack gap-2 justify-content-end">
-                    <a href="/salary/salary-slip" className="avatar-text avatar-md">
-                        <FiEye />
-                    </a>
-                    {/* <Dropdown dropdownItems={actions} triggerClassNaclassName='avatar-md' triggerPosition={"0,21"} triggerIcon={<FiMoreHorizontal />} /> */}
+                    {/* <button 
+                        className="btn btn-info btn-sm"
+                        onClick={() => handleViewDetails(info.row.original)}
+                        title="View Attendance Details"
+                    >
+                        <FiEye className="me-1" /> View
+                    </button> */}
+                    <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleSalarySlip(info.row.original)}
+                        title="Generate Salary Slip"
+                    >
+                        Salary Slip
+                    </button>
                 </div>
             ),
             meta: {
                 headerClassName: 'text-end'
             }
         },
-    ]
+    ];
+
+    const handleViewDetails = (employeeData) => {
+        // Get designation details
+        const designationDetails = employeeData.designation_details;
+        const designationInfo = designationDetails ? 
+            `${designationDetails.name} (${designationDetails.skill || 'N/A'})` : 
+            employeeData.designation;
+
+        // Show daily attendance details
+        const dailyAttendance = employeeData.daily_attendance;
+        const daysWithData = Object.entries(dailyAttendance)
+            .filter(([day, status]) => status === 'p' || status === 'a')
+            .map(([day, status]) => {
+                const dayNum = parseInt(day.replace('day_', ''));
+                return `Day ${dayNum}: ${status === 'p' ? '✅ Present' : '❌ Absent'}`;
+            })
+            .join('\n');
+        
+        // Additional information from designation
+        const additionalInfo = designationDetails ? 
+            `\nDesignation Details:
+            Skill: ${designationDetails.skill || 'N/A'}
+            Qualification: ${designationDetails.qualification || 'N/A'}
+            Experience: ${designationDetails.experience_in_years || '0'} years` : '';
+        
+        alert(
+            `📊 Attendance Details for ${employeeData.employee.name}\n\n` +
+            `👤 Employee ID: ${employeeData['employee-id']}\n` +
+            `💼 Designation: ${designationInfo}\n` +
+            `📅 Month: ${employeeData.month_year}\n` +
+            `✅ Present Days: ${employeeData.present_days}\n` +
+            `⏰ Extra Hours: ${employeeData.extra_hours} Hrs\n` +
+            `${additionalInfo}\n\n` +
+            `📋 Daily Attendance:\n${daysWithData || 'No attendance recorded for this month'}`
+        );
+    };
+
+    const handleSalarySlip = (employeeData) => {
+        // Salary slip page पर redirect करें
+        const queryParams = new URLSearchParams({
+            client_id: clientId, // Current client_id
+            employee_id: employeeData['employee-rand-id'] || employeeData['employee-id'], // Employee ID
+            employee_name: employeeData.employee.name, // Employee name
+            month: employeeData.month, // Month from attendance
+            year: employeeData.year, // Year from attendance
+            present_days: employeeData.present_days, // Present days count
+            extra_hours: employeeData.extra_hours, // Extra hours
+            designation: employeeData.designation // Designation
+        }).toString();
+
+        // Salary slip page पर navigate करें
+        router.push(`/salary/salary-slip?${queryParams}`);
+    };
+
+    if (loading) {
+        return (
+            <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-2">Loading attendance data...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="alert alert-danger" role="alert">
+                <strong>Error loading attendance data:</strong> {error}
+                <button 
+                    className="btn btn-sm btn-outline-danger ms-3"
+                    onClick={fetchAttendanceData}
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    if (!attendanceData || attendanceData.length === 0) {
+        return (
+            <>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h5>Attendance Records</h5>
+                    <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={fetchAttendanceData}
+                        disabled={loading}
+                    >
+                        {loading ? 'Refreshing...' : 'Refresh Data'}
+                    </button>
+                </div>
+                <div className="alert alert-info" role="alert">
+                    No attendance records found for this client.
+                    <button 
+                        className="btn btn-sm btn-outline-info ms-3"
+                        onClick={fetchAttendanceData}
+                    >
+                        Check Again
+                    </button>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
-            <Table data={employeeSalaryTableData} columns={columns} />
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h5>Attendance Records ({attendanceData.length})</h5>
+                <div className="hstack gap-2">
+                    <div className="bg-light p-2 rounded">
+                        <small className="text-muted">Client ID: <strong>{clientId}</strong></small>
+                    </div>
+                    <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={fetchAttendanceData}
+                        disabled={loading}
+                    >
+                        {loading ? 'Refreshing...' : 'Refresh Data'}
+                    </button>
+                </div>
+            </div>
+            <Table 
+                data={attendanceData} 
+                columns={columns} 
+            />
         </>
     )
 }
 
-export default AttandanceEmployeeTable
-  
+export default AttandanceEmployeeTable;
