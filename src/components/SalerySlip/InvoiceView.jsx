@@ -68,6 +68,9 @@ const printDiv = async (id) => {
     </html>
   `);
 
+
+  //hello
+
   printWindow.document.close();
   printWindow.focus();
 
