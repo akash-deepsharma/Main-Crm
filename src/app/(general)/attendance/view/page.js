@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectViewHeader from '@/components/ClientView/ClientViewHeader'
 import ProjectViewTabItems from '@/components/ClientView/ClientViewTabItems'
@@ -14,6 +14,7 @@ import TabProjectOverview from '@/components/EmployeeAttandanceView/TabProjectOv
 
 const page = () => {
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <>
       <PageHeader>
         <ClientViewHeader />
@@ -25,6 +26,7 @@ const page = () => {
         </div>
       </div>
     </>
+    </Suspense>
   )
 }
 
