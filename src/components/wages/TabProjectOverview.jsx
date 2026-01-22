@@ -18,26 +18,27 @@ const TabProjectOverview = () => {
   const [designationsValue, setDesignationsValue] = useState(null);
   const [clientType, setClientType] = useState("");
   const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedClientName, setSelectedClientName] = useState(null);
   const [selectedDesignation, setSelectedDesignation] = useState(null);
   const [loadingClients, setLoadingClients] = useState(false);
   const [loadingDesignations, setLoadingDesignations] = useState(false);
   const [loadingDesignationsValue, setLoadingDesignationsValue] = useState(false);
   const [showWagesModal, setShowWagesModal] = useState(false);
   const [modalData, setModalData] = useState(null);
-  const [epfoType, setEpfoType] = useState("full"); // full | ceiling
-  const [esiType, setEsiType] = useState("full"); // full | ceiling - NEW STATE
-  const [otApplicable, setOtApplicable] = useState(0); // 0 | 1
-  const [otBase, setOtBase] = useState("full"); // full | ceiling
-  const [bonusApplicable, setBonusApplicable] = useState(0); // 0 | 1
+  const [epfoType, setEpfoType] = useState("full");
+  const [esiType, setEsiType] = useState("full"); 
+  const [otApplicable, setOtApplicable] = useState(0); 
+  const [otBase, setOtBase] = useState("full");
+  const [bonusApplicable, setBonusApplicable] = useState(0);
   const [bonusFrequency, setBonusFrequency] = useState("monthly");
-  const [arrearApplicable, setArrearApplicable] = useState(0); // 0 | 1
+  const [arrearApplicable, setArrearApplicable] = useState(0);
   const [arrearFrequency, setArrearFrequency] = useState("monthly");
-  const [otRateType, setOtRateType] = useState("same"); // same | twice | custom
+  const [otRateType, setOtRateType] = useState("same");
   const [customOtRate, setCustomOtRate] = useState("");
   const [optionalAllowances, setOptionalAllowances] = useState({});
   const [additionalAllowance, setAdditionalAllowance] = useState({ enabled: false, amount: "" });
 console.log("modal data", modalData)
-  // Client type options
+  
   const clientTypeOptions = [
     { value: "GeM", label: "GeM" },
     { value: "Corporate", label: "Corporate" },
@@ -343,6 +344,7 @@ console.log("modal data", modalData)
     if (opt && opt.value) {
       setSelectedClient(opt);
       setSelectedDesignation(null);
+      setSelectedClientName(opt.label);
       setDesignationsValue(null);
       // Fetch designations for selected client
       fetchDesignations(opt.value);
@@ -350,6 +352,7 @@ console.log("modal data", modalData)
       setSelectedClient(null);
       setDesignations([]);
       setSelectedDesignation(null);
+      setSelectedClientName(null);
       setDesignationsValue(null);
     }
   };
@@ -505,7 +508,7 @@ console.log("modal data", modalData)
 
     try {
       const token = localStorage.getItem("token");
-
+      console.log(" wagesData to submit", wagesData);
       const response = await fetch(
         "https://green-owl-255815.hostingersite.com/api/employee-wages/store",
         {
@@ -773,9 +776,9 @@ console.log("modal data", modalData)
             </div>
           </div>
 
-          {/* <div className="col-xl-12">
-            <WagesTable />
-          </div> */}
+          <div className="col-xl-12">
+            <WagesTable selectedClientId={selectedClient?.value || null} selectedClientName={selectedClientName || null} />
+          </div>
         </div>
       </div>
 

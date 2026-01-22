@@ -450,7 +450,7 @@ export const menuList = [
             },
             {
                 id: 2,
-                name: "Create Invoice",
+                name: "Set Invoice",
                 path: "/invoice/create",
                 subdropdownMenu: false
             }

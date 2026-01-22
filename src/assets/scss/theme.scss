@@ -97,3 +97,7 @@
 <--!----------------------------------------------------------------!-->
 */
 @import "themes/layouts/nxl-responsive";
+
+.steps.clearfix li:first-child.current ~ li {
+  display: none;
+}
