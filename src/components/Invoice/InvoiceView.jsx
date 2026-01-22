@@ -1,53 +1,57 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
+// import  { useState, useEffect } from "react";
+
 import { FiDownload, FiPrinter, FiSend } from "react-icons/fi";
 import Image from "next/image";
+
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import "./InvoiceView.css";
 import MonthPicker from "../shared/MonthPicker";
+ import { useSearchParams } from "next/navigation";
 
 const downloadPDF = async (id, fileName) => {
   const input = document.getElementById(id);
-
+ 
   if (!input) {
     console.error("Element not found:", id);
     return;
   }
-
+ 
   const canvas = await html2canvas(input, {
     scale: 1.5,
     useCORS: true,
   });
-
+ 
   const imgData = canvas.toDataURL("image/png");
   const pdf = new jsPDF("p", "mm", "a4");
-
+ 
   const margin = 8;
   const pdfWidth = pdf.internal.pageSize.getWidth() - margin * 2;
   const imgProps = pdf.getImageProperties(imgData);
   const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
+ 
   pdf.addImage(imgData, "PNG", margin, margin, pdfWidth, imgHeight);
   pdf.save(`${fileName}.pdf`);
 };
-
+ 
 // PRINT FUNCTION
 const printDiv = async (id) => {
   const element = document.getElementById(id);
   if (!element) return;
-
+ 
   // Use html2canvas to capture EXACT preview
   const canvas = await html2canvas(element, {
     scale: 1.5,
     useCORS: true,
   });
-
+ 
   const imgData = canvas.toDataURL("image/png");
-
+ 
   // Create print window
   const printWindow = window.open("", "_blank", "width=900,height=1000");
-
+ 
   printWindow.document.write(`
     <html>
       <head>
@@ -58,7 +62,7 @@ const printDiv = async (id) => {
             padding: 0;
             text-align: center;
           }
-
+ 
           img {
             width: 100%;
             max-width: 800px;
@@ -70,32 +74,32 @@ const printDiv = async (id) => {
       </body>
     </html>
   `);
-
+ 
   printWindow.document.close();
   printWindow.focus();
-
+ 
   setTimeout(() => {
     printWindow.print();
     printWindow.close();
   }, 500);
 };
-
+ 
 const sharePDF = async (id, fileName) => {
   const element = document.getElementById(id);
   const canvas = await html2canvas(element, { scale: 1.5 });
   const img = canvas.toDataURL("image/png");
-
+ 
   const pdf = new jsPDF("p", "mm", "a4");
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
   pdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
-
+ 
   const pdfBlob = pdf.output("blob");
-
+ 
   const file = new File([pdfBlob], `${fileName}.pdf`, {
     type: "application/pdf",
   });
-
+ 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     await navigator.share({
       title: fileName,
@@ -106,10 +110,234 @@ const sharePDF = async (id, fileName) => {
     alert("Sharing not supported on this device");
   }
 };
-
+ 
 const InvoiceView = () => {
+  const searchParams = useSearchParams();
+  const clientId = searchParams.get('client_id');
+    
   const [toggleDateRange, setToggleDateRange] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [clientData, setClientData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [invoiceNumber, setInvoiceNumber] = useState(352);
+  const [selectedMonthSalaries, setSelectedMonthSalaries] = useState([]);
+  const [calculations, setCalculations] = useState({
+    totalBasicSalary: 0,
+    totalGrossSalary: 0,
+    totalEPF: 0,
+    totalESI: 0,
+    totalBonus: 0,
+    totalAllowance: 0,
+    totalOvertime: 0,
+    totalPresentDays: 0,
+    serviceCharge: 0,
+    gst: 0,
+    grandTotal: 0
+  });
+
+  // Fetch client data
+  useEffect(() => {
+    const fetchClientData = async () => {
+      if (!clientId) return;
+      
+      try {
+        setLoading(true);
+        // Remove authorization if not needed or use appropriate token
+        const token = localStorage.getItem('token');
+
+      const response = await fetch(
+  `https://green-owl-255815.hostingersite.com/api/client/invoice?client_id=${clientId}`,
+  {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  }
+);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("API Response:", data); // Debug log
+        setClientData(data);
+        
+        // Calculate invoice number (you can change this logic)
+        setInvoiceNumber(prev => prev + 1);
+        
+      } catch (err) {
+        console.error("Error fetching client data:", err);
+        setError(err.message || "Failed to fetch client data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClientData();
+  }, [clientId]);
+
+  // Filter and calculate salaries for selected month
+  useEffect(() => {
+    if (!clientData || !selectedMonth) return;
+
+    const selectedYear = selectedMonth.getFullYear();
+    const selectedMonthName = selectedMonth.toLocaleString('default', { month: 'long' });
+    
+    const allSalaries = [];
+    
+    // Extract all salaries for selected month
+    clientData.designation?.forEach(designation => {
+      designation.employees?.forEach(employee => {
+        employee.salaries?.forEach(salary => {
+          if (salary.month === selectedMonthName && salary.year === selectedYear) {
+            allSalaries.push({
+              ...salary,
+              employeeName: employee.name,
+              designationName: designation.name,
+              designationId: designation.id,
+              serviceDetails: designation.services?.[0] || {}
+            });
+          }
+        });
+      });
+    });
+    
+    setSelectedMonthSalaries(allSalaries);
+    
+    // Calculate totals
+    if (allSalaries.length > 0) {
+      let totalBasicSalary = 0;
+      let totalGrossSalary = 0;
+      let totalEPF = 0;
+      let totalESI = 0;
+      let totalBonus = 0;
+      let totalAllowance = 0;
+      let totalOvertime = 0;
+      let totalPresentDays = 0;
+      
+      allSalaries.forEach(salary => {
+        totalBasicSalary += parseFloat(salary.basic_salary || 0);
+        totalGrossSalary += parseFloat(salary.gross_salary || 0);
+        totalEPF += parseFloat(salary.epf || 0);
+        totalESI += parseFloat(salary.esi || 0);
+        totalBonus += parseFloat(salary.bonus || 0);
+        totalAllowance += parseFloat(salary.allowance || 0);
+        totalOvertime += parseFloat(salary.overtime_amount || 0);
+        totalPresentDays += parseInt(salary.present_days || 0);
+      });
+      
+      // Get service charge percentage from first designation's service
+      const serviceChargePercentage = clientData.designation?.[0]?.services?.[0]?.perecnt_service_charge || 3.85;
+      const totalBeforeServiceCharge = totalGrossSalary + totalEPF + totalESI + totalBonus + totalAllowance + totalOvertime;
+      const serviceCharge = (totalBeforeServiceCharge * serviceChargePercentage) / 100;
+      
+      // GST calculation
+      const applyGst = clientData.apply_gst || 0;
+      const applyCgstSgst = clientData.apply_cgst_sgst || 0;
+      const totalBeforeGst = totalBeforeServiceCharge + serviceCharge;
+      
+      let gst = 0;
+      if (applyGst) {
+        if (applyCgstSgst) {
+          // CGST + SGST (9% each)
+          gst = (totalBeforeGst * 18) / 100;
+        } else {
+          // Single GST 18%
+          gst = (totalBeforeGst * 18) / 100;
+        }
+      }
+      
+      const grandTotal = totalBeforeGst + gst;
+      
+      setCalculations({
+        totalBasicSalary,
+        totalGrossSalary,
+        totalEPF,
+        totalESI,
+        totalBonus,
+        totalAllowance,
+        totalOvertime,
+        totalPresentDays,
+        serviceCharge,
+        gst,
+        grandTotal
+      });
+    }
+  }, [clientData, selectedMonth]);
+
+  // Helper functions
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount || 0);
+  };
+
+  const getCurrentDate = () => {
+    const now = new Date();
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const year = now.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const getMonthYear = () => {
+    return selectedMonth.toLocaleString('default', { month: 'long' }).toUpperCase() + ' ' + selectedMonth.getFullYear();
+  };
+
+  // Group salaries by designation for table display
+  const groupedByDesignation = {};
+  selectedMonthSalaries.forEach(salary => {
+    if (!groupedByDesignation[salary.designationName]) {
+      groupedByDesignation[salary.designationName] = {
+        salaries: [],
+        totalGross: 0,
+        totalDays: 0,
+        count: 0,
+        rate: salary.serviceDetails?.min_daily_wages || 0
+      };
+    }
+    groupedByDesignation[salary.designationName].salaries.push(salary);
+    groupedByDesignation[salary.designationName].totalGross += parseFloat(salary.gross_salary || 0);
+    groupedByDesignation[salary.designationName].totalDays += parseInt(salary.present_days || 0);
+    groupedByDesignation[salary.designationName].count++;
+  });
+
+  // Loading and error states
+  if (loading) {
+    return (
+      <div className="col-lg-12">
+        <div className="card invoice-container">
+          <div className="card-body p-5 text-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-3">Loading invoice data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+ 
+
+  if (clientData) {
+    // return (
+    //   <div className="col-lg-12">
+    //     <div className="card invoice-container">
+    //       <div className="card-body p-5 text-center">
+    //         <p>No client data found. Please check the client ID.</p>
+    //       </div>
+    //     </div>
+    //   </div>
+    // );
+
+
+
   return (
     <div className="col-lg-12">
       <div className="card invoice-container">
@@ -118,7 +346,7 @@ const InvoiceView = () => {
             <h2 className="fs-16 fw-700 text-truncate-1-line mb-0" style={{width:'max-content'}}>
               Client Name - Invoice 352 for the month of
             </h2>
-
+ 
             <div className="monthpicker-container asdfasdfasdfasdfasdf  ms-2  badge bg-soft-primary text-primary mx-3 fs-16 ">
               <div
                 onClick={() => setToggleDateRange(!toggleDateRange)}
@@ -128,12 +356,12 @@ const InvoiceView = () => {
                   selectedMonth={selectedMonth}
                   setSelectedMonth={setSelectedMonth}
                   toggleDateRange={toggleDateRange}
-                  className="m-0 p-0 border-0 bg-transparent" 
+                  className="m-0 p-0 border-0 bg-transparent"
                 />
               </div>
             </div>
           </div>
-
+ 
           <div className="d-flex align-items-center justify-content-center">
             <a className="d-flex me-1">
               <div
@@ -143,7 +371,7 @@ const InvoiceView = () => {
                 <FiSend size={12} />
               </div>
             </a>
-
+ 
             {/* PRINT BUTTON */}
             <a className="d-flex me-1 printBTN">
               <div
@@ -153,7 +381,7 @@ const InvoiceView = () => {
                 <FiPrinter size={12} />
               </div>
             </a>
-
+ 
             {/* DOWNLOAD BUTTON */}
             <a className="d-flex me-1 file-download">
               <div
@@ -165,7 +393,7 @@ const InvoiceView = () => {
             </a>
           </div>
         </div>
-
+ 
         <div className="card-body p-5">
           <div id="invoiceDiv" className="parent-class">
             <div className="invoice">
@@ -184,7 +412,7 @@ const InvoiceView = () => {
                   </span>
                 </p>
               </div>
-
+ 
               <div className="party-details">
                 <div className="details-1">
                   <p>Party Details:</p>
@@ -210,7 +438,7 @@ const InvoiceView = () => {
                   <p>FOR THE MOΝΤΗ 01-09-2024 ΤΟ 30-09-2024</p>
                 </div>
               </div>
-
+ 
               <div className="table">
                 <table
                   className="table table-bordered"
@@ -272,25 +500,25 @@ const InvoiceView = () => {
                       <td className="right-align">24480.00</td>
                     </tr>
 
-                    <tr>
+                    {/* <tr>
                       <td>2</td>
                       <td className="right-align specific-center">
                         <strong>SECURITY GUARD</strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align">33</td>
                       <td className="bordered-cell right-align">974</td>
                       <td className="right-align">742</td>
                       <td className="right-align">722708.00</td>
                     </tr>
-
+ 
                     <tr>
                       <td></td>
                       <td className="right-align specific-center">
                         <strong>Total</strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align">
@@ -301,7 +529,7 @@ const InvoiceView = () => {
                         <strong>747188.00</strong>
                       </td>
                     </tr>
-
+ 
                     <tr>
                       <td></td>
                       <td className="right-align specific-center">
@@ -309,7 +537,7 @@ const InvoiceView = () => {
                           Bonus@8.33%
                         </strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
@@ -325,7 +553,7 @@ const InvoiceView = () => {
                           EPF 15000@13%
                         </strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
@@ -339,20 +567,20 @@ const InvoiceView = () => {
                           ESI@3.25%
                         </strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align">24283.61</td>
                     </tr>
-
+ 
                     <tr>
                       <td></td>
                       <td className="right-align">
                         <strong></strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
@@ -364,7 +592,7 @@ const InvoiceView = () => {
                       <td className="right-align specific-center">
                         <strong>TOTAL</strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
@@ -378,7 +606,7 @@ const InvoiceView = () => {
                       <td className="right-align">
                         <strong></strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
@@ -390,20 +618,20 @@ const InvoiceView = () => {
                       <td className="right-align specific-center">
                         <strong>Service Charge @ 0.85%</strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align">7699.83</td>
                     </tr>
-
+ 
                     <tr>
                       <td></td>
                       <td className="right-align">
                         <strong></strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
@@ -415,14 +643,14 @@ const InvoiceView = () => {
                       <td className="right-align">
                         <strong></strong>
                       </td>
-
+ 
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                       <td className="right-align"></td>
                     </tr>
-
+ 
                     <tr>
                       <td
                         colSpan="6"
@@ -435,7 +663,7 @@ const InvoiceView = () => {
                         <strong>913562.20</strong>
                       </td>
                     </tr>
-
+ 
                     <tr>
                       <td
                         colSpan="6"
@@ -446,7 +674,7 @@ const InvoiceView = () => {
                       </td>
                       <td className="right-align">82220.60</td>
                     </tr>
-
+ 
                     <tr>
                       <td
                         colSpan="6"
@@ -457,7 +685,7 @@ const InvoiceView = () => {
                       </td>
                       <td className="right-align">82220.60</td>
                     </tr>
-
+ 
                     <tr style={{ borderBottom: "1px solid black !important" }}>
                       <td
                         colSpan="6"
@@ -468,7 +696,7 @@ const InvoiceView = () => {
                       </td>
                       <td className="bordered-cell right-align">-0.40</td>
                     </tr>
-
+ 
                     <tr>
                       <td colSpan="6" className="text-center right-align">
                         <strong>
@@ -482,7 +710,7 @@ const InvoiceView = () => {
                       <td className="right-align">
                         <strong>1,26,604.00</strong>
                       </td>
-                    </tr>
+                    </tr> */}
                   </tbody>
                 </table>
               </div>
@@ -496,7 +724,7 @@ const InvoiceView = () => {
                   <strong>PAN No.: AAATC8738F | IFSC Code: ICIC0000225</strong>
                 </p>
               </div>
-
+ 
               <div className="footer-invoice">
                 <div className="authorized-sign d-flex">
                   <div className="term-and-conditions">
@@ -530,6 +758,7 @@ const InvoiceView = () => {
       </div>
     </div>
   );
+}
 };
-
+ 
 export default InvoiceView;

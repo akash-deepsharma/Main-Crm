@@ -396,13 +396,17 @@ export const menuList = [
                     {
                         id: 1,
                         name: "GeM Client",
-                        path: "/compliance/list",
+
+                         path: "/compliance/list?type=GeM",
+                        // path: "/compliance/list",
                         subdropdownMenu: false
                     },
                     {
                         id: 2,
                         name: " Corporate Client",
-                        path: "/",
+                        // path: "/",
+                        path: "/compliance/list?type=corporate",
+
                         subdropdownMenu: false
                     }
                 ]
@@ -429,13 +433,17 @@ export const menuList = [
                     {
                         id: 1,
                         name: "GeM Client",
-                        path: "/invoice/list",
+                        path: "/invoice/list?type=GeM",
+
+                        // path: "/invoice/list",
                         subdropdownMenu: false
                     },
                     {
                         id: 2,
                         name: " Corporate Client",
-                        path: "/",
+                        // path: "/",
+                        path: "/invoice/list?type=corporate",
+
                         subdropdownMenu: false
                     }
                 ]

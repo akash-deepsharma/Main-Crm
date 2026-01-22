@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState, memo, useEffect } from 'react'
 import Table from '@/components/shared/table/Table';
 import { FiEye } from 'react-icons/fi'
@@ -293,23 +293,32 @@ const AttandanceEmployeeTable = ({ }) => {
             `📋 Daily Attendance:\n${daysWithData || 'No attendance recorded for this month'}`
         );
     };
+const handleSalarySlip = (employeeData) => {
+    let month = searchParams.get('month')
+    let year = searchParams.get('year')
 
-    const handleSalarySlip = (employeeData) => {
-        // Salary slip page पर redirect करें
-        const queryParams = new URLSearchParams({
-            client_id: clientId, // Current client_id
-            employee_id: employeeData['employee-rand-id'] || employeeData['employee-id'], // Employee ID
-            employee_name: employeeData.employee.name, // Employee name
-            month: employeeData.month, // Month from attendance
-            year: employeeData.year, // Year from attendance
-            present_days: employeeData.present_days, // Present days count
-            extra_hours: employeeData.extra_hours, // Extra hours
-            designation: employeeData.designation // Designation
-        }).toString();
+    // 👉 agar month / year missing ho to current set karo
+    if (!month || !year) {
+        const now = new Date()
+        month = now.toLocaleString('en-US', { month: 'long' }) // January
+        year = now.getFullYear() // 2026
+    }
 
-        // Salary slip page पर navigate करें
-        router.push(`/salary/salary-slip?${queryParams}`);
-    };
+    const queryParams = new URLSearchParams({
+        client_id: clientId,
+        employee_id:
+            employeeData['employee-rand-id'] || employeeData['employee-id'],
+        employee_name: employeeData.employee.name,
+        month: month,
+        year: year,
+        present_days: employeeData.present_days,
+        extra_hours: employeeData.extra_hours,
+        designation: employeeData.designation
+    }).toString()
+
+    router.push(`/salary/salary-slip?${queryParams}`)
+}
+
 
     if (loading) {
         return (

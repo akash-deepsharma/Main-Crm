@@ -109,7 +109,9 @@ const sharePDF = async (id, fileName) => {
 
 const InvoiceBonusView = () => {
   const [toggleDateRange, setToggleDateRange] = useState(false);
+  
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+
   return (
     <div className="col-lg-12">
       <div className="card invoice-container">

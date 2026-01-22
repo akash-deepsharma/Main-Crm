@@ -258,12 +258,12 @@ console.log('this is my type',inputType);
             header: () => "Actions",
             cell: info => (
                 <div className="hstack gap-2 justify-content-end">
-                   <a
-  href={`/attendance/view?client_id=${info.row.original.id}`}
-  className="avatar-text avatar-md"
->
-  <FiEye />
-</a>
+                                    <a
+                    href={`/attendance/view?client_id=${info.row.original.id}`}
+                    className="avatar-text avatar-md"
+                    >
+                    <FiEye />
+                    </a>
                     <Dropdown 
                         dropdownItems={actions} 
                         triggerClassName='avatar-md' 

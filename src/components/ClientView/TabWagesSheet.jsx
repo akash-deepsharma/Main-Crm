@@ -32,6 +32,7 @@ const downloadPDF = async (id, fileName) => {
 };
 
 const TabWagesSheet = ({ data }) => {
+  console.log("data agaaya" ,data);
   const [mode, setMode] = useState("day");
   const wagesData = data?.service || [];
   const ComanyData = data.company || [];
@@ -99,7 +100,7 @@ const TabWagesSheet = ({ data }) => {
   );
 };
 
-export default TabWagesSheet;
+export default TabWagesSheet
 
 const PerDayWagesSheet = ({ id, data ,comp}) => {
   // Calculate per day values

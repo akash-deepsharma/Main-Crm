@@ -263,7 +263,7 @@ const [token, setToken] = useState(null)
          const clientId = info.row.original.id;
           return (
       <div className="hstack gap-2 justify-content-end">
-        <a href={`/salary/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
+        <a href={`/attendance/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
           <FiEye />
         </a>
         <Dropdown

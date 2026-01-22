@@ -1,12 +1,39 @@
 'use client'
-import React, { useState } from 'react'
-import { FiCalendar, FiEye } from 'react-icons/fi'
+import React, { useState, useEffect } from 'react'
+import { FiEye } from 'react-icons/fi'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AttandanceEmployeeTable from '../ClientAttendanceList/AttandanceEmployeeTable'
 import MonthPicker from '../shared/MonthPicker'
 
 const TabProjectOverview = () => {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
+    const monthParam = searchParams.get('month')
+
     const [toggleDateRange, setToggleDateRange] = useState(false)
-    const [selectedMonth, setSelectedMonth] = useState(new Date()) 
+    const [selectedMonth, setSelectedMonth] = useState(
+        monthParam ? new Date(monthParam + '-01') : new Date()
+    )
+
+    // 👉 jab month change ho → URL update
+const handleMonthChange = (date) => {
+    setSelectedMonth(date)
+
+    const monthName = date.toLocaleString('en-US', { month: 'long' }) // January
+    const year = date.getFullYear() // 2026
+
+    // 👉 existing params preserve
+    const params = new URLSearchParams(searchParams.toString())
+
+    // 👉 new format me save
+    params.set('month', monthName)
+    params.set('year', year)
+
+    router.push(`?${params.toString()}`)
+}
+
+
 
     return (
         <div className="tab-pane fade active show" id="overviewTab">
@@ -14,60 +41,30 @@ const TabProjectOverview = () => {
                 <div className="col-lg-12">
                     <div className="card stretch stretch-full">
                         <div className="card-body task-header d-md-flex align-items-center justify-content-between">
-                            <div className="me-4">
-                                <h4 className="mb-4 fw-bold d-flex">
-                                    <span className="text-truncate-1-line">
-                                        Client Name  || Customer Name  
-                                        {/* <span className="badge bg-soft-primary text-primary mx-3 fs-16">
-                                            Dec
-                                        </span> */}
-                                        <span className="badge bg-soft-primary text-primary mx-3 fs-16">
-                                            {selectedMonth.toLocaleString("en-US", { month: "short", year: "numeric" })}
-                                        </span>
-                                    </span>
-                                </h4>
 
-                                <div className="d-flex align-items-center mb-2">
-                                    <div className="img-group lh-0 justify-content-start">
-                                        <span className="d-none d-sm-flex">
-                                            <h6 className="fs-16 text-muted text-truncate-1-line mb-0">
-                                                <b>Phone :-</b> 9876543210
-                                            </h6>
-                                        </span>
-                                    </div>
-                                    <span className="vr mx-3 text-muted" />
-                                    <div className="img-group lh-0 ms-2 justify-content-start">
-                                        <span className="d-none d-sm-flex">
-                                            <h6 className="fs-16 text-muted text-truncate-1-line mb-0">
-                                                <b>Email :-</b> asdf@gmail.com
-                                            </h6>
-                                            <span className="badge bg-soft-success text-dark mx-3">
-                                                4 Employee
-                                            </span>
-                                        </span>
-                                    </div>
+                            <h4 className="fw-bold">
+                                Client Name
+                                <span className="badge bg-soft-primary text-primary mx-3 fs-16">
+                                    {selectedMonth.toLocaleString("en-US", {
+                                        month: "short",
+                                        year: "numeric"
+                                    })}
+                                </span>
+                            </h4>
+
+                            <div className="d-flex gap-2">
+                                <div onClick={() => setToggleDateRange(!toggleDateRange)}>
+                                    <MonthPicker
+                                        selectedMonth={selectedMonth}
+                                        onChange={handleMonthChange}
+                                        toggleDateRange={toggleDateRange}
+                                    />
                                 </div>
-                            </div>
 
-                            {/* -------- Right Side Buttons -------- */}
-                            <div className="mt-4 mt-md-0">
-                                <div className="d-flex gap-2">
-                                    <div
-                                        className="position-relative "
-                                        onClick={() => setToggleDateRange(!toggleDateRange)}
-                                    >
-                                        <MonthPicker
-                                            selectedMonth={selectedMonth}
-                                            setSelectedMonth={setSelectedMonth}
-                                            toggleDateRange={toggleDateRange}
-                                        />
-                                    </div>
-
-                                    <a href="#" className="btn btn-success">
-                                        <FiEye size={16} className='me-2' />
-                                        <span>View Attached Doc</span>
-                                    </a>
-                                </div>
+                                <a href="#" className="btn btn-success">
+                                    <FiEye size={16} className='me-2' />
+                                    View Attached Doc
+                                </a>
                             </div>
 
                         </div>
