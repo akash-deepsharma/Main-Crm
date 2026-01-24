@@ -1,8 +1,9 @@
 "use client"
 import React, { Suspense } from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
-import ProjectsListHeader from '@/components/ClientList/ClientListHeader'
+// import ProjectsListHeader from '@/components/employeeList/employeeListHeader'
 import dynamic from 'next/dynamic'
+import ProjectsListHeader from '@/components/EmployeeSalaryList/ProjectsListHeader'
 // import ProjectTable from '@/components/employeeList/ProjectTable'
 const ProjectTable = dynamic(
   () => import('@/components/employeeList/ProjectTable'),

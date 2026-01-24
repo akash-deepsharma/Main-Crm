@@ -39,9 +39,9 @@ const ProjectsListHeader = () => {
           isAvatar={false}
           iconStrokeWidth={0}
         />
-        <Link href="/clients/create" className="btn btn-primary">
+        <Link href="/employees/create" className="btn btn-primary">
           <FiPlus size={16} className='me-2' />
-          <span>Create Client</span>
+          <span>Create Employee</span>
         </Link>
       </div>
       <div id="collapseOne" className="accordion-collapse collapse page-header-collapse" style={{position:'absolute',top:'auto',zIndex:'9',right:'0'}}>

@@ -382,7 +382,7 @@ useEffect(() => {
         );
 
         const result = await res.json();
-
+          console.log("fatch contract detail", result)
         if (result.status && Array.isArray(result.data)) {
           const formatted = result.data.map((item) => ({
             value: item.id,
