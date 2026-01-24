@@ -1,7 +1,7 @@
 import React from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectCreateHeader from '@/components/ClientCreate/ClientCreateHeader'
-import ProjectCreateContent from '@/components/invoice/ProjectCreateContent'
+import ProjectCreateContent from '@/components/Invoice/ProjectCreateContent'
 
 const page = () => {
   return (
