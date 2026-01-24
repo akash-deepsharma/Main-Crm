@@ -15,7 +15,7 @@ const steps = [
   { name: "Client Invoice Data", required: true },
   { name: "Completed", required: false }
 ]
-
+ 
 const ProjectCreateContent = () => {
   // 🔑 SHARED STATE
   const [selectedClient, setSelectedClient] = useState(null)
