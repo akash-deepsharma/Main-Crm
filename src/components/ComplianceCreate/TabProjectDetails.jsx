@@ -51,7 +51,7 @@ const TabProjectDetails = ({ formData }) => {
 
   /* ================= FETCH CLIENTS ================= */
   useEffect(() => {
-    const companyId = sessionStorage.getItem('selected_company')
+    const companyId = localStorage.getItem('selected_company')
     if (formData?.projectType && companyId) {
       fetchClients(formData.projectType, companyId)
     }

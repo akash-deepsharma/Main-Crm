@@ -38,7 +38,7 @@ const ProjectTable = () => {
     const getAuthData = () => {
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('token');
-            const company_id = sessionStorage.getItem('selected_company');
+            const company_id = localStorage.getItem('selected_company');
             return { token, company_id };
         }
         return { token: null, company_id: null };

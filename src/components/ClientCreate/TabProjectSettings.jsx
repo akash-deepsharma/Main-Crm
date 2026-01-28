@@ -14,7 +14,7 @@ const TabProjectSettings = forwardRef(({ clientId }, ref) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
-  const client_id = sessionStorage.getItem('client_id')
+  const client_id = localStorage.getItem('client_id')
 
   const [formData, setFormData] = useState({
     client_id: Number(client_id),
@@ -52,7 +52,7 @@ const TabProjectSettings = forwardRef(({ clientId }, ref) => {
   ]
 
   useEffect(() => {
-    const company_id = sessionStorage.getItem('selected_company')
+    const company_id = localStorage.getItem('selected_company')
     if (!company_id) {
       alert('Company not selected')
       router.replace('/company')
@@ -205,7 +205,7 @@ const TabProjectSettings = forwardRef(({ clientId }, ref) => {
       }
 
       // Store in session storage for persistence
-      sessionStorage.setItem('Financial_Approval', JSON.stringify({ formData }))
+      localStorage.setItem('Financial_Approval', JSON.stringify({ formData }))
       
       return true
     } catch (err) {
@@ -217,7 +217,7 @@ const TabProjectSettings = forwardRef(({ clientId }, ref) => {
   }
 
   useEffect(() => {
-    const saved = sessionStorage.getItem("Financial_Approval")
+    const saved = localStorage.getItem("Financial_Approval")
     if (saved) {
       const { formData } = JSON.parse(saved)
       setFormData(formData)

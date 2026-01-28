@@ -5,11 +5,11 @@ import React, { useEffect } from 'react'
 const TabCompleted = () => {
 
       useEffect(() => {
-        sessionStorage.removeItem('client_id')
-        sessionStorage.removeItem('Consignee')
-        sessionStorage.removeItem('Client_Services')
-        sessionStorage.removeItem('Financial_Approval')
-        sessionStorage.removeItem('Client_details')
+        localStorage.removeItem('client_id')
+        localStorage.removeItem('Consignee')
+        localStorage.removeItem('Client_Services')
+        localStorage.removeItem('Financial_Approval')
+        localStorage.removeItem('Client_details')
   }, [])
     
     return (

@@ -668,7 +668,7 @@ const InvoiceView = () => {
   };
   const getSelectedCompany = () => {
     if (typeof window !== 'undefined') {
-      const company_id = sessionStorage.getItem('selected_company')
+      const company_id = localStorage.getItem('selected_company')
       return company_id;
     }
     return null;

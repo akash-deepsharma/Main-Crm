@@ -168,7 +168,7 @@ const [items, setItems] = useState(previtems);
 
 useEffect(() => {
 //   const id = sessionStorage.getItem("selected_company");
-  const ClientId = sessionStorage.getItem("client_id");
+  const ClientId = localStorage.getItem("client_id");
   setClientId(ClientId);
 }, []);
 
@@ -240,7 +240,7 @@ useEffect(() => {
             },
             startDate: new Date().toISOString(),
         };
-        sessionStorage.setItem(
+        localStorage.setItem(
           "Client_details",
           JSON.stringify(Client_details)
         );
@@ -263,7 +263,7 @@ useEffect(() => {
         },
         };
 
-        sessionStorage.setItem(
+        localStorage.setItem(
         "Financial_Approval",
         JSON.stringify(Financial_Approval)
         );
@@ -308,7 +308,7 @@ const ConsigneeData = {
   })),
 };
 
-sessionStorage.setItem(
+localStorage.setItem(
   "Consignee",
   JSON.stringify(ConsigneeData)
 );
@@ -320,17 +320,15 @@ sessionStorage.setItem(
   savedAt: new Date().toISOString(),
 };
 
-sessionStorage.setItem(
+localStorage.setItem(
   "Client_Services",
   JSON.stringify(servicesData)
 );
 
-      sessionStorage.setItem(
+      localStorage.setItem(
         "Client_Services",
         JSON.stringify(result.data.services)
       );
-
-      
 
 
       } catch (error) {

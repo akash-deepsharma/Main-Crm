@@ -198,7 +198,7 @@ const isValidGSTIN = (value) =>
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const client_id = sessionStorage.getItem("client_id");
+  const client_id = localStorage.getItem("client_id");
 
 
   const updateConsigneeField = (id, field, value) => {
@@ -210,7 +210,7 @@ const isValidGSTIN = (value) =>
 };
 
   useEffect(() => {
-    const company_id = sessionStorage.getItem("selected_company");
+    const company_id = localStorage.getItem("selected_company");
 
     if (!company_id) {
       alert("Company not selected");
@@ -298,7 +298,7 @@ const handleSaveAndNext = async () => {
       throw new Error(result.message || "Failed to save settings");
     }
 
-    sessionStorage.setItem("Consignee", JSON.stringify({ consignees }));
+    localStorage.setItem("Consignee", JSON.stringify({ consignees }));
 
     return true;
   } catch (err) {
@@ -311,7 +311,7 @@ const handleSaveAndNext = async () => {
 
 
 useEffect(() => {
-  const saved = sessionStorage.getItem("Consignee");
+  const saved = localStorage.getItem("Consignee");
 
   if (saved) {
     const parsed = JSON.parse(saved);

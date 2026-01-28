@@ -17,7 +17,7 @@ const TabProjectDetails = forwardRef(({ clientId, clientType }, ref) => {
     console.log("clientId form url", client_Id)
     
     useEffect(() => {
-        const companyId = sessionStorage.getItem("selected_company");
+        const companyId = localStorage.getItem("selected_company");
         if (!companyId) {
             alert("Company not selected");
             router.replace("/company");
@@ -189,10 +189,9 @@ const TabProjectDetails = forwardRef(({ clientId, clientType }, ref) => {
         }
 
         const token = localStorage.getItem('token')
-        const company_id = sessionStorage.getItem('selected_company')
+        const company_id = localStorage.getItem('selected_company')
 
         if (!company_id) {
-            alert("Company not selected");
             router.replace("/company");
             return false;
         }
@@ -255,8 +254,8 @@ const TabProjectDetails = forwardRef(({ clientId, clientType }, ref) => {
             }
             
             if (result?.status && result?.data?.id) {
-                sessionStorage.setItem("client_id", result.data.id.toString());
-                sessionStorage.setItem(
+                localStorage.setItem("client_id", result.data.id.toString());
+                localStorage.setItem(
                     "Client_details",
                     JSON.stringify({
                         formData,
@@ -280,7 +279,7 @@ const TabProjectDetails = forwardRef(({ clientId, clientType }, ref) => {
     }
 
     useEffect(() => {
-        const saved = sessionStorage.getItem("Client_details");
+        const saved = localStorage.getItem("Client_details");
         if (saved) {
             const { formData, startDate } = JSON.parse(saved);
             setFormData(formData);

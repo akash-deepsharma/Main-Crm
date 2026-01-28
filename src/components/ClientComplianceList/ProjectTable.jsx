@@ -70,7 +70,7 @@ const ProjectTable = () => {
             setLoading(true);
             setError(null);
 
-            const company_id = sessionStorage.getItem('selected_company');
+            const company_id = localStorage.getItem('selected_company');
             const client_type = 'GeM';
             const token = localStorage.getItem('token');
 

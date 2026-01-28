@@ -334,7 +334,7 @@ console.log("modal data", modalData)
     setSelectedDesignation(null);
     setDesignationsValue(null);
 
-    const companyId = sessionStorage.getItem("selected_company");
+    const companyId = localStorage.getItem("selected_company");
     if (option?.value && companyId) {
       fetchClients(option.value, companyId);
     }

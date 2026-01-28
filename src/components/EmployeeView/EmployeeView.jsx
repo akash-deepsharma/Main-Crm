@@ -22,7 +22,7 @@ export default function EmployeeView() {
 
   useEffect(() => {
     setToken(localStorage.getItem('token'));
-    setCompid(sessionStorage.getItem('selected_company'));
+    setCompid(localStorage.getItem('selected_company'));
   }, []);
 
   const searchParams = useSearchParams();

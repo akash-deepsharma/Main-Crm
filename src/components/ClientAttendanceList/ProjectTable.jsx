@@ -32,7 +32,7 @@ console.log('this is my type',inputType);
             setError(null);
             
             // Get company_id and token from localStorage
-            const company_id = sessionStorage.getItem('selected_company');
+            const company_id = localStorage.getItem('selected_company');
             const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
             
             if (!company_id) {

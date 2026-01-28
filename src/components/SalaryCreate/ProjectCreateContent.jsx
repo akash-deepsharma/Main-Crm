@@ -255,7 +255,7 @@ const ProjectCreateContent = () => {
                                 
                                 {/* Step 2 Error */}
                                 {stepErrors.step2 && (
-                                    <div className="alert alert-danger mt-3 mb-0">
+                                    <div className="alert alert-danger mt-3 mb-0 d-flex align-items-center">
                                         <strong>Error:</strong> {stepErrors.step2}
                                     </div>
                                 )}
@@ -278,7 +278,7 @@ const ProjectCreateContent = () => {
                                 onClick={handleNext}
                                 disabled={isProcessing}
                             >
-                                <a href="#" className={isProcessing ? 'disabled' : ''}>
+                                <a href="#" className={`${isProcessing ? 'disabled' : ''} text-nowrap`}>
                                     {isProcessing ? (
                                         <>
                                             <span className="spinner-border spinner-border-sm me-2" role="status"></span>
@@ -287,9 +287,6 @@ const ProjectCreateContent = () => {
                                     ) : (
                                         <>
                                             {currentStep === 2 ? 'Process & Next' : 'Next'}
-                                            {currentStep === 2 && (
-                                                <small className="d-block text-muted fs-10">Will submit all "Process" status employees</small>
-                                            )}
                                         </>
                                     )}
                                 </a>

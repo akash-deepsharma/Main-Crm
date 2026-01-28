@@ -283,7 +283,7 @@ const TabEmployeeDetails = forwardRef(({ clientId, clientType }, ref) => {
   // Initialize from session storage
 // Initialize from session storage
 useEffect(() => {
-  const savedEmployee = sessionStorage.getItem("employee_step1");
+  const savedEmployee = localStorage.getItem("employee_step1");
 
   if (savedEmployee) {
     const data = JSON.parse(savedEmployee);
@@ -364,14 +364,14 @@ useEffect(() => {
 
   // Fetch contracts
   useEffect(() => {
-    const company_id = sessionStorage.getItem("selected_company");
+    const company_id = localStorage.getItem("selected_company");
     // console.log( company_id)
     const fetchContracts = async () => {
       try {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          `${API_BASE}/client/employee/view?company_id=${company_id}?client_type=${client_Type}`,
+          `${API_BASE}/client/employee/view?company_id=${company_id}&client_type=${client_Type}`,
           {
             method: "GET",
             headers: {
@@ -392,7 +392,7 @@ useEffect(() => {
           setContractOptions(formatted);
           
           // Check if we have saved contract ID to restore
-          const savedEmployee = sessionStorage.getItem("employee_step1");
+          const savedEmployee = localStorage.getItem("employee_step1");
           if (savedEmployee) {
             const data = JSON.parse(savedEmployee);
             if (data.contract_id) {
@@ -462,7 +462,7 @@ useEffect(() => {
         setDesignationOptions(formatted);
         
         // Check if we have saved designation ID to restore
-        const savedEmployee = sessionStorage.getItem("employee_step1");
+        const savedEmployee = localStorage.getItem("employee_step1");
         if (savedEmployee) {
           const data = JSON.parse(savedEmployee);
           if (data.designation_id) {
@@ -511,7 +511,7 @@ useEffect(() => {
         setConsigneeOptions(formatted);
         
         // Check if we have saved consignee ID to restore
-        const savedEmployee = sessionStorage.getItem("employee_step1");
+        const savedEmployee = localStorage.getItem("employee_step1");
         if (savedEmployee) {
           const data = JSON.parse(savedEmployee);
           if (data.consignee_id) {
@@ -575,7 +575,7 @@ useEffect(() => {
   }
 
   const token = localStorage.getItem("token");
-  const company_id = sessionStorage.getItem("selected_company");
+  const company_id = localStorage.getItem("selected_company");
 
   if (!company_id) {
     alert("Company not selected");
@@ -591,7 +591,7 @@ useEffect(() => {
   try {
     setLoading(true);
 
-    const employeeId = sessionStorage.getItem("employee_id");
+    const employeeId = localStorage.getItem("employee_id");
 
     // Convert replaced_employee to boolean
     const replacedEmployeeBool = employee.replaced_employee === "yes" ? true : 
@@ -647,10 +647,10 @@ useEffect(() => {
       const employeeId = result.employee.id;
 
       // Store employee id
-      sessionStorage.setItem("employee_id", employeeId);
+      localStorage.setItem("employee_id", employeeId);
 
       // Store full employee form data
-      sessionStorage.setItem(
+      localStorage.setItem(
         "employee_step1",
         JSON.stringify({
           ...employee,

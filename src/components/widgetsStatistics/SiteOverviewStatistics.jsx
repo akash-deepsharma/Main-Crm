@@ -13,7 +13,7 @@ const SiteOverviewStatistics = () => {
         const fetchCounts = async () => {
             try {
                 const token = localStorage.getItem('token')
-                const company_id = sessionStorage.get('selected_company');
+                const company_id = localStorage.get('selected_company');
                                 const response = await fetch(
                       `https://green-owl-255815.hostingersite.com/api/dashboard/counts?company_id=${company_id}`,
                     {

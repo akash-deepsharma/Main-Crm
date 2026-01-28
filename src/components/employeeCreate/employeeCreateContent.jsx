@@ -47,7 +47,7 @@ const EmployeeCreateContent = () => {
 
 useEffect(() => {
 //   const id = sessionStorage.getItem("selected_company");
-  const ClientId = sessionStorage.getItem("client_id");
+  const ClientId = localStorage.getItem("client_id");
   setClientId(ClientId);
 }, []);
     const validateFields = () => {

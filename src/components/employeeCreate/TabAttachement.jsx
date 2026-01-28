@@ -24,7 +24,7 @@ const TabAttachement = forwardRef(({ error }, ref) => {
   const [selectedDocs, setSelectedDocs] = useState([]); // { type, file, icon }
 
   useEffect(() => {
-    const employeeId = sessionStorage.getItem('employee_id');
+    const employeeId = localStorage.getItem('employee_id');
     
     if (!employeeId) {
       alert('Employee not found. Complete previous steps first.');
@@ -52,7 +52,7 @@ const TabAttachement = forwardRef(({ error }, ref) => {
 
   const handleSaveAttachments = async () => {
     const token = localStorage.getItem("token");
-    const employeeId = sessionStorage.getItem("employee_id");
+    const employeeId = localStorage.getItem("employee_id");
 
     if (!token || !employeeId) {
       alert("Employee not found. Complete previous steps first.");

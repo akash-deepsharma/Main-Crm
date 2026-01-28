@@ -71,7 +71,7 @@ const [token, setToken] = useState(null)
   // get token & company id
   useEffect(() => {
     setToken(localStorage.getItem('token'))
-    setCompid(sessionStorage.getItem('selected_company'))
+    setCompid(localStorage.getItem('selected_company'))
   }, [])
 
   useEffect(() => {

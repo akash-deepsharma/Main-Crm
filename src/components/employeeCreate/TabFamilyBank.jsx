@@ -264,7 +264,7 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
     }
 
     const token = localStorage.getItem("token");
-    const employeeId = sessionStorage.getItem("employee_id");
+    const employeeId = localStorage.getItem("employee_id");
 
     if (!token || !employeeId) {
       alert("Employee not found. Complete previous steps first.");

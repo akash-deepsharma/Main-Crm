@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "Can I switch plans at any time?",
     answer:
-      "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the charges accordingly.",
+      "Yes, you can upgrade your plan at any time. Changes take effect immediately, and we'll prorate the charges accordingly.",
   },
   {
     question: "What payment methods do you accept?",

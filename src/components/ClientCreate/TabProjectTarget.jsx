@@ -66,8 +66,8 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
   const fetchConsignees = async () => {
     try {
       const token = localStorage.getItem("token");
-      const client_id = sessionStorage.getItem("client_id");
-      const selected_company = sessionStorage.getItem("selected_company");
+      const client_id = localStorage.getItem("client_id");
+      const selected_company = localStorage.getItem("selected_company");
 
       const response = await fetch(
         `https://green-owl-255815.hostingersite.com/api/select/consignee?client_id=${client_id}&company_id=${selected_company}`,
@@ -247,8 +247,8 @@ const Skill = useMemo(() => [
 
     try {
       const token = localStorage.getItem("token");
-      const client_id = sessionStorage.getItem("client_id");
-      const company_id = sessionStorage.getItem("selected_company");
+      const client_id = localStorage.getItem("client_id");
+      const company_id = localStorage.getItem("selected_company");
 
       const payload = {
         client_id,
@@ -333,7 +333,7 @@ const Skill = useMemo(() => [
         throw new Error(result.message || 'Failed to save settings')
       }
 
-      if (result?.status) {sessionStorage.setItem('Client_Services', JSON.stringify({ result }))} 
+      if (result?.status) {localStorage.setItem('Client_Services', JSON.stringify({ result }))} 
 
       if (result.status) {
         alert("Services created successfully!");
@@ -348,7 +348,7 @@ const Skill = useMemo(() => [
     }
   };
   useEffect(() => {
-  const saved = sessionStorage.getItem("Client_Services");
+  const saved = localStorage.getItem("Client_Services");
   console.log("services saved data ", saved)
   if (!saved) return;
 

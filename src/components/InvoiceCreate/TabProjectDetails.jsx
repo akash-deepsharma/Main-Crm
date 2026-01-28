@@ -21,7 +21,7 @@ const TabProjectDetails = ({
 
   useEffect(() => {
     setStartDate(new Date())
-    const companyId = sessionStorage.getItem('selected_company')
+    const companyId = localStorage.getItem('selected_company')
 
     if (clientType && companyId) {
       fetchClients(clientType, companyId)

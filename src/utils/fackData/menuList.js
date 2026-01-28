@@ -383,6 +383,42 @@ export const menuList = [
         ]
     },
     {
+        id: 14,
+        name: "Materials ",
+        path: "#",
+        icon: 'feather-award',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: " Materials List",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                        id: 1,
+                        name: "GeM Client",
+                         path: "/material/list?type=GeM",
+                        // path: "/compliance/list",
+                        subdropdownMenu: false
+                    },
+                    {
+                        id: 2,
+                        name: " Corporate Client",
+                        // path: "/",
+                        path: "/material/list?type=corporate",
+
+                        subdropdownMenu: false
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: "Material Create",
+                path: "/material/create",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
         id: 11,
         name: "Compliance ",
         path: "#",

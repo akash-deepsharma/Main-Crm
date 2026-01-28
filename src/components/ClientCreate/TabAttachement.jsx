@@ -22,14 +22,14 @@ const API_BASE = 'https://green-owl-255815.hostingersite.com/api'
 const TabAttachement = forwardRef(({ clientId }, ref) => {
 const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const client_id = sessionStorage.getItem('client_id')
+  const client_id = localStorage.getItem('client_id')
     const [selectedDocs, setSelectedDocs] = useState([]); // { type, file, icon }
     console.log( "selectedDocs", selectedDocs)
 
 
 
         useEffect(() => {
-          const company_id = sessionStorage.getItem('selected_company')
+          const company_id = localStorage.getItem('selected_company')
         
           if (!company_id) {
             alert('Company not selected')

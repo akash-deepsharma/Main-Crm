@@ -86,7 +86,7 @@ const TabProjectOverview = () => {
     setSelectedClient(null);
     setSelectedClientName(null);
 
-    const companyId = sessionStorage.getItem("selected_company");
+    const companyId = localStorage.getItem("selected_company");
     if (option?.value && companyId) {
       fetchClients(option.value, companyId);
     }

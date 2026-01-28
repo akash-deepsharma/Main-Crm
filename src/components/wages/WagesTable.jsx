@@ -34,10 +34,7 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
   // Function to get auth token - adjust based on how you store tokens
   const getAuthToken = () => {
     // Try to get token from localStorage
-    const token = localStorage.getItem('auth_token') || 
-                  localStorage.getItem('token') ||
-                  sessionStorage.getItem('auth_token') ||
-                  sessionStorage.getItem('token');
+    const token = localStorage.getItem('token');
     
     console.log("Auth token found:", token ? "Yes" : "No");
     return token;
