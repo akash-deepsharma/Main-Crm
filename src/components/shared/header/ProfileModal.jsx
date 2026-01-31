@@ -38,6 +38,10 @@ const ProfileModal = () => {
                     <i ><FiDollarSign /></i>
                     <span>Billing Details</span>
                 </a>
+                <a href="/company" className="dropdown-item">
+                    <i ><FiDollarSign /></i>
+                    <span>Company</span>
+                </a>
                 <a href="#" className="dropdown-item">
                     <i><FiBell /></i>
                     <span>Notifications</span>

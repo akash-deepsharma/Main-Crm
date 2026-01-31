@@ -1,28 +1,34 @@
 'use client'
-import React, { useEffect } from 'react'
-import AttandanceEmployeeUpdateTable from '../ClientAttendanceList/AttandanceEmployeeUpdateTable ';
+import React from 'react'
 
 const TabProjectSettings = ({
   clientType,
   initialClient,
-  attachmentData
+  attachmentData,
+  apiStatus,
+  apiError,
+  isUploading
 }) => {
-
-
-   useEffect(() => {
-    console.log('🔍 TabProjectSettings - Props received:')
-    console.log('📅 attachmentData:', attachmentData)
-    console.log('📅 Month:', attachmentData?.month)
-    console.log('📅 Year:', attachmentData?.year)
-    console.log('📅 Due Date:', attachmentData?.dueDate)
-    console.log('👥 Client Type:', clientType)
-    console.log('👤 Client:', initialClient)
-  }, [attachmentData, clientType, initialClient])
 
   return (
     <section className="step-body mt-0 body current stepChange">
       <form id="project-settings">
         <fieldset>
+          {/* Display loading state */}
+          {isUploading && (
+            <div className="alert alert-info mb-4">
+              <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+              Creating invoice, please wait...
+            </div>
+          )}
+
+          {/* Display error state from API */}
+          {apiStatus === 'error' && (
+            <div className="alert alert-danger mb-4">
+              <strong>Error:</strong> {apiError || 'Failed to create invoice'}
+            </div>
+          )}
+
           {/* Display Month/Year Information */}
           {attachmentData && (
             <div className="card mb-4">
@@ -55,8 +61,6 @@ const TabProjectSettings = ({
                       </div>
                     </div>
                   </div>
-                  
-                
                 </div>
               </div>
             </div>
@@ -86,21 +90,15 @@ const TabProjectSettings = ({
                     </div>
                   </div>
                 </div>
-                
               </div>
             </div>
           </div>
 
-          {/* Pass all data to child component */}
-          {/* <AttandanceEmployeeUpdateTable
-            clientType={clientType}
-            initialClient={initialClient}
-            initialConsignee={initialConsignee || null}
-            month={attachmentData?.month || ""}
-            year={attachmentData?.year || ""}
-            dueDate={attachmentData?.dueDate || ""}
-          /> */}
-
+          {/* Instructions */}
+          <div className="alert alert-warning">
+            <h6 className="fw-bold mb-2">Ready to create invoice?</h6>
+            <p className="mb-0">Click "Create Invoice" button below to generate the invoice with the above details.</p>
+          </div>
         </fieldset>
       </form>
     </section>

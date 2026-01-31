@@ -26,12 +26,12 @@ const CompanyMiscellaneous = ({ index, isSelected, projectData2 }) => {
       >
         <div
           className="m-auto overflow-hidden"
-          style={{ width: "150px", height: "150px", borderRadius: "50%" }}
+          style={{ width: "150px", height: "150px", borderRadius: "50%",boxShadow:"#9a9a9a 0px 0px 6px 2px" }}
         >
           <img
             src={ `https://green-owl-255815.hostingersite.com/${company.company_logo}`
             }
-            alt={company.company_name}
+            alt={company.company_name} style={{width:"inherit",height:"100%"}}
           />
         </div>
 

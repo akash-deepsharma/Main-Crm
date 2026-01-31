@@ -101,3 +101,14 @@
 .steps.clearfix li:first-child.current ~ li {
   display: none;
 }
+.back_home_btn a {
+    background-color: white;
+    padding: 8px 16px;
+    border-radius: 11px;
+    font-size: 16px;
+    color: #3454d1;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

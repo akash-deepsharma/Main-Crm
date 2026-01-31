@@ -12,9 +12,13 @@ const ProfileCreate = () => {
         companyPhone: '',
         companyPan: '',
         companyTan: '',
+        company_code:'',
         companyGst: '',
         companyEmail: '',
         address: '',
+        state:'',
+        city:'',
+        zip_code:'',
         bankName: '',
         bankBranch: '',
         bankIfsc: '',
@@ -71,10 +75,14 @@ const ProfileCreate = () => {
                     companyName: company?.company_name,
                     companyPhone: company?.company_phone ,
                     companyPan: company?.pan_number,
+                    company_code: company?.company_code,
                     companyTan: company?.tan_number,
                     companyGst: company?.gst_number,
                     companyEmail: company?.company_business_email || company?.email || '',
                     address: company?.address || '',
+                    state: company?.state || '',
+                    city: company?.city || '',
+                    zip_code: company?.zip_code || '',
                     bankName: company?.bank_name || '',
                     bankBranch: company?.bank_branch || '',
                     bankIfsc: company?.ifsc_code || '',
@@ -252,8 +260,8 @@ const ProfileCreate = () => {
                                             </div>
                                             <div className="col-md-6">
                                                 <p><strong>TAN:</strong> {profileData?.companyTan}</p>
-                                                <p><strong>Company Code:</strong> CRM-CRM-18</p>
-                                                <p><strong>LinkedIn:</strong> Not available</p>
+                                                <p><strong>Company Code:</strong> {profileData?.company_code}</p>
+                                                {/* <p><strong>LinkedIn:</strong> Not available</p> */}
                                             </div>
                                         </div>
                                     </div>
@@ -262,11 +270,35 @@ const ProfileCreate = () => {
                                 <hr className="my-4" />
 
                                 <div className="row mb-4">
-                                    <div className="col-12">
+                                    <div className="col-12 mb-4">
                                         <h5 className="mb-3">Address</h5>
                                         <div className="bg-light p-3 rounded">
                                             <p className="mb-0">
-                                                {profileData.address || 'No address provided'}
+                                                {profileData?.address || 'No address provided'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <h5 className="mb-3">City</h5>
+                                        <div className="bg-light p-3 rounded">
+                                            <p className="mb-0">
+                                                {profileData?.addrcityess || 'No address provided'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <h5 className="mb-3">State</h5>
+                                        <div className="bg-light p-3 rounded">
+                                            <p className="mb-0">
+                                                {profileData?.state || 'No address provided'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <h5 className="mb-3">Zip Code</h5>
+                                        <div className="bg-light p-3 rounded">
+                                            <p className="mb-0">
+                                                {profileData?.zip_code || 'No address provided'}
                                             </p>
                                         </div>
                                     </div>
@@ -363,7 +395,7 @@ const ProfileCreate = () => {
                                                 className="form-control" 
                                                 id="companyPan" 
                                                 placeholder="Company PAN" 
-                                                value={profileData.companyPan}
+                                                value={profileData?.companyPan}
                                                 onChange={handleInputChange}
                                             />
                                         </div>
@@ -376,7 +408,7 @@ const ProfileCreate = () => {
                                                 className="form-control" 
                                                 id="companyTan" 
                                                 placeholder="Company TAN" 
-                                                value={profileData.companyTan}
+                                                value={profileData?.companyTan}
                                                 onChange={handleInputChange}
                                             />
                                         </div>
@@ -389,7 +421,7 @@ const ProfileCreate = () => {
                                                 className="form-control" 
                                                 id="companyGst" 
                                                 placeholder="Company GST" 
-                                                value={profileData.companyGst}
+                                                value={profileData?.companyGst}
                                                 onChange={handleInputChange}
                                             />
                                         </div>
@@ -407,23 +439,66 @@ const ProfileCreate = () => {
                                                     className="form-control" 
                                                     id="companyEmail" 
                                                     placeholder="Email Address" 
-                                                    value={profileData.companyEmail}
+                                                    value={profileData?.companyEmail}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                         </div>
-                                        <div className="form-group row">
-                                            <label htmlFor="address" className="col-sm-3 col-form-label">Address</label>
-                                            <div className="col-sm-9">
-                                                <textarea 
-                                                    rows={5} 
+                                        
+                                        <div className='row'>
+                                            <div className="col-xl-4">
+                                            <div className="form-group mb-3">
+                                                <label htmlFor="address" className="form-label">Address</label>
+                                                <input 
+                                                    type="text" 
                                                     className="form-control" 
                                                     id="address" 
                                                     placeholder="Enter Address" 
-                                                    value={profileData.address}
+                                                    value={profileData?.address}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
+                                        </div>
+                                        <div className="col-xl-3">
+                                            <div className="form-group mb-3">
+                                                <label htmlFor="City" className="form-label">City</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control" 
+                                                    id="City" 
+                                                    placeholder="City" 
+                                                    value={profileData?.city}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-xl-3">
+                                            <div className="form-group mb-3">
+                                                <label htmlFor="State" className="form-label">State</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control" 
+                                                    id="State" 
+                                                    placeholder="State" 
+                                                    value={profileData?.state}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-xl-2">
+                                            <div className="form-group mb-3">
+                                                <label htmlFor="Zip" className="form-label">Zip code</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control" 
+                                                    id="Zip" 
+                                                    placeholder="Zip code" 
+                                                    value={profileData?.zip_code}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                        </div>
+
                                         </div>
                                     </div>
                                     <div className="col-xl-12 mb-4 mt-4 mb-sm-0">
@@ -436,7 +511,7 @@ const ProfileCreate = () => {
                                                     className="form-control" 
                                                     id="bankName" 
                                                     placeholder="Bank Name" 
-                                                    value={profileData.bankName}
+                                                    value={profileData?.bankName}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
@@ -449,7 +524,7 @@ const ProfileCreate = () => {
                                                     className="form-control" 
                                                     id="bankBranch" 
                                                     placeholder="Bank Branch" 
-                                                    value={profileData.bankBranch}
+                                                    value={profileData?.bankBranch}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
@@ -462,7 +537,7 @@ const ProfileCreate = () => {
                                                     className="form-control" 
                                                     id="bankIfsc" 
                                                     placeholder="Bank IFSC" 
-                                                    value={profileData.bankIfsc}
+                                                    value={profileData?.bankIfsc}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
@@ -475,7 +550,7 @@ const ProfileCreate = () => {
                                                     className="form-control" 
                                                     id="bankAccount" 
                                                     placeholder="Enter Bank Account" 
-                                                    value={profileData.bankAccount}
+                                                    value={profileData?.bankAccount}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
@@ -491,7 +566,7 @@ const ProfileCreate = () => {
                                             className="form-control" 
                                             id="aboutCompany" 
                                             placeholder="Tell us about your company" 
-                                            value={profileData.aboutCompany}
+                                            value={profileData?.aboutCompany}
                                             onChange={handleInputChange}
                                         />
                                     </div>

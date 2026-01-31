@@ -12,10 +12,10 @@ const steps = [
   { name: "Type", required: true },
   { name: "Select Client", required: true },
   { name: "Dates", required: true },
-  { name: "Client Invoice Data", required: true },
+  { name: "Create Invoice", required: true },
   { name: "Completed", required: false }
 ]
- 
+
 const ProjectCreateContent = () => {
   // 🔑 SHARED STATE
   const [selectedClient, setSelectedClient] = useState(null)
@@ -24,6 +24,9 @@ const ProjectCreateContent = () => {
   const [currentStep, setCurrentStep] = useState(0)
   const [error, setError] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [apiResponse, setApiResponse] = useState(null)
+  const [apiStatus, setApiStatus] = useState(null) // 'loading', 'success', 'error'
+  const [apiError, setApiError] = useState(null)
 
   // Month/year state to pass between steps
   const [attachmentData, setAttachmentData] = useState({
@@ -41,6 +44,96 @@ const ProjectCreateContent = () => {
     projectBudgets: "",
     budgetsSpend: "",
   })
+
+    // Function to get token from localStorage
+  const getAuthToken = () => {
+    if (typeof window !== 'undefined') {
+      // Try different possible token keys that might be used
+      const token = localStorage.getItem('token')
+      return token;
+    }
+    return null;
+  };
+
+
+  // Helper function to format date
+  const formatDueDate = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toISOString().split('T')[0]
+  }
+
+  // Function to call the API
+  const callCreateInvoiceAPI = async () => {
+    // Validate required fields
+    if (!selectedClient?.value) {
+      setError('Client ID is required')
+      return false
+    }
+
+    if (!attachmentData?.month) {
+      setError('Month is required')
+      return false
+    }
+
+    if (!attachmentData?.year) {
+      setError('Year is required')
+      return false
+    }
+
+    setIsUploading(true)
+    setApiStatus('loading')
+    setApiError(null)
+     const token = getAuthToken();
+
+    try {
+      const payload = {
+        client_id: selectedClient.value,
+        month: attachmentData.month,
+        year: attachmentData.year,
+        due_date: formatDueDate(attachmentData.dueDate),
+        client_type: formData.projectType
+      }
+
+      console.log('📤 Sending API request with payload:', payload)
+
+      const response = await fetch('https://green-owl-255815.hostingersite.com/api/invoicecreate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`)
+      }
+
+      console.log('✅ API Response:', data)
+      
+      setApiResponse(data)
+      setApiStatus(data.status ? 'success' : 'error')
+      
+      if (!data.status) {
+        setApiError(data.message || 'Failed to create invoice')
+        return false
+      }
+      
+      return true
+
+    } catch (error) {
+      console.error('❌ API Error:', error)
+      setApiError(error.message)
+      setApiStatus('error')
+      return false
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   const validateFields = () => {
     if (currentStep === 0 && !formData.projectType) {
@@ -66,10 +159,19 @@ const ProjectCreateContent = () => {
   const handleNext = async (e) => {
     e.preventDefault()
     
-    // TEMPORARY: Force allow navigation from step 2 if data seems valid
     if (currentStep === 2 && attachmentData.month && attachmentData.year && attachmentData.dueDate) {
       setCurrentStep(3)
       setError(false)
+      return
+    }
+    
+    // If moving from "Create Invoice" step (step 3), call API first
+    if (currentStep === 3) {
+      const success = await callCreateInvoiceAPI()
+      if (success) {
+        setCurrentStep(4) // Move to Completed step only if API is successful
+      }
+      // If API fails, stay on current step to show error
       return
     }
     
@@ -96,10 +198,9 @@ const ProjectCreateContent = () => {
     setError(false)
   }
 
-  // Handler for Attachment step data - Fixed version
+  // Handler for Attachment step data
   const handleAttachmentData = (data) => {
     setAttachmentData(prev => {
-      // Only update if data has actually changed
       if (prev.month === data.month && 
           prev.year === data.year && 
           prev.dueDate === data.dueDate) {
@@ -170,12 +271,20 @@ const ProjectCreateContent = () => {
               <TabProjectSettings
                 clientType={formData.projectType}
                 initialClient={selectedClient}
-                initialConsignee={selectedConsignee}
                 attachmentData={attachmentData}
+                apiStatus={apiStatus}
+                apiError={apiError}
+                isUploading={isUploading}
               />
             )}
 
-            {currentStep === 4 && <TabCompleted />}
+            {currentStep === 4 && (
+              <TabCompleted 
+                apiResponse={apiResponse}
+                apiStatus={apiStatus}
+                apiError={apiError}
+              />
+            )}
           </div>
 
           {/* ACTIONS */}
@@ -194,7 +303,12 @@ const ProjectCreateContent = () => {
                 disabled={isUploading}
               >
                 <a href="#">
-                  {isUploading ? "Uploading..." : "Next"}
+                  {isUploading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Creating Invoice...
+                    </>
+                  ) : currentStep === 3 ? "Create Invoice" : "Next"}
                 </a>
               </li>
             </ul>

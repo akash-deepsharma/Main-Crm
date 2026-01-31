@@ -129,9 +129,9 @@ const BillingInfo = () => {
     ];
 
     const packages = [
-        { value: 'basic', label: 'Basic Plan', price: '$49/month' },
-        { value: 'business', label: 'Business Plan', price: '$199/month' },
-        { value: 'premium', label: 'Premium Plan', price: '$499/month' },
+        { value: 'basic', label: 'Basic Plan', price: '₹49/month' },
+        { value: 'business', label: 'Business Plan', price: '₹199/month' },
+        { value: 'premium', label: 'Premium Plan', price: '₹499/month' },
         { value: 'enterprise', label: 'Enterprise', price: 'Custom' }
     ];
 
@@ -216,14 +216,14 @@ const BillingInfo = () => {
     });
 
     const downloadInvoice = (invoiceNumber) => {
-        topTost(`Downloading invoice: ${invoiceNumber}`, 'info');
+        topTost(`Downloading invoice: ₹{invoiceNumber}`, 'info');
         // Add actual download logic here
     };
 
     const viewTransactionDetails = (transaction) => {
         // Implement modal or detailed view
         console.log('View transaction:', transaction);
-        topTost(`Viewing details for ${transaction.id}`, 'info');
+        topTost(`Viewing details for ₹{transaction.id}`, 'info');
     };
 
     const totalSpent = transactions
@@ -240,7 +240,7 @@ const BillingInfo = () => {
                             
                             <li className="nav-item" role="presentation">
                                 <button
-                                    className={`nav-link ${activeTab === 'transactions' ? 'active' : ''}`}
+                                    className={`nav-link ₹{activeTab === 'transactions' ? 'active' : ''}`}
                                     onClick={() => setActiveTab('transactions')}
                                 >
                                     <FaHistory className="me-2" />
@@ -265,7 +265,7 @@ const BillingInfo = () => {
                                 <div className="text-end">
                                     <div className="d-flex align-items-center">
                                         <span className="me-3">Total Spent:</span>
-                                        <h4 className="text-primary mb-0">${totalSpent.toFixed(2)}</h4>
+                                        <h4 className="text-primary mb-0">₹{totalSpent.toFixed(2)}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -333,7 +333,7 @@ const BillingInfo = () => {
                             <div className="row">
                                 {filteredTransactions.map((transaction) => (
                                     <div key={transaction.id} className="col-md-6 mb-4">
-                                        <div className={`card ${getPackageColor(transaction.package)}`}>
+                                        <div className={`card ₹{getPackageColor(transaction.package)}`}>
                                             <div className="card-header bg-light">
                                                 <div className="w-100 d-flex justify-content-between align-items-center">
                                                     <div>
@@ -353,7 +353,7 @@ const BillingInfo = () => {
                                                     </div>
                                                     <div className="col-6">
                                                         <small className="text-muted d-block">Amount</small>
-                                                        <h5 className="text-primary mb-0">${transaction.amount.toFixed(2)}</h5>
+                                                        <h5 className="text-primary mb-0">₹{transaction.amount.toFixed(2)}</h5>
                                                     </div>
                                                 </div>
                                                 
