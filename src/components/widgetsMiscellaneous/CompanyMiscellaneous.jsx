@@ -12,6 +12,7 @@ const CompanyMiscellaneous = ({ index, isSelected, projectData2 }) => {
 
   const handleCompanyClick = () => {
     localStorage.setItem("selected_company", JSON.stringify(company['id']))
+    localStorage.setItem("Company_type", JSON.stringify(company['client_type']))
     router.push("/dashboards/crm")
   }
 

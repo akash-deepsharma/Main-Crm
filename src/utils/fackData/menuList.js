@@ -11,15 +11,278 @@ export const menuList = [
                 path: "/dashboards/crm",
                 subdropdownMenu: false
             },
-            // {
-            //     id: 2,
-            //     name: "Analytics",
-            //     path: "/dashboards/analytics",
-            //     subdropdownMenu: false
-            // }
         ]
     },
-    // {
+   
+    {
+        id: 1,
+        name: "client",
+        path: "#",
+        icon: 'feather-layout',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: "Client Lists",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                id: 1,
+                name: "GeM Clients",
+                path: "/clients/list?type=GeM",
+                companyType: "gem",
+                subdropdownMenu: false
+            },
+            {
+                id: 2,
+                name: " Corporate Clients",
+                path: "/clients/list?type=Corporate",
+                companyType: "corporate",
+                subdropdownMenu: false
+            }
+                ]
+            },
+            {
+                id: 2,
+                name: "Client Create",
+                path: "/clients/create",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 2,
+        name: "Employee",
+        path: "#",
+        icon: 'feather-user-plus',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: "Employee List",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                id: 1,
+                name: "GeM Employee",
+                path: "/employees/list?type=GeM",
+                  companyType: "gem",
+                subdropdownMenu: false
+            },
+            {
+                id: 2,
+                name: " Corporate Employee",
+                path: "/employees/list?type=Corporate",
+                companyType: "corporate",
+                subdropdownMenu: false
+            }
+                ]
+            },
+            {
+                id: 2,
+                name: " Employee Create",
+                path: "/employees/create",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 3,
+        name: " Wages",
+        path: "#",
+        icon: 'feather-user-plus',
+        dropdownMenu: [            
+            {
+                id: 1,
+                name: " Set wages",
+                path: "/wages",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 4,
+        name: "Attendance",
+        path: "#",
+        icon: 'feather-life-buoy',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: "Client List",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                        id: 1,
+                        name: "GeM Client",
+                        path: "/attendance/list?type=GeM",
+                        companyType: "gem",
+                        subdropdownMenu: false
+                    },
+                    {
+                        id: 2,
+                        name: " Corporate Client",
+                         path: "/attendance/list?type=corporate",
+                        companyType: "corporate",
+                        subdropdownMenu: false
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: " Attendance Create",
+                path: "/attendance/create",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 5,
+        name: "Salary",
+        path: "#",
+        icon: 'feather-dollar-sign',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: " Salary List",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                        id: 1,
+                        name: "GeM Client",
+                        path: "/salary/list?type=GeM",
+                        companyType: "gem",
+                        subdropdownMenu: false
+                    },
+                    {
+                        id: 2,
+                        name: " Corporate Client",
+                        path: "/salary/list?type=Corporate",
+                        companyType: "corporate",
+                        subdropdownMenu: false
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: "Create Salary",
+                path: "/salary/create",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 6,
+        name: "Materials ",
+        path: "#",
+        icon: 'feather-award',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: " Materials List",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                        id: 1,
+                        name: "GeM Client",
+                         path: "/material/list?type=GeM",
+                        companyType: "gem",
+                        subdropdownMenu: false
+                    },
+                    {
+                        id: 2,
+                        name: " Corporate Client",
+                        path: "/material/list?type=corporate",
+                        companyType: "corporate",
+                        subdropdownMenu: false
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: "Material Create",
+                path: "/material/create",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 7,
+        name: "Compliance ",
+        path: "#",
+        icon: 'feather-award',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: " Compliance List",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                        id: 1,
+                        name: "GeM Client",
+                         path: "/compliance/list?type=GeM",
+                        companyType: "gem",
+                        subdropdownMenu: false
+                    },
+                    {
+                        id: 2,
+                        name: " Corporate Client",
+                        path: "/compliance/list?type=corporate",
+                        companyType: "corporate",
+                        subdropdownMenu: false
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: "Compliance Invoice",
+                path: "/compliance/create",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 8,
+        name: "Invoice ",
+        path: "#",
+        icon: 'feather-file-text',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: " Invoice List",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                        id: 1,
+                        name: "GeM Client",
+                        path: "/invoice/list?type=GeM",
+                        companyType: "gem",
+                        subdropdownMenu: false
+                    },
+                    {
+                        id: 2,
+                        name: " Corporate Client",
+                        path: "/invoice/list?type=corporate",
+                        companyType: "corporate",
+                        subdropdownMenu: false
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: " Create Invoice",
+                path: "/invoice/create",
+                subdropdownMenu: false
+            },
+            {
+                id: 3,
+                name: "Set Invoice",
+                path: "/invoice/setup",
+                subdropdownMenu: false
+            }
+        ]
+    },
+]
+
+
+ // {
     //     id: 1,
     //     name: "reports",
     //     path: "#",
@@ -233,273 +496,15 @@ export const menuList = [
     //         }
     //     ]
     // },
-    {
-        id: 8,
-        name: "client",
-        path: "#",
-        icon: 'feather-layout',
-        dropdownMenu: [
-            {
-                id: 1,
-                name: "Client Lists",
-                path: "#",
-                subdropdownMenu: [
-                    {
-                id: 1,
-                name: "GeM Clients",
-                path: "/clients/list?type=GeM",
-                subdropdownMenu: false
-            },
-            {
-                id: 2,
-                name: " Corporate Clients",
-                path: "/clients/list?type=Corporate",
-                subdropdownMenu: false
-            }
-                ]
-            },
-            {
-                id: 2,
-                name: "Client Create",
-                path: "/clients/create",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 9,
-        name: "Employee",
-        path: "#",
-        icon: 'feather-user-plus',
-        dropdownMenu: [
-            {
-                id: 1,
-                name: "Employee List",
-                path: "#",
-                subdropdownMenu: [
-                    {
-                id: 1,
-                name: "GeM Employee",
-                path: "/employees/list?type=GeM",
-                subdropdownMenu: false
-            },
-            {
-                id: 2,
-                name: " Corporate Employee",
-                path: "/employees/list?type=Corporate",
-                subdropdownMenu: false
-            }
-                ]
-            },
-            {
-                id: 2,
-                name: " Employee Create",
-                path: "/employees/create",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 9,
-        name: " Wages",
-        path: "#",
-        icon: 'feather-user-plus',
-        dropdownMenu: [            
-            {
-                id: 1,
-                name: " Set wages",
-                path: "/wages",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 10,
-        name: "Attendance",
-        path: "#",
-        icon: 'feather-life-buoy',
-        dropdownMenu: [
-            {
-                id: 1,
-                name: "Client List",
-                path: "#",
-                subdropdownMenu: [
-                    {
-                        id: 1,
-                        name: "GeM Client",
-                        path: "/attendance/list?type=GeM",
-                        subdropdownMenu: false
-                    },
-                    {
-                        id: 2,
-                        name: " Corporate Client",
-                         path: "/attendance/list?type=corporate",
-// path: "/attendance/list",
 
-                        // path: "/",
-                        subdropdownMenu: false
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: " Attendance Create",
-                path: "/attendance/create",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 11,
-        name: "Salary",
-        path: "#",
-        icon: 'feather-dollar-sign',
-        dropdownMenu: [
-            {
-                id: 1,
-                name: " Salary List",
-                path: "#",
-                subdropdownMenu: [
-                    {
-                        id: 1,
-                        name: "GeM Client",
-                        path: "/salary/list?type=GeM",
-                        subdropdownMenu: false
-                    },
-                    {
-                        id: 2,
-                        name: " Corporate Client",
-                        path: "/salary/list?type=Corporate",
-                        subdropdownMenu: false
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: "Create Salary",
-                path: "/salary/create",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 14,
-        name: "Materials ",
-        path: "#",
-        icon: 'feather-award',
-        dropdownMenu: [
-            {
-                id: 1,
-                name: " Materials List",
-                path: "#",
-                subdropdownMenu: [
-                    {
-                        id: 1,
-                        name: "GeM Client",
-                         path: "/material/list?type=GeM",
-                        // path: "/compliance/list",
-                        subdropdownMenu: false
-                    },
-                    {
-                        id: 2,
-                        name: " Corporate Client",
-                        // path: "/",
-                        path: "/material/list?type=corporate",
 
-                        subdropdownMenu: false
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: "Material Create",
-                path: "/material/create",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 11,
-        name: "Compliance ",
-        path: "#",
-        icon: 'feather-award',
-        dropdownMenu: [
-            {
-                id: 1,
-                name: " Compliance List",
-                path: "#",
-                subdropdownMenu: [
-                    {
-                        id: 1,
-                        name: "GeM Client",
 
-                         path: "/compliance/list?type=GeM",
-                        // path: "/compliance/list",
-                        subdropdownMenu: false
-                    },
-                    {
-                        id: 2,
-                        name: " Corporate Client",
-                        // path: "/",
-                        path: "/compliance/list?type=corporate",
 
-                        subdropdownMenu: false
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: "Compliance Invoice",
-                path: "/compliance/create",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 11,
-        name: "Invoice ",
-        path: "#",
-        icon: 'feather-file-text',
-        dropdownMenu: [
-            {
-                id: 1,
-                name: " Invoice List",
-                path: "#",
-                subdropdownMenu: [
-                    {
-                        id: 1,
-                        name: "GeM Client",
-                        path: "/invoice/list?type=GeM",
 
-                        // path: "/invoice/list",
-                        subdropdownMenu: false
-                    },
-                    {
-                        id: 2,
-                        name: " Corporate Client",
-                        // path: "/",
-                        path: "/invoice/list?type=corporate",
 
-                        subdropdownMenu: false
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: " Create Invoice",
-                path: "/invoice/create",
-                subdropdownMenu: false
-            },
-            {
-                id: 3,
-                name: "Set Invoice",
-                path: "/invoice/setup",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    
-    // {
+
+
+ // {
     //     id: 9,
     //     name: "settings",
     //     path: "#",
@@ -747,5 +752,3 @@ export const menuList = [
     //         
     //     ]
     // },
-    
-]
