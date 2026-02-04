@@ -653,7 +653,12 @@ const InvoiceView = () => {
   const clientId = searchParams.get('client_id');
   
   const [toggleDateRange, setToggleDateRange] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const currentDate = new Date();
+    // Previous month set करें (current month - 1)
+    const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    return previousMonth;
+  });
   const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -818,7 +823,7 @@ const InvoiceView = () => {
           if (response.status === 401) {
             throw new Error("Authentication failed. Token may be invalid or expired.");
           } else if (response.status === 404) {
-            throw new Error("Invoice not found for the given client ID.");
+            throw new Error("Invoice not found for the given client ID / Month / Year.");
           } else {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
@@ -963,6 +968,107 @@ const InvoiceView = () => {
   }
   const gstResult = calcute_gstcharge(invoiceSummary.gst_calculations)
   console.log("calcute_gstcharge", gstResult)
+
+
+
+  // Function to convert number to Indian Rupees in words
+const convertNumberToWords = (amount) => {
+  if (!amount || isNaN(amount)) return "Zero Rupees Only";
+  
+  const num = parseFloat(amount);
+  
+  // Handle decimal part
+  const rupees = Math.floor(num);
+  const paise = Math.round((num - rupees) * 100);
+  
+  const rupeesInWords = convertToWords(rupees);
+  const paiseInWords = paise > 0 ? convertToWords(paise) : null;
+  
+  let result = rupeesInWords + " Rupees";
+  if (paiseInWords) {
+    result += " And " + paiseInWords + " Paise";
+  }
+  result += " Only";
+  
+  return result;
+};
+
+// Helper function to convert number to words
+const convertToWords = (num) => {
+  if (num === 0) return "Zero";
+  
+  const ones = [
+    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", 
+    "Seventeen", "Eighteen", "Nineteen"
+  ];
+  
+  const tens = [
+    "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
+  ];
+  
+  const scaleWords = ["", "Thousand", "Lakh", "Crore"];
+  
+  // Indian numbering system conversion
+  const convertLessThanThousand = (n) => {
+    if (n === 0) return "";
+    
+    let words = "";
+    
+    // Hundreds
+    if (n >= 100) {
+      words += ones[Math.floor(n / 100)] + " Hundred";
+      n %= 100;
+      if (n > 0) words += " ";
+    }
+    
+    // Tens and ones
+    if (n >= 20) {
+      words += tens[Math.floor(n / 10)];
+      n %= 10;
+      if (n > 0) words += " " + ones[n];
+    } else if (n > 0) {
+      words += ones[n];
+    }
+    
+    return words;
+  };
+  
+  // Convert number to array of digits in Indian system (Crore, Lakh, Thousand, Hundred)
+  const getIndianDigits = (n) => {
+    const digits = [];
+    
+    // Last 3 digits (hundreds, tens, ones)
+    digits.push(n % 1000);
+    n = Math.floor(n / 1000);
+    
+    // Next 2 digits (thousands)
+    digits.push(n % 100);
+    n = Math.floor(n / 100);
+    
+    // Next 2 digits (lakhs)
+    digits.push(n % 100);
+    n = Math.floor(n / 100);
+    
+    // Remaining digits (crores)
+    digits.push(n);
+    
+    return digits;
+  };
+  
+  const digits = getIndianDigits(num);
+  let words = "";
+  
+  for (let i = digits.length - 1; i >= 0; i--) {
+    if (digits[i] > 0) {
+      if (words !== "") words += " ";
+      words += convertLessThanThousand(digits[i]);
+      if (scaleWords[i] !== "") words += " " + scaleWords[i];
+    }
+  }
+  
+  return words.trim();
+};
   return (
     <div className="col-lg-12">
       <div className="card invoice-container">
@@ -1287,7 +1393,7 @@ const InvoiceView = () => {
                     </tr>
                     
                     {/* Empty Row */}
-                    <tr>
+                    <tr className="custom-border-row"  style={{borderTop: 0}}>
                       <td></td>
                       <td className="right-align">
                         <strong></strong>
@@ -1298,34 +1404,6 @@ const InvoiceView = () => {
                       <td></td>
                       <td></td>
                     </tr>
-                    
-                    {/* Material Charges if available */}
-                    {/* {invoiceSummary.material_charges_calculations && (
-                      <>
-                        <tr style={{ borderBottom: "1px solid black !important" }}>
-                          <td></td>
-                          <td className="right-align">
-                            <strong>Material Charges</strong>
-                          </td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td className="right-align">{(invoiceSummary.material_charges_calculations?.total_with_gst || 0).toFixed(2)}</td>
-                        </tr>
-                        <tr style={{ borderBottom: "1px solid black !important" }}>
-                          <td></td>
-                          <td className="right-align">
-                            <strong></strong>
-                          </td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                        </tr>
-                      </>
-                    )} */}
                     
                     {/* Total including GST */}
                     <tr >
@@ -1383,13 +1461,17 @@ const InvoiceView = () => {
                         <strong>
                           {/* You can add number to words conversion here */}
                         </strong>
-                        <strong style={{ marginLeft: "330px" }}>
+                        <strong style={{ marginLeft: "330px",fontWeight:'800' }}>
                           Grand Total
                         </strong>
                       </td>
-                      <td className="right-align">
-                        <strong>{(salarySubtotal + totalGst + invoiceSummary.admin_charge_calculations?.total_admin_amount).toFixed(2)}</strong>
+                      <td className="right-align" style={{ fontWeight:'800' }}>
+                       {(salarySubtotal + totalGst + invoiceSummary.admin_charge_calculations?.total_admin_amount).toFixed(2)}
                       </td>
+                    </tr>
+                    <tr className="custom-border-row ">
+                      <td style={{ fontWeight:'800',whiteSpace:'nowrap' }} >Amount :- </td>
+                      <td colSpan="6" style={{ textAlign: "left" , fontWeight:'800' }}> {convertNumberToWords(salarySubtotal + totalGst + invoiceSummary.admin_charge_calculations?.total_admin_amount)}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1426,10 +1508,11 @@ const InvoiceView = () => {
                   <div className="signature">
                     <p className="text-start">Reciver Signature:</p>
                     <p className="name text-center">
-                      Alpha Manpower Services Private Limited
+                      {invoiceData?.company?.company_name}
                     </p>
                     <p className="text-end">Authorized Signatory</p>
-                  </div>
+                    <img src={`https://green-owl-255815.hostingersite.com/${invoiceData?.company?.company_stamp}`}/>
+                  </div>  
                 </div>
               </div>
             </div>

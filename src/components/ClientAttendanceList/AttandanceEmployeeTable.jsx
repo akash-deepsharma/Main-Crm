@@ -2,15 +2,18 @@
 import React, { useState, memo, useEffect } from 'react'
 import Table from '@/components/shared/table/Table';
 import { FiEye } from 'react-icons/fi'
-import { useSearchParams, useRouter } from 'next/navigation'; // useRouter import किया
+import { useSearchParams, useRouter } from 'next/navigation'; 
 
 const AttandanceEmployeeTable = ({ }) => {
     const [attendanceData, setAttendanceData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const searchParams = useSearchParams();
-    const router = useRouter(); // router initialize किया
+    const router = useRouter();
     const clientId = searchParams.get('client_id');
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+
 
     useEffect(() => {
         if (clientId) {
@@ -32,7 +35,7 @@ const AttandanceEmployeeTable = ({ }) => {
             console.log('Fetching attendance for client ID:', clientId);
             
             const response = await fetch(
-                `https://green-owl-255815.hostingersite.com/api/client-wise-attendance?client_id=${clientId}`,
+                `https://green-owl-255815.hostingersite.com/api/client-wise-attendance?client_id=${clientId}&month=${month}&year=${year}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
