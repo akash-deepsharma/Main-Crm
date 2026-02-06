@@ -180,6 +180,7 @@ const AttandanceEmployeeUpdateTable = ({
       'Father name', 
       'POST',
       ...Array.from({length: 31}, (_, i) => i + 1), // Days 1-31
+      'extra_hr',
       'TOTAL'
     ];
 
@@ -189,7 +190,7 @@ const AttandanceEmployeeUpdateTable = ({
         index + 1, // Serial number starting from 1
         emp.rand_id || emp.id || 'N/A',
         emp.name || 'N/A',
-        '', // Father name - not in your data
+        emp.Fathername || 'N/A', // Father name - not in your data
         emp.designation || 'N/A'
       ];
 

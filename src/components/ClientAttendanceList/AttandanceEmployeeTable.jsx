@@ -1,10 +1,10 @@
 'use client';
-import React, { useState, memo, useEffect } from 'react'
+import React, { useState, memo, useEffect, useCallback } from 'react'
 import Table from '@/components/shared/table/Table';
 import { FiEye } from 'react-icons/fi'
 import { useSearchParams, useRouter } from 'next/navigation'; 
 
-const AttandanceEmployeeTable = ({ }) => {
+const AttandanceEmployeeTable = ({ selectedMonth }) => {
     const [attendanceData, setAttendanceData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,14 +14,8 @@ const AttandanceEmployeeTable = ({ }) => {
     const month = searchParams.get('month');
     const year = searchParams.get('year');
 
-
-    useEffect(() => {
-        if (clientId) {
-            fetchAttendanceData();
-        }
-    }, [clientId]);
-
-    const fetchAttendanceData = async () => {
+    // 👉 fetchAttendanceData ko useCallback se wrap karo
+    const fetchAttendanceData = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -33,9 +27,23 @@ const AttandanceEmployeeTable = ({ }) => {
             }
 
             console.log('Fetching attendance for client ID:', clientId);
+            console.log('Month from params:', month);
+            console.log('Year from params:', year);
+            
+            // 👉 Agar month aur year available nahi hai to default current-1 use karo
+            let apiMonth = month;
+            let apiYear = year;
+            
+            if (!apiMonth || !apiYear) {
+                const now = new Date();
+                const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                apiMonth = prevMonth.toLocaleString('en-US', { month: 'long' });
+                apiYear = prevMonth.getFullYear().toString();
+                console.log('Using default month/year:', apiMonth, apiYear);
+            }
             
             const response = await fetch(
-                `https://green-owl-255815.hostingersite.com/api/client-wise-attendance?client_id=${clientId}&month=${month}&year=${year}`,
+                `https://green-owl-255815.hostingersite.com/api/client-wise-attendance?client_id=${clientId}&month=${apiMonth}&year=${apiYear}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -137,7 +145,15 @@ const AttandanceEmployeeTable = ({ }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [clientId, month, year]); // 👉 isme month aur year add karo
+
+    // 👉 useEffect ko update karo
+    useEffect(() => {
+        if (clientId) {
+            console.log('Calling fetchAttendanceData with:', { clientId, month, year });
+            fetchAttendanceData();
+        }
+    }, [clientId, month, year, fetchAttendanceData]); // 👉 yeh dependencies add karo
 
     const columns = [
         {
@@ -239,19 +255,12 @@ const AttandanceEmployeeTable = ({ }) => {
             header: () => "Actions",
             cell: info => (
                 <div className="hstack gap-2 justify-content-end">
-                    {/* <button 
-                        className="btn btn-info btn-sm"
-                        onClick={() => handleViewDetails(info.row.original)}
-                        title="View Attendance Details"
-                    >
-                        <FiEye className="me-1" /> View
-                    </button> */}
                     <button 
                         className="btn btn-primary btn-sm"
                         onClick={() => handleSalarySlip(info.row.original)}
-                        title="Generate Salary Slip"
+                        title="View Attandance "
                     >
-                        Salary Slip
+                        View Attandance 
                     </button>
                 </div>
             ),
@@ -261,67 +270,30 @@ const AttandanceEmployeeTable = ({ }) => {
         },
     ];
 
-    const handleViewDetails = (employeeData) => {
-        // Get designation details
-        const designationDetails = employeeData.designation_details;
-        const designationInfo = designationDetails ? 
-            `${designationDetails.name} (${designationDetails.skill || 'N/A'})` : 
-            employeeData.designation;
+    const handleSalarySlip = (employeeData) => {
+        let slipMonth = month;
+        let slipYear = year;
 
-        // Show daily attendance details
-        const dailyAttendance = employeeData.daily_attendance;
-        const daysWithData = Object.entries(dailyAttendance)
-            .filter(([day, status]) => status === 'p' || status === 'a')
-            .map(([day, status]) => {
-                const dayNum = parseInt(day.replace('day_', ''));
-                return `Day ${dayNum}: ${status === 'p' ? '✅ Present' : '❌ Absent'}`;
-            })
-            .join('\n');
-        
-        // Additional information from designation
-        const additionalInfo = designationDetails ? 
-            `\nDesignation Details:
-            Skill: ${designationDetails.skill || 'N/A'}
-            Qualification: ${designationDetails.qualification || 'N/A'}
-            Experience: ${designationDetails.experience_in_years || '0'} years` : '';
-        
-        alert(
-            `📊 Attendance Details for ${employeeData.employee.name}\n\n` +
-            `👤 Employee ID: ${employeeData['employee-id']}\n` +
-            `💼 Designation: ${designationInfo}\n` +
-            `📅 Month: ${employeeData.month_year}\n` +
-            `✅ Present Days: ${employeeData.present_days}\n` +
-            `⏰ Extra Hours: ${employeeData.extra_hours} Hrs\n` +
-            `${additionalInfo}\n\n` +
-            `📋 Daily Attendance:\n${daysWithData || 'No attendance recorded for this month'}`
-        );
-    };
-const handleSalarySlip = (employeeData) => {
-    let month = searchParams.get('month')
-    let year = searchParams.get('year')
+        // 👉 agar month / year missing ho to current-1 set karo
+        if (!slipMonth || !slipYear) {
+            const now = new Date();
+            const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            slipMonth = prevMonth.toLocaleString('en-US', { month: 'long' });
+            slipYear = prevMonth.getFullYear().toString();
+        }
 
-    // 👉 agar month / year missing ho to current set karo
-    if (!month || !year) {
-        const now = new Date()
-        month = now.toLocaleString('en-US', { month: 'long' }) // January
-        year = now.getFullYear() // 2026
+        const queryParams = new URLSearchParams({
+            client_id: clientId,
+            employee_id:
+                employeeData['employee-rand-id'] || employeeData['employee-id'],
+            employee_name: employeeData.employee.name,
+            present_days: employeeData.present_days,
+            extra_hours: employeeData.extra_hours,
+            designation: employeeData.designation
+        }).toString()
+
+        router.push(`/attendance/attendance-view?${queryParams}`)
     }
-
-    const queryParams = new URLSearchParams({
-        client_id: clientId,
-        employee_id:
-            employeeData['employee-rand-id'] || employeeData['employee-id'],
-        employee_name: employeeData.employee.name,
-        month: month,
-        year: year,
-        present_days: employeeData.present_days,
-        extra_hours: employeeData.extra_hours,
-        designation: employeeData.designation
-    }).toString()
-
-    router.push(`/salary/salary-slip?${queryParams}`)
-}
-
 
     if (loading) {
         return (
@@ -353,16 +325,15 @@ const handleSalarySlip = (employeeData) => {
             <>
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h5>Attendance Records</h5>
-                    <button 
-                        className="btn btn-primary btn-sm"
-                        onClick={fetchAttendanceData}
-                        disabled={loading}
-                    >
-                        {loading ? 'Refreshing...' : 'Refresh Data'}
-                    </button>
+                    <div className="bg-light p-2 rounded">
+                        <small className="text-muted">
+                            Month: <strong>{month || 'Not selected'}</strong>, 
+                            Year: <strong>{year || 'Not selected'}</strong>
+                        </small>
+                    </div>
                 </div>
                 <div className="alert alert-info" role="alert">
-                    No attendance records found for this client.
+                    No attendance records found for this client for {month} {year}.
                     <button 
                         className="btn btn-sm btn-outline-info ms-3"
                         onClick={fetchAttendanceData}
@@ -380,7 +351,11 @@ const handleSalarySlip = (employeeData) => {
                 <h5>Attendance Records ({attendanceData.length})</h5>
                 <div className="hstack gap-2">
                     <div className="bg-light p-2 rounded">
-                        <small className="text-muted">Client ID: <strong>{clientId}</strong></small>
+                        <small className="text-muted">
+                            Client ID: <strong>{clientId}</strong> | 
+                            Month: <strong>{month}</strong> | 
+                            Year: <strong>{year}</strong>
+                        </small>
                     </div>
                     <button 
                         className="btn btn-primary btn-sm"

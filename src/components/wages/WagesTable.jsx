@@ -307,29 +307,22 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
 
         // Add CORS headers and timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         const headers = {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
         };
-
-        // Add Authorization header if token exists
-        if (authToken) {
-          headers['Authorization'] = `Bearer ${authToken}`;
-        }
 
         const response = await fetch(apiUrl, {
           method: 'GET',
-          mode: 'cors',
-          credentials: 'same-origin',
           headers: headers,
           signal: controller.signal
         });
         
         clearTimeout(timeoutId);
 
-        // Check if response is ok
         if (!response.ok) {
           const errorText = await response.text();
           console.error("API Error Response:", errorText);
@@ -346,35 +339,57 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
         const data = await response.json();
         console.log("API Response:", data);
         
-        // Handle different response structures
-        if (data && typeof data === 'object') {
-          // Check if the response has an error property
-          if (data.error) {
-            throw new Error(data.error);
+        // Check if response has an error
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Extract data from response - handle different response structures
+        let responseData = [];
+        
+        if (Array.isArray(data)) {
+          // If response is directly an array
+          responseData = data;
+        } else if (data.data && Array.isArray(data.data)) {
+          // If response has a 'data' property that is an array
+          responseData = data.data;
+        } else if (data.wages && Array.isArray(data.wages)) {
+          // If response has a 'wages' property that is an array
+          responseData = data.wages;
+        } else {
+          console.warn("Unexpected API response structure:", data);
+          // Try to extract any array from the response
+          for (const key in data) {
+            if (Array.isArray(data[key])) {
+              responseData = data[key];
+              break;
+            }
           }
+        }
+        
+        console.log("Extracted response data:", responseData);
+        
+        // Now filter the data
+        if (Array.isArray(responseData)) {
+          // Filter data to show only items with wages
+          const itemsWithWages = responseData.filter(item => item && item.wages !== null);
+          console.log(`Total items: ${responseData.length}, Items with wages: ${itemsWithWages.length}`);
           
-          // Check if data is an array or needs to be extracted
-          let responseData = data;
-          
-          // If data has a 'data' property, use that
-          if (data.data && Array.isArray(data.data)) {
-            responseData = data.data;
-          } else if (Array.isArray(data)) {
-            responseData = data;
+          if (itemsWithWages.length > 0) {
+            console.log("Sample wages data:", itemsWithWages[0].wages);
           }
           
           // Transform API data to match your table structure
           const transformedData = transformApiData(responseData);
           setTableData(transformedData);
         } else {
-          throw new Error("Invalid API response format");
+          throw new Error("API response does not contain valid array data");
         }
         
       } catch (err) {
         console.error("Error fetching wages data:", err);
         setError(`Failed to load data: ${err.message}`);
-        // Fallback to sample data if API fails
-        setTableData(getFallbackData());
+        setTableData([]);
       } finally {
         setLoading(false);
       }
@@ -388,47 +403,72 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
     console.log("Transforming API data:", apiData);
     
     if (!apiData || !Array.isArray(apiData) || apiData.length === 0) {
-      console.log("No valid data received from API, using fallback");
-      return getFallbackData();
+      console.log("No valid data received from API");
+      return [];
     }
 
-    return apiData.map((item, index) => {
-      // Get the first service item or use empty object
-      const service = item.services && item.services[0] ? item.services[0] : {};
+    // Filter out items where wages is null
+    const filteredData = apiData.filter(item => item && item.wages !== null);
+    
+    if (filteredData.length === 0) {
+      console.log("No data with wages information found");
+      return [];
+    }
+
+    return filteredData.map((item, index) => {
+      const wages = item.wages;
+      const jsonWages = wages?.json_wages || {};
       
-      // Calculate total salary based on the data
-      const minDailyWages = parseFloat(service.min_daily_wages) || 0;
-      const noOfWorkingDays = parseFloat(service.no_of_working_day) || 30;
-      const bonus = parseFloat(service.bonus) || 0;
-      const provideantFund = parseFloat(service.provideant_fund) || 0;
-      const epfAdminCharge = parseFloat(service.epf_admin_charge) || 0;
-      const edliPerDay = parseFloat(service.edliPerDay) || 0;
-      const esiPerDay = parseFloat(service.esiPerDay) || 0;
-      const optionalAllowance1 = parseFloat(service.optionAllowance1) || 0;
-      const optionalAllowance2 = parseFloat(service.optionAllowance2) || 0;
-      const optionalAllowance3 = parseFloat(service.optionAllowance3) || 0;
+      // Extract data from json_wages
+      const minDailyWages = parseFloat(jsonWages.min_daily_wages) || 0;
+      const noOfWorkingDays = parseInt(jsonWages.designationValue_no_of_working_day) || 30;
+      const bonusAmount = parseFloat(jsonWages.bonusAmount) || 0;
+      const epfEmployerContribution = parseFloat(jsonWages.epfoEmployerContribution) || 0;
+      const esiEmployerContribution = parseFloat(jsonWages.esiEmployerContribution) || 0;
+      const optionalAllowance1 = parseFloat(jsonWages.optionalAllowance1_monthly) || 0;
+      const optionalAllowance2 = parseFloat(jsonWages.optionalAllowance2_monthly) || 0;
+      const optionalAllowance3 = parseFloat(jsonWages.optionalAllowance3_monthly) || 0;
+      const additionalAllowance = parseFloat(jsonWages.additionalAllowance_monthly) || 0;
       
-      // Calculate total basic salary
+      // Calculate values based on json_wages
       const totalBasic = (minDailyWages * noOfWorkingDays).toFixed(2);
       
-      // Calculate total salary (basic + allowances)
-      const totalSalary = (
+      // Calculate PF (12%)
+      const pf12 = epfEmployerContribution > 0 ? (epfEmployerContribution * 12/13).toFixed(2) : "0.00";
+      
+      // Calculate EPF Admin (13%)
+      const pf13 = epfEmployerContribution.toFixed(2);
+      
+      // Calculate EDLI (0.75%)
+      const esic75 = esiEmployerContribution > 0 ? (esiEmployerContribution * 0.75/3.25).toFixed(2) : "0.00";
+      
+      // Calculate ESI (3.25%)
+      const esic325 = esiEmployerContribution.toFixed(2);
+      
+      // Calculate total salary from json_wages
+      const totalSalary = jsonWages.totalCTC || (
         parseFloat(totalBasic) + 
-        bonus + 
-        provideantFund + 
-        epfAdminCharge + 
-        edliPerDay + 
-        esiPerDay + 
+        bonusAmount + 
+        parseFloat(pf12) + 
+        parseFloat(esic75) + 
+        parseFloat(pf13) + 
+        parseFloat(esic325) + 
         optionalAllowance1 + 
         optionalAllowance2 + 
-        optionalAllowance3
+        optionalAllowance3 + 
+        additionalAllowance
       ).toFixed(2);
       
-      // Determine salary status based on wages data
-      let salaryStatus = "Process";
-      if (item.wages) {
-        salaryStatus = item.wages.status === "active" ? "Paid" : "Hold";
-      }
+      // Determine salary status from wages
+      const salaryStatus = wages?.status === "active" ? "Paid" : 
+                          wages?.status === "inactive" ? "Hold" : "Process";
+      
+      // ESI and EPF status from json_wages
+      const esiStatus = jsonWages.esiType === "full" ? "Applicable" : 
+                       jsonWages.esiType === "partial" ? "Partial" : "Not Applicable";
+      
+      const epfStatus = jsonWages.epfoType === "full" ? "Applicable" : 
+                       jsonWages.epfoType === "partial" ? "Partial" : "Not Applicable";
       
       return {
         id: item.id || index + 1,
@@ -444,110 +484,27 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
         skill: item.skill || "Not specified",
         qualification: item.qualification || "Not specified",
         salary_status: salaryStatus,
-        esi_no: service.is_esi_applicable ? "Applicable" : "Not Applicable",
-        epf_uan_no: service.is_pf_applicable ? "Applicable" : "Not Applicable",
-        month_days: service.no_of_working_day || "30",
-        days: service.no_of_working_day || "30", // Same as month days
-        Extra_hr: service.duty_extra_hours || "N/A",
-        rate: service.min_daily_wages || "0",
+        esi_no: esiStatus,
+        epf_uan_no: epfStatus,
+        month_days: noOfWorkingDays.toString(),
+        days: noOfWorkingDays.toString(),
+        Extra_hr: jsonWages.otRate ? `₹${jsonWages.otRate.toFixed(2)}/hr` : "N/A",
+        rate: `₹${minDailyWages}`,
         total_basic: totalBasic,
-        annual_bonus: bonus.toString(),
-        pf_12: provideantFund.toString(),
-        esic_75: edliPerDay.toString(),
-        pf_13: epfAdminCharge.toString(),
-        esic_325: esiPerDay.toString(),
-        total_salary: totalSalary,
+        annual_bonus: bonusAmount.toFixed(2),
+        pf_12: pf12,
+        esic_75: esic75,
+        pf_13: pf13,
+        esic_325: esic325,
+        total_salary: typeof totalSalary === 'number' ? totalSalary.toFixed(2) : totalSalary,
         experience_years: item.experience_in_years || "0",
         hire_employees: item.hire_employee || "0",
-        gender: service.gender || "Any",
-        age_limit: service.age_limit || "N/A",
-        duty_hours: service.duty_hours || "0",
-        service_charge: service.perecnt_service_charge || "0",
+        gender: jsonWages.gender || "Any",
+        age_limit: jsonWages.age_limit || "N/A",
+        duty_hours: jsonWages.designationValue_duty_hours || "0",
+        service_charge: jsonWages.service_charge || "0",
       };
     });
-  };
-
-  // Fallback data in case API fails
-  const getFallbackData = () => {
-    return [
-      {
-        id: 1,
-        "employee-name": {
-          title: "Spark",
-          img: "/images/brand/app-store.png",
-        },
-        "employee-id": {
-          name: "EMPNI9623",
-        },
-        esi_no: "1014853713",
-        epf_uan_no: "100257814054",
-        designation: "Fire Pump Wet Riser Operator",
-        salary_status: "Paid",
-        month_days: "30",
-        days: "23",
-        Extra_hr: "23",
-        rate: "724",
-        total_basic: "24480",
-        annual_bonus: "2039.1",
-        pf_12: "1800",
-        esic_75: "184.0",
-        pf_13: "1950",
-        esic_325: "795.0",
-        total_salary: "29264",
-      },
-      {
-        id: 2,
-        "employee-name": {
-          title: "Nexus",
-          img: "/images/brand/dropbox.png",
-          description: "Lorem ipsum dolor, sit amet consectetur adipisicing elit.",
-        },
-        "employee-id": {
-          name: "EMPNI9623",
-        },
-        esi_no: "1014853713",
-        epf_uan_no: "100257814054",
-        designation: "Helper",
-        salary_status: "Process",
-        month_days: "30",
-        days: "23",
-        Extra_hr: "23",
-        rate: "724",
-        total_basic: "24480",
-        annual_bonus: "2039.1",
-        pf_12: "1800",
-        esic_75: "184.0",
-        pf_13: "1950",
-        esic_325: "795.0",
-        total_salary: "29264",
-      },
-      {
-        id: 3,
-        "employee-name": {
-          title: "Velocity",
-          img: "/images/brand/facebook.png",
-          description: "Lorem ipsum dolor, sit amet consectetur adipisicing elit.",
-        },
-        "employee-id": {
-          name: "EMPNI9623",
-        },
-        esi_no: "1014853713",
-        epf_uan_no: "100257814054",
-        designation: "Electrician",
-        salary_status: "Hold",
-        month_days: "30",
-        days: "23",
-        Extra_hr: "23",
-        rate: "724",
-        total_basic: "24480",
-        annual_bonus: "2039.1",
-        pf_12: "1800",
-        esic_75: "184.0",
-        pf_13: "1950",
-        esic_325: "795.0",
-        total_salary: "29264",
-      },
-    ];
   };
 
   const columns = [
@@ -743,18 +700,9 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
       header: () => "Actions",
       cell: (info) => (
         <div className="hstack gap-2 justify-content-end">
-          <a href="/salary/salary-slip" className="avatar-text avatar-md">
+          <a href="#" className="avatar-text avatar-md">
             <FiEye />
           </a>
-          <button 
-            className="avatar-text avatar-md"
-            onClick={() => {
-              console.log("View details for row:", info.row.original);
-              // You can implement a modal or detailed view here
-            }}
-          >
-            <FiMoreHorizontal />
-          </button>
         </div>
       ),
       meta: {
@@ -779,7 +727,7 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
           <strong>Note:</strong> {error}
           <div className="mt-2">
             <small className="text-muted">
-              Showing sample data for demonstration. Please check your authentication.
+              Please check your authentication or try again later.
             </small>
           </div>
         </div>
@@ -821,13 +769,6 @@ const WagesTable = ({ selectedClientId, selectedClientName }) => {
                 >
                   Export CSV
                 </button>
-                {/* <button 
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={handleEdit}
-                  disabled={loading}
-                >
-                  <FiEdit3 className="me-1" /> Edit
-                </button> */}
               </div>
             </div>
           </div>
