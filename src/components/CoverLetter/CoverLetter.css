@@ -1,3 +1,66 @@
 p{
     font-size: 16px;
 }
+.txt-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.txt-modal-content {
+  width: 600px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.txt-preview {
+  background: #f8f9fa;
+  padding: 16px;
+  max-height: 350px;
+  overflow: auto;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.txt-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.txt-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.txt-modal-content {
+  width: 700px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.txt-preview {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  max-height: 350px;
+  overflow: auto;
+  font-size: 14px;
+}
+.IDFC_BANK_FORMAT table tbody tr td{
+    width: 100%;
+    /* max-width: 300px; */
+    white-space: break-spaces !important ;
+}
+

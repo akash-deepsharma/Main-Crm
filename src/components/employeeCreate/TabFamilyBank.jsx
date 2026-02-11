@@ -34,6 +34,7 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
     bank_name: "",
     branch_name: "",
     ifsc: "",
+    account_holderName:"",
     account_no: "",
   });
 
@@ -103,6 +104,9 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
       newErrors.ifsc = "IFSC code is required";
     } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bank.ifsc)) {
       newErrors.ifsc = "Invalid IFSC format (e.g., SBIN0001234)";
+    }
+     if (!bank.account_holderName) {
+      newErrors.account_holderName = "Account Holder Name is required";
     }
 
     if (!bank.account_no) {
@@ -301,6 +305,7 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
         bank_name: bank.bank_name,
         branch_name: bank.branch_name,
         ifsc: bank.ifsc,
+        account_holderName : bank.account_holderName,
         account_no: bank.account_no,
       };
 
@@ -603,7 +608,7 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
           </div>
 
           <div className="row">
-            <div className="col-md-3 mb-4">
+            <div className="col-md-2 mb-4">
               <label className="form-label">Bank Name <span className="text-danger">*</span></label>
               <input
                 name="bank_name"
@@ -615,7 +620,7 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
               {renderErrorMessage("bank_name")}
             </div>
 
-            <div className="col-md-3 mb-4">
+            <div className="col-md-2   mb-4">
               <label className="form-label">Branch <span className="text-danger">*</span></label>
               <input
                 name="branch_name"
@@ -627,7 +632,7 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
               {renderErrorMessage("branch_name")}
             </div>
 
-            <div className="col-md-3 mb-4">
+            <div className="col-md-2 mb-4">
               <label className="form-label">IFSC <span className="text-danger">*</span></label>
               <input
                 name="ifsc"
@@ -640,6 +645,21 @@ const TabFamilyBank = forwardRef(({ error }, ref) => {
                 required
               />
               {renderErrorMessage("ifsc")}
+            </div>
+
+            <div className="col-md-3 mb-4">
+              <label className="form-label">Account Holder Name <span className="text-danger">*</span></label>
+              <input
+                name="account_holderName"
+                className={`form-control ${errors.account_holderName ? "is-invalid" : ""}`}
+                value={bank.account_holderName}
+                onChange={handleBankChange}
+                placeholder="e.g., Bharat Bhusan"
+                style={{ textTransform: "uppercase" }}
+                maxLength="11"
+                required
+              />
+              {renderErrorMessage("account_holderName")}
             </div>
 
             <div className="col-md-3 mb-4">

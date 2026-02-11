@@ -5,10 +5,10 @@ import {
   FiPrinter,
   FiSend,
 } from "react-icons/fi";
+import "./InvoiceView.css";
 import Image from "next/image";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import "./InvoiceView.css";
 import { useSearchParams } from 'next/navigation'; 
 
 // Helper functions (same)
@@ -150,13 +150,13 @@ const InvoiceView = () => {
         });
 
         console.log("Response status:", response.status);
+        
+                const result = await response.json();
+                console.log("API Response:", result);
 
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log("API Response:", result);
+        // if (!response.ok) {
+        //   throw new Error(`API request failed with status ${response.status}`);
+        // }
         
         // Check different response structures
         if (result.data) {

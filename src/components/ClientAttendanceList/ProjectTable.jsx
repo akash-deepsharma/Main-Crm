@@ -83,7 +83,7 @@ console.log('this is my type',inputType);
                     return {
                         id: client.id,
                         "project-name": {
-                            title: client.service_title || "Service Contract",
+                            title: client.service_title,
                             img: "/images/brand/app-store.png", // Default image
                             description: client.organisation_name || client.service_title
                         },

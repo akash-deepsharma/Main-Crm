@@ -124,18 +124,18 @@ const ProjectTable = () => {
         }
     };
 
-    // 格式化数据以适应表格结构
+   
     const formatTableData = (data) => {
         return data.map(item => ({
             id: item.id,
             "project-name": {
-                title: item.service_title || 'Service Contract',
-                img: "/images/brand/app-store.png", // 默认图片，你可以根据需求修改
+                title: item?.service_title ,
+                img: "/images/brand/app-store.png", 
                 description: item.contract_no || 'Contract',
             },
             customer: { 
                 name: item.customer_name || 'N/A',
-                img: "/images/avatar/1.png", // 默认头像
+                img: "/images/avatar/1.png", 
                 email: item.email || 'N/A'
             },
             phone: item.contact_no || 'N/A',
