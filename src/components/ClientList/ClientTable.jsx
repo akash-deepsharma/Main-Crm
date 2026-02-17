@@ -107,7 +107,7 @@ const ProjectTable = () => {
         );
 
         const result = await response.json();
-        // console.log("client view data", result)
+        console.log("client view data", result)
 
         if (!result?.status) {
           console.error(result?.message || 'API Error');
@@ -119,7 +119,7 @@ const ProjectTable = () => {
           id: item.id,
 
           project: {
-            service_title: item.service_title,
+            service_title: item.department_nickname,
             description: item.department,
             img: '/images/project-placeholder.png',
           },

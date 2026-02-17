@@ -279,6 +279,21 @@ export const menuList = [
             }
         ]
     },
+    {
+        id: 9,
+        name: " Accounts",
+        path: "#",
+        icon: 'feather-file-text',
+        dropdownMenu: [
+           
+            {
+                id: 2,
+                name: " Bamk Management",
+                path: "/bankmanage",
+                subdropdownMenu: false
+            }
+        ]
+    },
 ]
 
 
@@ -752,3 +767,7 @@ export const menuList = [
     //         
     //     ]
     // },
+
+
+    
+

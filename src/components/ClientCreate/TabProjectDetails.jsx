@@ -199,7 +199,7 @@ const TabProjectDetails = forwardRef(({ clientId, clientType }, ref) => {
         if (!token) {
             alert('Authentication error');
             return false;
-        }
+        } 
 
         try {
             setLoading(true)

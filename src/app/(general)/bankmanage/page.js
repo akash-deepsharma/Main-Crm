@@ -2272,13 +2272,13 @@ Total Amount: ₹${currentEntries.reduce((sum, emp) => sum + emp.amount, 0).toLo
     },
     bankGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
       gap: '25px',
       marginTop: '30px'
     },
     bankCard: {
       position: 'relative',
-      padding: '35px 20px',
+      padding: '12px 8px',
       borderRadius: '24px',
       border: 'none',
       cursor: 'pointer',
@@ -2290,9 +2290,9 @@ Total Amount: ₹${currentEntries.reduce((sum, emp) => sum + emp.amount, 0).toLo
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '15px',
+      gap: '8px',
       boxShadow: '0 20px 30px -10px rgba(0,0,0,0.3)',
-      minHeight: '240px',
+      // minHeight: '240px',
       overflow: 'hidden',
       border: '2px solid rgba(255,255,255,0.1)',
       backdropFilter: 'blur(10px)'

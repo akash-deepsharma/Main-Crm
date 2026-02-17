@@ -28,6 +28,7 @@ const TabProjectOverview = () => {
   const [gstApplicableOn, setGstApplicableOn] = useState("full_salary");
   const [gstOnMaterial, setGstOnMaterial] = useState(false);
   const [gstOnAllowances, setGstOnAllowances] = useState(false);
+  const [holdSalery, setHoldSalery] = useState(false);
   const [adminChargeApplicable, setAdminChargeApplicable] = useState(false);
   const [adminChargeType, setAdminChargeType] = useState("percentage");
   const [adminChargeValue, setAdminChargeValue] = useState("");
@@ -146,6 +147,7 @@ const TabProjectOverview = () => {
     setGstApplicableOn("full_salary");
     setGstOnMaterial(false);
     setGstOnAllowances(false);
+    setHoldSalery(false);
     setAdminChargeApplicable(false);
     setAdminChargeType("percentage");
     setAdminChargeValue("");
@@ -188,6 +190,7 @@ const TabProjectOverview = () => {
   gst_applicable_on: gstApplicableOn,
   gst_on_material: gstOnMaterial,
   gst_on_allowances: gstOnAllowances,
+  holdSalery: holdSalery,
   gst_esi: gstEsi,
   gst_epf: gstEpf,
   gst_bonus: gstBonus,
@@ -237,6 +240,8 @@ const formattedData ={
       arrear: invoiceData.admin_charge_areer
     }
   }
+  ,
+  holdSalery: invoiceData.holdSalery
 };
 
     console.log("Sending invoice data:", formattedData);
@@ -262,12 +267,13 @@ const formattedData ={
           body: JSON.stringify(formattedData),
         }
       );
-        // const result = await response.json();
-
-      console.log("Response status:", response.status);
-      
+        const result1 = await response.json();
+        
+        console.log("Response status:", result1);
+        
+        let result;
+        
       // Try to parse response even if it's not OK
-      let result;
       try {
         result = await response.json();
       } catch (parseError) {
@@ -448,10 +454,14 @@ const formattedData ={
                   </div>
                 </div>
 
+                <div className="row"></div>
+
                 {/* GST Configuration */}
                 <div className="mb-4">
                   <div className="card">
                     <div className="card-body">
+                      <div className="row">
+                        <div className="col-6">
                       <h6 className="card-title fw-bold">
                         <FiPercent className="me-2" />
                         GST Configuration
@@ -474,10 +484,6 @@ const formattedData ={
                             </label>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Allowances GST */}
-                      <div className="row mb-3">
                         <div className="col-md-12">
                           <div className="form-check form-switch mb-3">
                             <input
@@ -494,6 +500,28 @@ const formattedData ={
                           </div>
                         </div>
                       </div>
+
+                        </div>
+                        <div className="col-6">
+                        {/* Apply on Hold Salery or Not */}
+                          <div className="form-check form-switch mb-3">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              role="switch"
+                              id="holdSalerySwitch"
+                              checked={holdSalery}
+                              onChange={(e) => setHoldSalery(e.target.checked)}
+                            />
+                            <label className="form-check-label fw-semibold" htmlFor="holdSalerySwitch">
+                              Apply on Hold Salery or Not
+                            </label>
+                          </div>
+                     
+
+                        </div>
+                      </div>
+
 
                       {/* GST Type */}
                       <div className="row mb-3">
@@ -530,6 +558,7 @@ const formattedData ={
                             </div>
                           </div>
                         </div>
+                        
                         
                         {/* GST Applicable On */}
                         <div className="col-md-6">
@@ -656,67 +685,67 @@ const formattedData ={
                         {adminChargeApplicable && (
                           <>
                             <div className="col-md-4 mb-3">
-  <div>
-    <label className="form-label fw-semibold">Charge Type</label>
-    <div className="d-flex gap-3">
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="radio"
-          name="adminChargeType"
-          id="adminPercentage"
-          value="percentage"
-          checked={adminChargeType === "percentage"}
-          onChange={(e) => setAdminChargeType(e.target.value)}
-        />
-        <label className="form-check-label" htmlFor="adminPercentage">
-          Percentage
-        </label>
-      </div>
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="radio"
-          name="adminChargeType"
-          id="adminFixed"
-          value="fixed"
-          checked={adminChargeType === "fixed"}
-          onChange={(e) => setAdminChargeType(e.target.value)}
-        />
-        <label className="form-check-label" htmlFor="adminFixed">
-          Fixed Amount
-        </label>
-      </div>
-    </div>
-  </div>
-  
-  <div className="mt-3">
-    <label className="form-label fw-semibold">
-      {adminChargeType === "percentage" ? "Charge Percentage" : "Charge Amount"}
-      {adminChargeApplicable && <span className="text-danger ms-1">*</span>}
-    </label>
-    <div className="input-group">
-      <span className="input-group-text">
-        {adminChargeType === "percentage" ? "%" : "₹"}
-      </span>
-      <input
-        type="number"
-        className="form-control"
-        value={adminChargeValue}
-        onChange={(e) => setAdminChargeValue(e.target.value)}
-        min="0"
-        max={adminChargeType === "percentage" ? "100" : undefined}
-        step={adminChargeType === "percentage" ? "0.01" : "1"}
-        placeholder={adminChargeApplicable ? "Required" : "Optional"}
-        required={adminChargeApplicable}
-        disabled={!adminChargeApplicable}
-      />
-    </div>
-    {adminChargeType === "percentage" && adminChargeApplicable && (
-      <small className="text-muted">Enter a value between 0 and 100</small>
-    )}
-  </div>
-</div>
+                              <div>
+                                <label className="form-label fw-semibold">Charge Type</label>
+                                <div className="d-flex gap-3">
+                                  <div className="form-check">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      name="adminChargeType"
+                                      id="adminPercentage"
+                                      value="percentage"
+                                      checked={adminChargeType === "percentage"}
+                                      onChange={(e) => setAdminChargeType(e.target.value)}
+                                    />
+                                    <label className="form-check-label" htmlFor="adminPercentage">
+                                      Percentage
+                                    </label>
+                                  </div>
+                                  <div className="form-check">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      name="adminChargeType"
+                                      id="adminFixed"
+                                      value="fixed"
+                                      checked={adminChargeType === "fixed"}
+                                      onChange={(e) => setAdminChargeType(e.target.value)}
+                                    />
+                                    <label className="form-check-label" htmlFor="adminFixed">
+                                      Fixed Amount
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="mt-3">
+                                <label className="form-label fw-semibold">
+                                  {adminChargeType === "percentage" ? "Charge Percentage" : "Charge Amount"}
+                                  {adminChargeApplicable && <span className="text-danger ms-1">*</span>}
+                                </label>
+                                <div className="input-group">
+                                  <span className="input-group-text">
+                                    {adminChargeType === "percentage" ? "%" : "₹"}
+                                  </span>
+                                  <input
+                                    type="number"
+                                    className="form-control"
+                                    value={adminChargeValue}
+                                    onChange={(e) => setAdminChargeValue(e.target.value)}
+                                    min="0"
+                                    max={adminChargeType === "percentage" ? "100" : undefined}
+                                    step={adminChargeType === "percentage" ? "0.01" : "1"}
+                                    placeholder={adminChargeApplicable ? "Required" : "Optional"}
+                                    required={adminChargeApplicable}
+                                    disabled={!adminChargeApplicable}
+                                  />
+                                </div>
+                                {adminChargeType === "percentage" && adminChargeApplicable && (
+                                  <small className="text-muted">Enter a value between 0 and 100</small>
+                                )}
+                              </div>
+                            </div>
 
                           
 

@@ -167,23 +167,23 @@ const AttandanceEmployeeTable = ({ selectedMonth }) => {
                         // Attendance and days calculation
                         month_days: '30', // Default month days (you might need to calculate this)
                         days: item.present_days?.toString() || '0', // Present days
-                        Extra_hr: item.overtime?.toString() || '0', // Extra hours
+                        // Extra_hr: item.overtime?.toString() || '0', // Extra hours
                         
                         // Salary calculation fields
                         rate: item.min_daily_wages?.toString() || '0',
                         total_basic: totalBasic.toFixed(2),
                         annual_bonus: annualBonus.toFixed(2),
-                        pf_12: pfEmployer12.toFixed(2),
-                        esic_75: esicEmployer075.toFixed(2),
-                        pf_13: pfEmployer13.toFixed(2),
-                        esic_325: esicEmployer325.toFixed(2),
-                        total_salary: totalSalary.toFixed(2),
+                        // pf_12: pfEmployer12.toFixed(2),
+                        // esic_75: esicEmployer075.toFixed(2),
+                        // pf_13: pfEmployer13.toFixed(2),
+                        // esic_325: esicEmployer325.toFixed(2),
+                        // total_salary: totalSalary.toFixed(2),
                         
                         // Additional fields for salary slip view
                         'employee-rand-id': employeeId,
                         'employee_name': employeeName,
                         'present_days': item.present_days || 0,
-                        'extra_hours': item.overtime || 0,
+                        'extra_hours': item?.extra_hr || 0,
                         'month_year': `${item.month} ${item.year}`,
                         'gross_salary': item.gross_salary || '0',
                         'allowance': item.allowance || '0',
@@ -192,7 +192,11 @@ const AttandanceEmployeeTable = ({ selectedMonth }) => {
                         'bank_ifsc': bankDetails.ifsc || 'N/A',
                         'bank_name': bankDetails.bank_name || 'N/A',
                         'father_name': familyDetails.father_name || 'N/A',
-                        'raw_data': item // Store raw data for debugging
+                        'raw_data': item ,// Store raw data for debugging
+                        'esic_75': item.employee_esi, // Store raw data for debugging
+                        'esic_325': item.esi, // Store raw data for debugging
+                        'pf_12': item.epf, // Store raw data for debugging
+                        'pf_13': item.employee_epfo // Store raw data for debugging
                     };
                 });
                 
@@ -369,12 +373,16 @@ const AttandanceEmployeeTable = ({ selectedMonth }) => {
             header: () => 'Days',
         },
         {
-            accessorKey: 'Extra_hr',
+            accessorKey: 'rate',
+            header: () => 'RATE',
+        },
+        {
+            accessorKey: 'extra_hours',
             header: () => 'Extra Hr',
         },
         {
-            accessorKey: 'rate',
-            header: () => 'RATE',
+            accessorKey: 'overtime_amount',
+            header: () => 'Extra Hr Amount',
         },
          {
             accessorKey: 'total_basic',
@@ -401,7 +409,7 @@ const AttandanceEmployeeTable = ({ selectedMonth }) => {
             header: () => 'ESIC E\'R 3.25%',
         },
          {
-            accessorKey: 'total_salary',
+            accessorKey: 'gross_salary',
             header: () => 'TOTAL SALARY',
         },
         {
