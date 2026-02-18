@@ -254,9 +254,7 @@ const Skill = useMemo(() => [
         client_id,
         company_id,
         totals: {
-          total_without_addons: totals.totalWithoutAddons,
-          total_addons_value: totals.totalAddons,
-          total_with_addons: totals.totalWithAddons,
+          
           total_contract_value: totals.totalContractValue,
         },
         services: services.map((service, index) => ({
@@ -300,6 +298,9 @@ const Skill = useMemo(() => [
           is_optional_allowance_1_applicable: service.checkboxes.opt1 ? 1 : 0,
           is_optional_allowance_2_applicable: service.checkboxes.opt2 ? 1 : 0,
           is_optional_allowance_3_applicable: service.checkboxes.opt3 ? 1 : 0,
+           total_without_addons: totals.totalWithoutAddons,
+          total_addons_value: totals.totalAddons,
+          total_with_addons: totals.totalWithAddons,
         })),
 
       };
@@ -327,7 +328,7 @@ const Skill = useMemo(() => [
       const result = await response.json();
 
 
-      console.log("========== API RESPONSE ==========");
+      console.log("========== API RESPONSE ==========" , result);
       console.log(JSON.stringify(result, null, 2));
        if (!result?.status) {
         throw new Error(result.message || 'Failed to save settings')
@@ -871,6 +872,52 @@ setTotals(restoredTotals);
                     }
                   />
                 </div>
+                  <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <label className="form-label">
+                      Total Value Without Addons{" "}
+                      <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={totals.totalWithoutAddons}
+                      onChange={(e) =>
+                        handleTotalsChange("totalWithoutAddons", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <label className="form-label">
+                      Total Addons Value <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={totals.totalAddons}
+                      onChange={(e) =>
+                        handleTotalsChange("totalAddons", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <label className="form-label">
+                      Total Value Including Addons{" "}
+                      <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={totals.totalWithAddons}
+                      onChange={(e) =>
+                        handleTotalsChange("totalWithAddons", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
 
                 <div className="col-xl-12 col-lg-12 col-md-12 mb-4">
                   <label className="fw-semibold text-dark">
@@ -889,6 +936,11 @@ setTotals(restoredTotals);
                     }
                   />
                 </div>
+               
+
+        
+
+
 
                 <div className="d-flex flex-wrap gap-5">
                   {Object.entries(service.checkboxes).map(
@@ -953,54 +1005,7 @@ setTotals(restoredTotals);
         </fieldset>
         <fieldset>
           <div className="row">
-            <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-              <label className="form-label">
-                Total Value Without Addons{" "}
-                <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                value={totals.totalWithoutAddons}
-                onChange={(e) =>
-                  handleTotalsChange("totalWithoutAddons", e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-              <label className="form-label">
-                Total Addons Value <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                value={totals.totalAddons}
-                onChange={(e) =>
-                  handleTotalsChange("totalAddons", e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
-              <label className="form-label">
-                Total Value Including Addons{" "}
-                <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                value={totals.totalWithAddons}
-                onChange={(e) =>
-                  handleTotalsChange("totalWithAddons", e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
+               <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
               <label className="form-label">
                 Total Contract Value <span className="text-danger">*</span>
               </label>
@@ -1014,6 +1019,7 @@ setTotals(restoredTotals);
                 required
               />
             </div>
+
           </div>
         </fieldset>
       </form>

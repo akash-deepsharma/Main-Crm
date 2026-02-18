@@ -287,13 +287,42 @@ export const menuList = [
         dropdownMenu: [
            
             {
-                id: 2,
+                id: 1,
                 name: " Bamk Management",
                 path: "/bankmanage",
                 subdropdownMenu: false
             }
         ]
     },
+    {
+        id: 10,
+        name: " Bill Process",
+        path: "#",
+        icon: 'feather-file-text',
+        dropdownMenu: [           
+            {
+                id: 1,
+                name: " Process Bill",
+                path: "/bill-process",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 11,
+        name: " Upload Documents",
+        path: "#",
+        icon: 'feather-file-text',
+        dropdownMenu: [           
+            {
+                id: 1,
+                name: " Document",
+                path: "/upload-documents",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    
 ]
 
 
