@@ -84,22 +84,8 @@ export const menuList = [
             }
         ]
     },
-    {
+     {
         id: 3,
-        name: " Wages",
-        path: "#",
-        icon: 'feather-user-plus',
-        dropdownMenu: [            
-            {
-                id: 1,
-                name: " Set wages",
-                path: "/wages",
-                subdropdownMenu: false
-            }
-        ]
-    },
-    {
-        id: 4,
         name: "Attendance",
         path: "#",
         icon: 'feather-life-buoy',
@@ -133,6 +119,21 @@ export const menuList = [
             }
         ]
     },
+    {
+        id: 4,
+        name: " Wages",
+        path: "#",
+        icon: 'feather-user-plus',
+        dropdownMenu: [            
+            {
+                id: 1,
+                name: " Set wages",
+                path: "/wages",
+                subdropdownMenu: false
+            }
+        ]
+    },
+   
     {
         id: 5,
         name: "Salary",
@@ -238,8 +239,22 @@ export const menuList = [
             }
         ]
     },
-    {
+     {
         id: 8,
+        name: " Upload Documents",
+        path: "#",
+        icon: 'feather-file-text',
+        dropdownMenu: [           
+            {
+                id: 1,
+                name: " Document",
+                path: "/upload-documents",
+                subdropdownMenu: false
+            }
+        ]
+    },
+    {
+        id: 9,
         name: "Invoice ",
         path: "#",
         icon: 'feather-file-text',
@@ -280,7 +295,7 @@ export const menuList = [
         ]
     },
     {
-        id: 9,
+        id: 10,
         name: " Accounts",
         path: "#",
         icon: 'feather-file-text',
@@ -295,7 +310,7 @@ export const menuList = [
         ]
     },
     {
-        id: 10,
+        id: 11,
         name: " Bill Process",
         path: "#",
         icon: 'feather-file-text',
@@ -308,20 +323,7 @@ export const menuList = [
             }
         ]
     },
-    {
-        id: 11,
-        name: " Upload Documents",
-        path: "#",
-        icon: 'feather-file-text',
-        dropdownMenu: [           
-            {
-                id: 1,
-                name: " Document",
-                path: "/upload-documents",
-                subdropdownMenu: false
-            }
-        ]
-    },
+   
     
 ]
 
