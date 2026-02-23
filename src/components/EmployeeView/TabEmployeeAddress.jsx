@@ -91,7 +91,7 @@ console.log( "emploeyeedd test data", )
                                  <div className="col-md-4 mb-2">
                                         <label className="form-label">Marksheet</label>
                                         <p 
-                                            onClick={() => handleViewDocument("/images/gallery/10th.webp")}
+                                            onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.["10th_qualification_year_file"]}`)}
                                             style={{ cursor: "pointer", color: "blue" }}
                                         >
                                             view <FaEye />
@@ -108,7 +108,7 @@ console.log( "emploeyeedd test data", )
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Marksheet  </label>
                                     <p 
-                                            onClick={() => handleViewDocument("/images/gallery/12th.jpg")}
+                                            onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.["12th_qualification_year_file"]}`)}
                                             style={{ cursor: "pointer", color: "blue" }}
                                         >
                                             view <FaEye />
@@ -125,7 +125,7 @@ console.log( "emploeyeedd test data", )
                                 <div className="col-md-4 mb-2">
                                     <label className="form-label">Marksheet  </label>
                                     <p 
-                                            onClick={() => handleViewDocument("/images/gallery/pg.pdf")}
+                                            onClick={() => handleViewDocument(`https://green-owl-255815.hostingersite.com/${employeeData?.["12th_qualification_year_file"]}`)}
                                             style={{ cursor: "pointer", color: "blue" }}
                                         >
                                             view <FaEye />
@@ -230,3 +230,5 @@ const pdfStyle = {
     height: "100%",
     border: "none"
 };
+
+
