@@ -1,5 +1,6 @@
 "use client"
 export const dynamic = 'force-dynamic'
+
 import React, { Suspense, useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ClientView from '@/components/ClientCreate/ClientView'
@@ -15,7 +16,8 @@ import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import html2canvas from 'html2canvas' 
 
-const Page = () => {
+// Create a separate component that uses useSearchParams
+function ViewContent() {
   const searchParams = useSearchParams()
   
   // Get parameters from URL
@@ -28,6 +30,7 @@ const Page = () => {
   const [attendanceData, setAttendanceData] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [profileData, setProfileData] = useState(null) // State for profile data
   
   // Print and Share states
   const [showShareModal, setShowShareModal] = useState(false)
@@ -62,6 +65,19 @@ const Page = () => {
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i)
 
+  // Load profile data from localStorage only on client side
+  useEffect(() => {
+    // This will only run on the client side
+    const storedProfileData = localStorage.getItem('profileData');
+    if (storedProfileData) {
+      try {
+        setProfileData(JSON.parse(storedProfileData));
+      } catch (e) {
+        console.error('Error parsing profile data:', e);
+      }
+    }
+  }, []); // Empty dependency array ensures this runs only once after mount
+
   // Log URL parameters on component mount
   useEffect(() => {
     if (clientType && clientId) {
@@ -83,6 +99,7 @@ const Page = () => {
       setLoading(true);
       setError(null);
       
+      // Get token from localStorage only on client side
       const token = localStorage.getItem('token');
       console.log("token is here", token);
       
@@ -90,7 +107,6 @@ const Page = () => {
         throw new Error('Authentication token not found');
       }
 
-      
       // If month and year are not selected, use previous month as default
       let apiMonth = selectedMonth;
       let apiYear = selectedYear;
@@ -514,426 +530,422 @@ const Page = () => {
     }
   }
 
-  const profileData = localStorage.getItem('profileData');
-
   return (
-    <Suspense fallback={<div className="text-center p-5">Loading...</div>}>
-      <div className='pt-5'>
-        {/* URL Parameters Display */}
-        {clientType && clientId && (
-          <div className="container mb-3">
-            <div className="bg-light p-2 rounded" style={{ borderRadius: '8px' }}>
-              <small className="text-muted">
-                <strong>Client Type:</strong> {clientType} | <strong>Client ID:</strong> {clientId}
-              </small>
-            </div>
-          </div>
-        )}
-
-        {/* Filter Section */}
-        <div className="main-content mb-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-header bg-white border-0 pt-4 d-flex justify-content-between align-items-center">
-              <h5 className="fw-bold mb-0">Filter by Month & Year</h5>
-              
-              {/* Action Buttons */}
-              <div className="d-flex gap-2">
-                <button 
-                  className="btn btn-outline-primary d-flex align-items-center gap-2"
-                  onClick={handlePrint}
-                  disabled={!selectedMonth || !selectedYear}
-                  style={{ borderRadius: '10px' }}
-                >
-                  <FiPrinter size={18} />
-                  Print
-                </button>
-                <button 
-                  className="btn btn-outline-success d-flex align-items-center gap-2"
-                  onClick={handleExport}
-                  disabled={!selectedMonth || !selectedYear}
-                  style={{ borderRadius: '10px' }}
-                >
-                  <FiDownload size={18} />
-                  Export
-                </button>
-                <button 
-                  className="btn btn-outline-info d-flex align-items-center gap-2"
-                  onClick={handleShare}
-                  disabled={!selectedMonth || !selectedYear}
-                  style={{ borderRadius: '10px' }}
-                >
-                  <FiShare2 size={18} />
-                  Share
-                </button>
-              </div>
-            </div>
-
-            {/* Print Options Modal */}
-            {showPrintOptions && (
-              <div className="modal-overlay" style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 9999
-              }}>
-                <div className="modal-content" style={{
-                  background: 'white',
-                  padding: '25px',
-                  borderRadius: '15px',
-                  width: '90%',
-                  maxWidth: '450px'
-                }}>
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h5 className="mb-0">Select Documents to Print</h5>
-                    <button 
-                      className="btn btn-sm btn-light"
-                      onClick={() => setShowPrintOptions(false)}
-                    >
-                      <FiX size={18} />
-                    </button>
-                  </div>
-                  
-                  <div className="mb-4">
-                    {Object.keys(selectedDocuments).map((key) => (
-                      <div key={key} className="form-check mb-3">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          id={key}
-                          checked={selectedDocuments[key]}
-                          onChange={(e) => setSelectedDocuments({
-                            ...selectedDocuments,
-                            [key]: e.target.checked
-                          })}
-                        />
-                        <label className="form-check-label" htmlFor={key}>
-                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="d-flex gap-2">
-                    <button 
-                      className="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-2"
-                      onClick={handlePrintSelected}
-                    >
-                      <FiPrinter size={18} />
-                      Print Selected
-                    </button>
-                    <button 
-                      className="btn btn-outline-secondary"
-                      onClick={() => setShowPrintOptions(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Export Options Modal */}
-            {showExportOptions && (
-              <div className="modal-overlay" style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 9999
-              }}>
-                <div className="modal-content" style={{
-                  background: 'white',
-                  padding: '25px',
-                  borderRadius: '15px',
-                  width: '90%',
-                  maxWidth: '500px'
-                }}>
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h5 className="mb-0">Export Documents</h5>
-                    <button 
-                      className="btn btn-sm btn-light"
-                      onClick={() => setShowExportOptions(false)}
-                    >
-                      <FiX size={18} />
-                    </button>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="form-label fw-semibold">Select Format</label>
-                    <div className="d-flex gap-3 mb-3">
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          className="form-check-input"
-                          id="pdf"
-                          checked={exportFormat === 'pdf'}
-                          onChange={() => setExportFormat('pdf')}
-                        />
-                        <label className="form-check-label" htmlFor="pdf">
-                          <FaFilePdf className="me-1 text-danger" /> PDF
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          className="form-check-input"
-                          id="excel"
-                          checked={exportFormat === 'excel'}
-                          onChange={() => setExportFormat('excel')}
-                        />
-                        <label className="form-check-label" htmlFor="excel">
-                          <FaFileExcel className="me-1 text-success" /> Excel
-                        </label>
-                      </div>
-                    </div>
-                    
-                    <label className="form-label fw-semibold">Select Documents</label>
-                    {Object.keys(selectedDocuments).map((key) => (
-                      <div key={key} className="form-check mb-2">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          id={`export-${key}`}
-                          checked={selectedDocuments[key]}
-                          onChange={(e) => setSelectedDocuments({
-                            ...selectedDocuments,
-                            [key]: e.target.checked
-                          })}
-                        />
-                        <label className="form-check-label" htmlFor={`export-${key}`}>
-                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="d-flex gap-2">
-                    <button 
-                      className="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-2"
-                      onClick={handleExportSelected}
-                    >
-                      <FiDownload size={18} />
-                      Export as {exportFormat.toUpperCase()}
-                    </button>
-                    <button 
-                      className="btn btn-outline-secondary"
-                      onClick={() => setShowExportOptions(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Share Modal */}
-            {showShareModal && (
-              <div className="modal-overlay" style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 9999
-              }}>
-                <div className="modal-content" style={{
-                  background: 'white',
-                  padding: '25px',
-                  borderRadius: '15px',
-                  width: '90%',
-                  maxWidth: '500px'
-                }}>
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h5 className="mb-0">Share Documents</h5>
-                    <button 
-                      className="btn btn-sm btn-light"
-                      onClick={() => setShowShareModal(false)}
-                    >
-                      <FiX size={18} />
-                    </button>
-                  </div>
-                  
-                  <p className="text-muted small mb-3">
-                    Share this link to give access to documents for {selectedMonth} {selectedYear}
-                  </p>
-                  
-                  <div className="input-group mb-4">
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={shareLink} 
-                      readOnly 
-                    />
-                    <button 
-                      className="btn btn-outline-secondary" 
-                      onClick={handleCopyLink}
-                    >
-                      {copied ? <FiCheck size={18} /> : <FiCopy size={18} />}
-                    </button>
-                  </div>
-                  
-                  <div className="d-flex gap-2 justify-content-center">
-                    <button 
-                      className="btn btn-outline-primary d-flex align-items-center gap-2"
-                      onClick={handleShareEmail}
-                    >
-                      <FiMail size={18} />
-                      Email
-                    </button>
-                    <button 
-                      className="btn btn-outline-success d-flex align-items-center gap-2"
-                      onClick={() => window.open(shareLink, '_blank')}
-                    >
-                      <FiExternalLink size={18} />
-                      Open
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="card-body">
-              <div className="row g-3 align-items-end">
-                <div className="col-md-4">
-                  <label className="form-label fw-semibold text-muted mb-1">
-                    <i className="bi bi-calendar me-1"></i> Month
-                  </label>
-                  <select 
-                    className="form-select"
-                    value={selectedMonth}
-                    onChange={handleMonthChange}
-                    style={{ borderRadius: '10px' }}
-                  >
-                    <option value="">Select Month</option>
-                    {months.map(month => (
-                      <option key={month} value={month}>{month}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="col-md-4">
-                  <label className="form-label fw-semibold text-muted mb-1">
-                    <i className="bi bi-calendar3 me-1"></i> Year
-                  </label>
-                  <select 
-                    className="form-select"
-                    value={selectedYear}
-                    onChange={handleYearChange}
-                    style={{ borderRadius: '10px' }}
-                  >
-                    <option value="">Select Year</option>
-                    {years.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="col-md-4">
-                  <div className="d-flex gap-2">
-                    <button 
-                      className="btn btn-primary flex-grow-1"
-                      onClick={handleApplyFilter}
-                      disabled={!selectedMonth || !selectedYear || loading}
-                      style={{ borderRadius: '10px' }}
-                    >
-                      {loading ? 'Loading...' : 'Apply Filter'}
-                    </button>
-                    <button 
-                      className="btn btn-outline-secondary"
-                      onClick={handleResetFilter}
-                      style={{ borderRadius: '10px' }}
-                    >
-                      Reset
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Filter Status */}
-              {selectedMonth && selectedYear && (
-                <div className="mt-3 p-2 bg-primary bg-opacity-10 rounded" style={{ borderRadius: '8px' }}>
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="badge bg-primary">Active Filter</span>
-                    <span className="text-dark small">
-                      Showing data for <strong>{selectedMonth} {selectedYear}</strong> | 
-                      Client: <strong>{clientType} - {clientId}</strong>
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Error Display */}
-              {error && (
-                <div className="mt-3 alert alert-danger py-2">
-                  <small>{error}</small>
-                </div>
-              )}
-
-              {/* Loading Indicator */}
-              {loading && (
-                <div className="mt-3 text-center">
-                  <div className="spinner-border spinner-border-sm text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <span className="ms-2 small">Fetching attendance data...</span>
-                </div>
-              )}
-            </div>
+    <div className='pt-5'>
+      {/* URL Parameters Display */}
+      {clientType && clientId && (
+        <div className="container mb-3">
+          <div className="bg-light p-2 rounded" style={{ borderRadius: '8px' }}>
+            <small className="text-muted">
+              <strong>Client Type:</strong> {clientType} | <strong>Client ID:</strong> {clientId}
+            </small>
           </div>
         </div>
+      )}
 
-        {/* Documents Container */}
-        <div ref={documentsContainerRef}>
-          {/* Components with refs for printing/exporting */}
-          <div ref={coverLetterRef}>
-            <CoverLetter 
-              month={selectedMonth} 
-              year={selectedYear}
-              clientId={clientId}
-              clientType={clientType}
-              profileData={profileData}
-            />
-          </div>
-          
-          <div ref={attendanceSheetRef}>
-            <AttendanceSheet 
-              month={selectedMonth} 
-              year={selectedYear}
-              clientId={clientId}
-              clientType={clientType}
-              attendanceData={attendanceData}
-              filteredData={filteredData}
-              loading={loading}
-              error={error}
-            />
+      {/* Filter Section */}
+      <div className="main-content mb-4">
+        <div className="card shadow-sm border-0">
+          <div className="card-header bg-white border-0 pt-4 d-flex justify-content-between align-items-center">
+            <h5 className="fw-bold mb-0">Filter by Month & Year</h5>
+            
+            {/* Action Buttons */}
+            <div className="d-flex gap-2">
+              <button 
+                className="btn btn-outline-primary d-flex align-items-center gap-2"
+                onClick={handlePrint}
+                disabled={!selectedMonth || !selectedYear}
+                style={{ borderRadius: '10px' }}
+              >
+                <FiPrinter size={18} />
+                Print
+              </button>
+              <button 
+                className="btn btn-outline-success d-flex align-items-center gap-2"
+                onClick={handleExport}
+                disabled={!selectedMonth || !selectedYear}
+                style={{ borderRadius: '10px' }}
+              >
+                <FiDownload size={18} />
+                Export
+              </button>
+              <button 
+                className="btn btn-outline-info d-flex align-items-center gap-2"
+                onClick={handleShare}
+                disabled={!selectedMonth || !selectedYear}
+                style={{ borderRadius: '10px' }}
+              >
+                <FiShare2 size={18} />
+                Share
+              </button>
+            </div>
           </div>
 
-          <div ref={gstDesignRef}>
-            <GstDesign />
+          {/* Print Options Modal */}
+          {showPrintOptions && (
+            <div className="modal-overlay" style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 9999
+            }}>
+              <div className="modal-content" style={{
+                background: 'white',
+                padding: '25px',
+                borderRadius: '15px',
+                width: '90%',
+                maxWidth: '450px'
+              }}>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h5 className="mb-0">Select Documents to Print</h5>
+                  <button 
+                    className="btn btn-sm btn-light"
+                    onClick={() => setShowPrintOptions(false)}
+                  >
+                    <FiX size={18} />
+                  </button>
+                </div>
+                
+                <div className="mb-4">
+                  {Object.keys(selectedDocuments).map((key) => (
+                    <div key={key} className="form-check mb-3">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id={key}
+                        checked={selectedDocuments[key]}
+                        onChange={(e) => setSelectedDocuments({
+                          ...selectedDocuments,
+                          [key]: e.target.checked
+                        })}
+                      />
+                      <label className="form-check-label" htmlFor={key}>
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="d-flex gap-2">
+                  <button 
+                    className="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-2"
+                    onClick={handlePrintSelected}
+                  >
+                    <FiPrinter size={18} />
+                    Print Selected
+                  </button>
+                  <button 
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowPrintOptions(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Export Options Modal */}
+          {showExportOptions && (
+            <div className="modal-overlay" style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 9999
+            }}>
+              <div className="modal-content" style={{
+                background: 'white',
+                padding: '25px',
+                borderRadius: '15px',
+                width: '90%',
+                maxWidth: '500px'
+              }}>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h5 className="mb-0">Export Documents</h5>
+                  <button 
+                    className="btn btn-sm btn-light"
+                    onClick={() => setShowExportOptions(false)}
+                  >
+                    <FiX size={18} />
+                  </button>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="form-label fw-semibold">Select Format</label>
+                  <div className="d-flex gap-3 mb-3">
+                    <div className="form-check">
+                      <input
+                        type="radio"
+                        className="form-check-input"
+                        id="pdf"
+                        checked={exportFormat === 'pdf'}
+                        onChange={() => setExportFormat('pdf')}
+                      />
+                      <label className="form-check-label" htmlFor="pdf">
+                        <FaFilePdf className="me-1 text-danger" /> PDF
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        type="radio"
+                        className="form-check-input"
+                        id="excel"
+                        checked={exportFormat === 'excel'}
+                        onChange={() => setExportFormat('excel')}
+                      />
+                      <label className="form-check-label" htmlFor="excel">
+                        <FaFileExcel className="me-1 text-success" /> Excel
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <label className="form-label fw-semibold">Select Documents</label>
+                  {Object.keys(selectedDocuments).map((key) => (
+                    <div key={key} className="form-check mb-2">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id={`export-${key}`}
+                        checked={selectedDocuments[key]}
+                        onChange={(e) => setSelectedDocuments({
+                          ...selectedDocuments,
+                          [key]: e.target.checked
+                        })}
+                      />
+                      <label className="form-check-label" htmlFor={`export-${key}`}>
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="d-flex gap-2">
+                  <button 
+                    className="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-2"
+                    onClick={handleExportSelected}
+                  >
+                    <FiDownload size={18} />
+                    Export as {exportFormat.toUpperCase()}
+                  </button>
+                  <button 
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowExportOptions(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Share Modal */}
+          {showShareModal && (
+            <div className="modal-overlay" style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 9999
+            }}>
+              <div className="modal-content" style={{
+                background: 'white',
+                padding: '25px',
+                borderRadius: '15px',
+                width: '90%',
+                maxWidth: '500px'
+              }}>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h5 className="mb-0">Share Documents</h5>
+                  <button 
+                    className="btn btn-sm btn-light"
+                    onClick={() => setShowShareModal(false)}
+                  >
+                    <FiX size={18} />
+                  </button>
+                </div>
+                
+                <p className="text-muted small mb-3">
+                  Share this link to give access to documents for {selectedMonth} {selectedYear}
+                </p>
+                
+                <div className="input-group mb-4">
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={shareLink} 
+                    readOnly 
+                  />
+                  <button 
+                    className="btn btn-outline-secondary" 
+                    onClick={handleCopyLink}
+                  >
+                    {copied ? <FiCheck size={18} /> : <FiCopy size={18} />}
+                  </button>
+                </div>
+                
+                <div className="d-flex gap-2 justify-content-center">
+                  <button 
+                    className="btn btn-outline-primary d-flex align-items-center gap-2"
+                    onClick={handleShareEmail}
+                  >
+                    <FiMail size={18} />
+                    Email
+                  </button>
+                  <button 
+                    className="btn btn-outline-success d-flex align-items-center gap-2"
+                    onClick={() => window.open(shareLink, '_blank')}
+                  >
+                    <FiExternalLink size={18} />
+                    Open
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="card-body">
+            <div className="row g-3 align-items-end">
+              <div className="col-md-4">
+                <label className="form-label fw-semibold text-muted mb-1">
+                  <i className="bi bi-calendar me-1"></i> Month
+                </label>
+                <select 
+                  className="form-select"
+                  value={selectedMonth}
+                  onChange={handleMonthChange}
+                  style={{ borderRadius: '10px' }}
+                >
+                  <option value="">Select Month</option>
+                  {months.map(month => (
+                    <option key={month} value={month}>{month}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="col-md-4">
+                <label className="form-label fw-semibold text-muted mb-1">
+                  <i className="bi bi-calendar3 me-1"></i> Year
+                </label>
+                <select 
+                  className="form-select"
+                  value={selectedYear}
+                  onChange={handleYearChange}
+                  style={{ borderRadius: '10px' }}
+                >
+                  <option value="">Select Year</option>
+                  {years.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="col-md-4">
+                <div className="d-flex gap-2">
+                  <button 
+                    className="btn btn-primary flex-grow-1"
+                    onClick={handleApplyFilter}
+                    disabled={!selectedMonth || !selectedYear || loading}
+                    style={{ borderRadius: '10px' }}
+                  >
+                    {loading ? 'Loading...' : 'Apply Filter'}
+                  </button>
+                  <button 
+                    className="btn btn-outline-secondary"
+                    onClick={handleResetFilter}
+                    style={{ borderRadius: '10px' }}
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Status */}
+            {selectedMonth && selectedYear && (
+              <div className="mt-3 p-2 bg-primary bg-opacity-10 rounded" style={{ borderRadius: '8px' }}>
+                <div className="d-flex align-items-center gap-2">
+                  <span className="badge bg-primary">Active Filter</span>
+                  <span className="text-dark small">
+                    Showing data for <strong>{selectedMonth} {selectedYear}</strong> | 
+                    Client: <strong>{clientType} - {clientId}</strong>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Error Display */}
+            {error && (
+              <div className="mt-3 alert alert-danger py-2">
+                <small>{error}</small>
+              </div>
+            )}
+
+            {/* Loading Indicator */}
+            {loading && (
+              <div className="mt-3 text-center">
+                <div className="spinner-border spinner-border-sm text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <span className="ms-2 small">Fetching attendance data...</span>
+              </div>
+            )}
           </div>
-          
-          <div ref={wagesSheetEmployeeRef}>
-            <WagesSheetEmployee attendanceData={attendanceData} />
-          </div>
-          
-          <div ref={wagesSheetEmployerRef}>
-            <WagesSheetEmployer attendanceData={attendanceData} />
-          </div>
+        </div>
+      </div>
+
+      {/* Documents Container */}
+      <div ref={documentsContainerRef}>
+        {/* Components with refs for printing/exporting */}
+        <div ref={coverLetterRef}>
+          <CoverLetter 
+            month={selectedMonth} 
+            year={selectedYear}
+            clientId={clientId}
+            clientType={clientType}
+            profileData={profileData}
+          />
+        </div>
+        
+        <div ref={attendanceSheetRef}>
+          <AttendanceSheet 
+            month={selectedMonth} 
+            year={selectedYear}
+            clientId={clientId}
+            clientType={clientType}
+            attendanceData={attendanceData}
+            filteredData={filteredData}
+            loading={loading}
+            error={error}
+          />
+        </div>
+
+        <div ref={gstDesignRef}>
+          <GstDesign />
+        </div>
+        
+        <div ref={wagesSheetEmployeeRef}>
+          <WagesSheetEmployee attendanceData={attendanceData} />
+        </div>
+        
+        <div ref={wagesSheetEmployerRef}>
+          <WagesSheetEmployer attendanceData={attendanceData} />
         </div>
       </div>
 
@@ -962,6 +974,15 @@ const Page = () => {
           }
         }
       `}</style>
+    </div>
+  )
+}
+
+// Main page component with Suspense
+const Page = () => {
+  return (
+    <Suspense fallback={<div className="text-center p-5">Loading...</div>}>
+      <ViewContent />
     </Suspense>
   )
 }
