@@ -8,6 +8,8 @@ import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import React from 'react'
 
 const page = () => {
+
+  
   return (
     <>
     <PageHeader>
@@ -16,10 +18,10 @@ const page = () => {
        <div className="main-content">
                 <div className="row">
         <CoverLetter/>
-        <IobToIob/>
+        {/* <IobToIob/>
         <IdfcBankFormate/>
         <IobToOthers/>
-        <IciciBankFormate/>
+        <IciciBankFormate/> */}
         </div>
         </div>
     </>

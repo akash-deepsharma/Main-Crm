@@ -73,6 +73,11 @@ const ProfileCreate = () => {
     // Status change state
     const [isChangingStatus, setIsChangingStatus] = useState(false)
 
+    // Save to localStorage whenever profileData changes
+useEffect(() => {
+  localStorage.setItem('profileData', JSON.stringify(profileData));
+}, [profileData]);
+
     // Function to fetch company data
     const fetchCompanyData = useCallback(async () => {
         setIsLoading(true)

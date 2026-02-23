@@ -323,6 +323,57 @@ export const menuList = [
             }
         ]
     },
+    {
+        id: 9,
+        name: "Generated Documents ",
+        path: "#",
+        icon: 'feather-file-text',
+        dropdownMenu: [
+            {
+                id: 1,
+                name: " Generated Documents Client Type",
+                path: "#",
+                subdropdownMenu: [
+                    {
+                        id: 1,
+                        name: "GeM Client",
+                        path: "/generate-documents/list?type=GeM",
+                        companyType: "gem",
+                        subdropdownMenu: false
+                    },
+                    {
+                        id: 2,
+                        name: " Corporate Client",
+                        path: "/generate-documents/list?type=corporate",
+                        companyType: "corporate",
+                        subdropdownMenu: false
+                    }
+                ]
+            }
+        ]
+    },
+    // {
+    //     id: 11,
+    //     name: "help center",
+    //     path: "#",
+    //     icon: 'feather-life-buoy',
+    //     dropdownMenu: [
+    //         {
+    //             id: 1,
+    //             name: "Support",
+    //             path: "https://wrapbootstrap.com/user/theme_ocean",
+    //             target:"_blank",
+    //             subdropdownMenu: false
+    //         },
+    //         {
+    //             id: 2,
+    //             name: "KnowledgeBase",
+    //             path: "/help/knowledgebase",
+    //             subdropdownMenu: false
+    //         },
+            
+    //     ]
+    // },
    
     
 ]

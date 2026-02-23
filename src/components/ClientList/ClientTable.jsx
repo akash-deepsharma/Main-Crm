@@ -19,13 +19,13 @@ import { useSearchParams } from 'next/navigation';
 const BASE_URL = 'https://green-owl-255815.hostingersite.com/api';
 
 const getActions = (clientId, type, compid, deleteClient) => [
-  {
-    label: 'Edit',
-    icon: <FiEdit3 />,
-    onClick: () => {
-      window.location.href = `/clients/create?type=${type}&client_id=${clientId}&company_id=${compid}`;
-    },
-  },
+  // {
+  //   label: 'Edit',
+  //   icon: <FiEdit3 />,
+  //   onClick: () => {
+  //     window.location.href = `/generate-documents/create?type=${type}&client_id=${clientId}&company_id=${compid}`;
+  //   },
+  // },
   {
     label: 'Print',
     icon: <FiPrinter />,
@@ -344,7 +344,7 @@ const ProjectTable = () => {
          const clientId = info.row.original.id;
           return (
       <div className="hstack gap-2 justify-content-end">
-        <a href={`/clients/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
+        <a href={`/generate-documents/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
           <FiEye />
         </a>
         <Dropdown
@@ -358,7 +358,6 @@ const ProjectTable = () => {
     },
   },
 ];
-
 
   return <Table data={tableData} columns={columns} loading={loading} />;
 };
