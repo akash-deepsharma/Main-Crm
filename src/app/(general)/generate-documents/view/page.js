@@ -73,7 +73,6 @@ function ViewContent() {
       try {
         setProfileData(storedProfileData);
       } catch (e) {
-        console.log("i am here ............!")
         console.error('Error parsing profile data:', e);
       }
     }
@@ -276,7 +275,7 @@ function ViewContent() {
   const handleResetFilter = () => {
     setSelectedMonth('');
     setSelectedYear('');
-    setFilteredData(attendanceData); // Reset to original data
+    setFilteredData(attendanceData);
     console.log('Filters reset at:', new Date().toLocaleString());
   };
 
@@ -401,7 +400,7 @@ function ViewContent() {
         
         // Capture the element as canvas
         const canvas = await html2canvas(element, {
-          scale: 1.5,
+          scale: 1.25,
           backgroundColor: '#ffffff'
         })
         

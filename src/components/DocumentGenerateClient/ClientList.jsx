@@ -1,7 +1,7 @@
 import React from 'react'
 import PageHeader from '@/components/shared/pageHeader/PageHeader'
 import ProjectsListHeader from '@/components/ClientList/ClientListHeader'
-import ProjectTable from '@/components/ClientList/ClientTable'
+import ProjectTable from '@/components/DocumentClientList/ClientTable'
 import ClientData from '../common/clientData'
 
 export default function ClientList() {

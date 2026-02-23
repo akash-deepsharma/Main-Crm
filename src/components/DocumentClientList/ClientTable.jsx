@@ -344,7 +344,7 @@ const ProjectTable = () => {
          const clientId = info.row.original.id;
           return (
       <div className="hstack gap-2 justify-content-end">
-        <a href={`/clients/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
+        <a href={`/generate-documents/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
           <FiEye />
         </a>
         <Dropdown
