@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = 'force-dynamic'
 import React, { Suspense, useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ClientView from '@/components/ClientCreate/ClientView'

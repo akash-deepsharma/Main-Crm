@@ -177,13 +177,13 @@ export default function CreateCompanyModal({ onClose, onVerify, type }) {
       const data = await response.json();
       console.log("API Response:", data);
 
-      onVerify?.(data);
+      onVerify?.(data?.status === "true");
       onClose();
       window.location.reload();
     } catch (error) {
       console.error("Company create error:", error);
       alert(
-        error?.response?.data?.message || "Something went wrong, try again"
+        error?.response?.message || "Something went wrong, try again"
       );
     }
   };
