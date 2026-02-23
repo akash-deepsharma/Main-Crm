@@ -2,7 +2,7 @@ import React from "react";
 import './CoverLetter.css'
 
 export default function CoverLetter(profileData) {
-  console.log("profileData", profileData);
+  console.log("profileData asdasd", profileData);
   
   // Parse the profileData if it's a string
   let parsedData = {};

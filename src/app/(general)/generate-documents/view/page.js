@@ -71,8 +71,9 @@ function ViewContent() {
     const storedProfileData = localStorage.getItem('profileData');
     if (storedProfileData) {
       try {
-        setProfileData(JSON.parse(storedProfileData));
+        setProfileData(storedProfileData);
       } catch (e) {
+        console.log("i am here ............!")
         console.error('Error parsing profile data:', e);
       }
     }
