@@ -10,7 +10,7 @@ const TabEmployeeBankFamily = (data) => {
        const handleViewDocument = (url) => {
            setFileUrl(url);
            setShow(true);
-       };
+       }; 
 
        const employeeData = data?.data;
 console.log( "emploeyeedd test data", )
@@ -18,6 +18,7 @@ console.log( "emploeyeedd test data", )
         <>
         <div className="tab-pane fade active show" id="overviewTab">
             <div className="row">
+                {employeeData?.bank_details && (
                 <div className="col-xl-6">
                     <div className="card stretch stretch-full">
                         <div className="card-body">
@@ -33,15 +34,15 @@ console.log( "emploeyeedd test data", )
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Spouse Name </label>
-                                    <p>{employeeData?.SpouseName}</p>
+                                    <p>{JSON.parse(employeeData?.bank_details)?.spouse_name}</p>
                                 </div>
                                <div className="col-md-6 mb-2">
                                     <label className="form-label">Spouse Contact </label>
-                                    <p>{employeeData?.SpouseContact}</p>
+                                    <p>{JSON.parse(employeeData?.bank_details)?.spouse_contact}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Child Name </label>
-                                    <p>{employeeData?.ChildName}</p>
+                                    <p>{JSON.parse(employeeData?.bank_details)?.child_name}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Family Photo </label>
@@ -51,32 +52,35 @@ console.log( "emploeyeedd test data", )
                         </div>
                     </div>
                 </div>
+            )}
+                                    {employeeData?.bank_details && (
                  <div className="col-xl-6">
                     <div className="card stretch stretch-full">
                         <div className="card-body">
                             <h3 className='mb-4'>Bank Details</h3>
                             <div className="row">
-                                <div className="col-md-6 mb-2">
-                                    <label className="form-label">Bank name</label>
-                                    <p>{employeeData?.bankName}</p>
-                                </div>
+                                    <div className="col-md-6 mb-2">
+                                        <label className="form-label">Bank name</label>
+                                        <p>{JSON.parse(employeeData?.bank_details)?.bank_name}</p>
+                                    </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">Branch Branch </label>
-                                    <p>{employeeData?.branchLocation}</p>
+                                    <p>{JSON.parse(employeeData?.bank_details)?.branch_name}</p>
                                 </div>
                                 <div className="col-md-6 mb-2">
                                     <label className="form-label">IFSC Code </label>
-                                    <p>{employeeData?.ifsc}</p>
+                                    <p>{JSON.parse(employeeData?.bank_details)?.ifsc}</p>
                                 </div>
                                <div className="col-md-6 mb-2">
                                     <label className="form-label">Account no. </label>
-                                    <p>{employeeData?.accountNo}</p>
+                                    <p>{JSON.parse(employeeData?.bank_details)?.account_no}</p>
                                 </div>
                                 
                             </div>
                         </div>
                     </div>
                 </div>
+                                    )}
             </div>
         </div>
          {/* ==== CUSTOM MODAL ==== */}

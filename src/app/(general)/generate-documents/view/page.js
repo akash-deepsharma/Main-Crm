@@ -9,12 +9,67 @@ import AttendanceSheet from '@/components/CoverLetter/AttandanceSheet'
 import GstDesign from '@/components/CoverLetter/GstDesign'
 import WagesSheetEmployee from '@/components/CoverLetter/WagesSheetEmployee'
 import WagesSheetEmployer from '@/components/CoverLetter/WagesSheetEmployer'
-import { FiPrinter, FiShare2, FiDownload, FiMail, FiCopy, FiExternalLink, FiX, FiCheck } from 'react-icons/fi'
+import { FiPrinter, FiShare2, FiDownload, FiMail, FiCopy, FiExternalLink, FiX, FiCheck, FiAlertCircle, FiRefreshCw } from 'react-icons/fi'
 import { FaFilePdf, FaFileExcel } from 'react-icons/fa'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import html2canvas from 'html2canvas' 
+
+// Error Message Component
+const ErrorMessage = ({ message, onRetry, type = 'error' }) => {
+  const bgColor = type === 'warning' ? 'bg-warning bg-opacity-10' : 'bg-danger bg-opacity-10';
+  const textColor = type === 'warning' ? 'text-white' : 'text-danger';
+  const borderColor = type === 'warning' ? 'border-warning' : 'border-danger';
+  
+  return (
+    <div className={`alert ${bgColor} ${borderColor} border-start border-4 py-3 mb-3 mt-3`} role="alert">
+      <div className="d-flex align-items-center gap-3">
+        <FiAlertCircle className={textColor} size={24} />
+        <div className="flex-grow-1">
+          <strong className={textColor}>
+            {type === 'warning' ? 'Warning: ' : 'Error: '}
+          </strong>
+          <span className="text-white">{message}</span>
+        </div>
+        {onRetry && (
+          <button 
+            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
+            onClick={onRetry}
+          >
+            <FiRefreshCw size={14} />
+            Retry
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Empty State Component
+const EmptyState = ({ message, icon: Icon, onAction, actionLabel }) => (
+  <div className="text-center py-5 my-4">
+    <div className="mb-3">
+      {Icon && <Icon size={48} className="text-muted" />}
+    </div>
+    <p className="text-muted mb-3">{message}</p>
+    {onAction && actionLabel && (
+      <button className="btn btn-primary" onClick={onAction}>
+        {actionLabel}
+      </button>
+    )}
+  </div>
+);
+
+// Loading Spinner Component
+const LoadingSpinner = ({ message = 'Loading...' }) => (
+  <div className="text-center py-4">
+    <div className="spinner-border text-primary mb-2" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </div>
+    <p className="text-muted small">{message}</p>
+  </div>
+);
 
 // Create a separate component that uses useSearchParams
 function ViewContent() {
@@ -29,13 +84,16 @@ function ViewContent() {
   const [filteredData, setFilteredData] = useState(null)
   const [attendanceData, setAttendanceData] = useState([])
   const [loading, setLoading] = useState(false)
+  const [documentsLoading, setDocumentsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [profileData, setProfileData] = useState(null) // State for profile data
+  const [documentsError, setDocumentsError] = useState(null)
+  const [profileData, setProfileData] = useState(null)
   
   // Print and Share states
   const [showShareModal, setShowShareModal] = useState(false)
   const [showPrintOptions, setShowPrintOptions] = useState(false)
   const [showExportOptions, setShowExportOptions] = useState(false)
+  const [generateshowData, setGenerateshowData] = useState(null)
   const [selectedDocuments, setSelectedDocuments] = useState({
     coverLetter: true,
     attendanceSheet: true,
@@ -45,7 +103,8 @@ function ViewContent() {
   })
   const [copied, setCopied] = useState(false)
   const [shareLink, setShareLink] = useState('')
-  const [exportFormat, setExportFormat] = useState('pdf') // 'pdf' or 'excel'
+  const [exportFormat, setExportFormat] = useState('pdf')
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   
   // Refs for each document
   const coverLetterRef = useRef(null)
@@ -55,7 +114,7 @@ function ViewContent() {
   const wagesSheetEmployerRef = useRef(null)
   const documentsContainerRef = useRef(null)
 
-  console.log("attendanceData ", attendanceData)
+  const DEBUG = process.env.NODE_ENV === 'development'
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -67,56 +126,51 @@ function ViewContent() {
 
   // Load profile data from localStorage only on client side
   useEffect(() => {
-    // This will only run on the client side
-    const storedProfileData = localStorage.getItem('profileData');
+    const storedProfileData = localStorage.getItem('profileData')
     if (storedProfileData) {
       try {
-        setProfileData(storedProfileData);
+        setProfileData(storedProfileData)
       } catch (e) {
-        console.error('Error parsing profile data:', e);
+        if (DEBUG) console.error('Error parsing profile data:', e)
       }
     }
-  }, []); // Empty dependency array ensures this runs only once after mount
+  }, [DEBUG])
 
   // Log URL parameters on component mount
   useEffect(() => {
-    if (clientType && clientId) {
+    if (clientType && clientId && DEBUG) {
       console.log('URL Parameters:', { 
         clientType, 
         clientId,
         timestamp: new Date().toISOString() 
       })
     }
-  }, [clientType, clientId])
+  }, [clientType, clientId, DEBUG])
 
   const fetchAttendanceData = useCallback(async () => {
     if (!clientId) {
-      console.error('No client ID provided');
-      return;
+      setError('No client ID provided')
+      return
     }
 
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       
-      // Get token from localStorage only on client side
-      const token = localStorage.getItem('token');
-      console.log("token is here", token);
+      const token = localStorage.getItem('token')
       
       if (!token) {
-        throw new Error('Authentication token not found');
+        throw new Error('Authentication token not found. Please log in again.')
       }
 
-      // If month and year are not selected, use previous month as default
-      let apiMonth = selectedMonth;
-      let apiYear = selectedYear;
+      let apiMonth = selectedMonth
+      let apiYear = selectedYear
       
       if (!apiMonth || !apiYear) {
-        const now = new Date();
-        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        apiMonth = prevMonth.toLocaleString('en-US', { month: 'long' });
-        apiYear = prevMonth.getFullYear().toString();
-        console.log('Using default month/year:', apiMonth, apiYear);
+        const now = new Date()
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        apiMonth = prevMonth.toLocaleString('en-US', { month: 'long' })
+        apiYear = prevMonth.getFullYear().toString()
       }
       
       const response = await fetch(
@@ -128,19 +182,21 @@ function ViewContent() {
             'Accept': 'application/json'
           }
         }
-      );
-      
-      console.log('Response status:', response.status);
+      )
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.status === 401) {
+          throw new Error('Unauthorized. Please log in again.')
+        } else if (response.status === 404) {
+          throw new Error('Attendance data not found for the selected period.')
+        } else {
+          throw new Error(`Server error: ${response.status}`)
+        }
       }
 
-      const result = await response.json();
-      console.log('API Response:', result);
+      const result = await response.json()
 
       if (result.status && result.data) {
-        // Format the API data to match your table structure
         const formattedData = result.data.map(item => ({
           id: item.id,
           employee: {
@@ -164,6 +220,7 @@ function ViewContent() {
             name: item.employee?.designation?.name || 'Not specified'
           },
           present_days: item.total || 0,
+          absent_days: item.absent || 0,
           extra_hours: item.extra_hr || 0,
           month: item.month || 'N/A',
           year: item.year || 'N/A',
@@ -201,83 +258,156 @@ function ViewContent() {
             day_30: item.day_30 || '',
             day_31: item.day_31 || '',
           }
-        }));
+        }))
         
-        console.log('Formatted Data:', formattedData);
-        setAttendanceData(formattedData);
-        setFilteredData(formattedData);
+        setAttendanceData(formattedData)
+        setFilteredData(formattedData)
       } else {
-        console.log('No data found or API returned false status');
-        setAttendanceData([]);
-        setFilteredData([]);
+        setAttendanceData([])
+        setFilteredData([])
         if (result.message) {
-          throw new Error(result.message);
+          throw new Error(result.message)
+        } else {
+          throw new Error('No attendance data found for the selected period')
         }
       }
     } catch (error) {
-      console.error('Error fetching attendance data:', error);
-      setError(error.message || 'Failed to fetch attendance data');
-      setAttendanceData([]);
-      setFilteredData([]);
+      if (DEBUG) console.error('Error fetching attendance data:', error)
+      setError(error.message || 'Failed to fetch attendance data')
+      setAttendanceData([])
+      setFilteredData([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [clientId, selectedMonth, selectedYear]);
+  }, [clientId, selectedMonth, selectedYear, DEBUG])
 
   // Fetch attendance data when component mounts and when filters change
   useEffect(() => {
     if (clientId) {
-      fetchAttendanceData();
+      fetchAttendanceData()
     }
-  }, [clientId, fetchAttendanceData]);
+  }, [clientId, fetchAttendanceData])
 
   useEffect(() => {
-    if (selectedMonth && selectedYear) {
-      console.log('Filter Applied:', { 
-        month: selectedMonth, 
-        year: selectedYear,
-        clientId,
-        clientType,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Re-fetch data when filters change
-      fetchAttendanceData();
+    if (selectedMonth && selectedYear && clientId) {
+      fetchAttendanceData()
     }
-  }, [selectedMonth, selectedYear, clientId, clientType, fetchAttendanceData]);
+  }, [selectedMonth, selectedYear, clientId, fetchAttendanceData])
+
+  // Fetch documents data
+  const fetchShowDocument = useCallback(async (clientId, month, year) => {
+    if (!clientId || !month || !year) return
+
+    try {
+      setDocumentsLoading(true)
+      setDocumentsError(null)
+
+      const token = localStorage.getItem("token")
+
+      if (!token) {
+        throw new Error("Authentication token not found. Please log in again.")
+      }
+
+      const url = `https://green-owl-255815.hostingersite.com/api/get-documents?client_id=${clientId}&month=${month}&year=${year}`
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Unauthorized. Please log in again.")
+        } else if (response.status === 404) {
+          throw new Error("Documents not found for the selected period.")
+        } else {
+          throw new Error(`Server error: ${response.status}`)
+        }
+      }
+
+      const data = await response.json()
+      setGenerateshowData(data)
+      return data
+
+    } catch (error) {
+      if (DEBUG) console.error("Error fetching documents:", error)
+      setDocumentsError(error.message)
+      setGenerateshowData(null)
+    } finally {
+      setDocumentsLoading(false)
+    }
+  }, [DEBUG])
+
+  // Fetch documents when clientId, month, and year are available
+  useEffect(() => {
+    if (clientId) {
+      let apiMonth = selectedMonth
+      let apiYear = selectedYear
+      
+      if (!apiMonth || !apiYear) {
+        const now = new Date()
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        apiMonth = prevMonth.toLocaleString('en-US', { month: 'long' })
+        apiYear = prevMonth.getFullYear().toString()
+      }
+      
+      fetchShowDocument(clientId, apiMonth, apiYear)
+    }
+  }, [clientId, selectedMonth, selectedYear, fetchShowDocument])
 
   const handleMonthChange = (e) => {
-    const month = e.target.value;
-    setSelectedMonth(month);
-    if (month) console.log('Month selected:', month);
-  };
+    const month = e.target.value
+    setSelectedMonth(month)
+    // Clear errors when changing filters
+    setError(null)
+    setDocumentsError(null)
+  }
 
   const handleYearChange = (e) => {
-    const year = e.target.value;
-    setSelectedYear(year);
-    if (year) console.log('Year selected:', year);
-  };
+    const year = e.target.value
+    setSelectedYear(year)
+    // Clear errors when changing filters
+    setError(null)
+    setDocumentsError(null)
+  }
 
   const handleApplyFilter = () => {
     if (selectedMonth && selectedYear) {
-      const filterParams = { 
-        month: selectedMonth, 
-        year: selectedYear,
-        clientId,
-        clientType,
-        monthIndex: months.indexOf(selectedMonth) + 1
-      };
-      console.log('Applying filter with:', filterParams);
-      fetchAttendanceData();
+      fetchAttendanceData()
+      fetchShowDocument(clientId, selectedMonth, selectedYear)
     }
-  };
+  }
 
   const handleResetFilter = () => {
-    setSelectedMonth('');
-    setSelectedYear('');
-    setFilteredData(attendanceData);
-    console.log('Filters reset at:', new Date().toLocaleString());
-  };
+    setSelectedMonth('')
+    setSelectedYear('')
+    setFilteredData(attendanceData)
+    setError(null)
+    setDocumentsError(null)
+    
+    // Fetch with default month/year
+    if (clientId) {
+      fetchAttendanceData()
+      const now = new Date()
+      const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const defaultMonth = prevMonth.toLocaleString('en-US', { month: 'long' })
+      const defaultYear = prevMonth.getFullYear().toString()
+      fetchShowDocument(clientId, defaultMonth, defaultYear)
+    }
+  }
+
+  const handleRetryAttendance = () => {
+    fetchAttendanceData()
+  }
+
+  const handleRetryDocuments = () => {
+    if (clientId) {
+      fetchShowDocument(clientId, selectedMonth, selectedYear)
+    }
+  }
 
   // Print functionality
   const handlePrint = () => {
@@ -287,14 +417,12 @@ function ViewContent() {
   const handlePrintSelected = () => {
     setShowPrintOptions(false)
     
-    // Create a new window for printing
     const printWindow = window.open('', '_blank')
     if (!printWindow) {
       alert('Please allow pop-ups to print documents')
       return
     }
 
-    // Start building the print content
     let printContent = `
       <!DOCTYPE html>
       <html>
@@ -312,7 +440,6 @@ function ViewContent() {
       <body>
     `
 
-    // Add selected documents to print content
     if (selectedDocuments.coverLetter && coverLetterRef.current) {
       printContent += '<div>' + coverLetterRef.current.innerHTML + '</div><div class="page-break"></div>'
     }
@@ -335,7 +462,6 @@ function ViewContent() {
 
     printContent += '</body></html>'
 
-    // Write to new window and print
     printWindow.document.write(printContent)
     printWindow.document.close()
     
@@ -346,7 +472,6 @@ function ViewContent() {
 
   // Share functionality
   const handleShare = () => {
-    // Generate share link
     const baseUrl = window.location.origin + window.location.pathname
     const shareUrl = `${baseUrl}?client_id=${clientId}&type=${clientType}&month=${selectedMonth}&year=${selectedYear}`
     setShareLink(shareUrl)
@@ -381,11 +506,11 @@ function ViewContent() {
   }
 
   const exportToPDF = async () => {
+    setIsGeneratingPDF(true)
     try {
       const pdf = new jsPDF('p', 'pt', 'a4')
       let isFirstPage = true
 
-      // Helper function to add content to PDF
       const addContentToPDF = async (element, title) => {
         if (!element) return
 
@@ -393,12 +518,10 @@ function ViewContent() {
           pdf.addPage()
         }
         
-        // Add title
         pdf.setFontSize(16)
         pdf.setTextColor(0, 0, 0)
         pdf.text(title, 40, 40)
         
-        // Capture the element as canvas
         const canvas = await html2canvas(element, {
           scale: 1.25,
           backgroundColor: '#ffffff'
@@ -412,7 +535,6 @@ function ViewContent() {
         isFirstPage = false
       }
 
-      // Add selected documents to PDF
       if (selectedDocuments.coverLetter && coverLetterRef.current) {
         await addContentToPDF(coverLetterRef.current, 'Cover Letter')
       }
@@ -433,20 +555,19 @@ function ViewContent() {
         await addContentToPDF(wagesSheetEmployerRef.current, 'Employer Wages Sheet')
       }
 
-      // Save PDF
       pdf.save(`documents-${selectedMonth}-${selectedYear}.pdf`)
     } catch (error) {
-      console.error('Error generating PDF:', error)
+      if (DEBUG) console.error('Error generating PDF:', error)
       alert('Error generating PDF. Please try again.')
+    } finally {
+      setIsGeneratingPDF(false)
     }
   }
 
   const exportToExcel = () => {
     try {
-      // Create workbook
       const wb = XLSX.utils.book_new()
       
-      // Add sheets for each selected document
       if (selectedDocuments.coverLetter && coverLetterRef.current) {
         const wsData = [
           ['Cover Letter'],
@@ -463,7 +584,6 @@ function ViewContent() {
       }
       
       if (selectedDocuments.attendanceSheet && attendanceSheetRef.current) {
-        // Convert attendance data to worksheet
         const wsData = [
           ['Attendance Sheet'],
           ['Generated on:', new Date().toLocaleString()],
@@ -471,16 +591,16 @@ function ViewContent() {
           ['Client Type:', clientType],
           ['Month/Year:', `${selectedMonth} ${selectedYear}`],
           [],
-          ['Employee Name', 'Employee ID', 'Designation', 'Present Days', 'Extra Hours']
+          ['Employee Name', 'Employee ID', 'Designation', 'Present Days', 'Absent Days', 'Extra Hours']
         ]
         
-        // Add attendance data
         attendanceData.forEach(item => {
           wsData.push([
             item.employee?.name || '',
             item['employee-id'] || '',
             item.designation || '',
             item.present_days || 0,
+            item.absent_days || 0,
             item.extra_hours || 0
           ])
         })
@@ -500,7 +620,6 @@ function ViewContent() {
           ['Employee Name', 'Present Days', 'Extra Hours', 'Daily Wage', 'Regular Wages', 'OT Wages', 'Total Wages']
         ]
         
-        // Add wage data (you can calculate this from attendance data)
         attendanceData.forEach(item => {
           const dailyWage = 500
           const overtimeRate = 75
@@ -522,12 +641,22 @@ function ViewContent() {
         XLSX.utils.book_append_sheet(wb, ws, 'Employee Wages')
       }
       
-      // Save Excel file
       XLSX.writeFile(wb, `documents-${selectedMonth}-${selectedYear}.xlsx`)
     } catch (error) {
-      console.error('Error generating Excel:', error)
+      if (DEBUG) console.error('Error generating Excel:', error)
       alert('Error generating Excel file. Please try again.')
     }
+  }
+
+  const hasDocument = (docName) => {
+    return generateshowData?.data?.documents?.some(
+      (doc) => doc?.toLowerCase().trim() === docName.toLowerCase()
+    ) ?? false
+  }
+
+  // Check if any documents are available
+  const hasAnyDocument = () => {
+    return generateshowData?.data?.documents?.length > 0
   }
 
   return (
@@ -554,8 +683,10 @@ function ViewContent() {
               <button 
                 className="btn btn-outline-primary d-flex align-items-center gap-2"
                 onClick={handlePrint}
-                disabled={!selectedMonth || !selectedYear}
+                disabled={!selectedMonth || !selectedYear || documentsLoading || !hasAnyDocument()}
                 style={{ borderRadius: '10px' }}
+                aria-label="Print documents"
+                title={!hasAnyDocument() ? "No documents available to print" : ""}
               >
                 <FiPrinter size={18} />
                 Print
@@ -563,17 +694,20 @@ function ViewContent() {
               <button 
                 className="btn btn-outline-success d-flex align-items-center gap-2"
                 onClick={handleExport}
-                disabled={!selectedMonth || !selectedYear}
+                disabled={!selectedMonth || !selectedYear || documentsLoading || isGeneratingPDF || !hasAnyDocument()}
                 style={{ borderRadius: '10px' }}
+                aria-label="Export documents"
+                title={!hasAnyDocument() ? "No documents available to export" : ""}
               >
                 <FiDownload size={18} />
-                Export
+                {isGeneratingPDF ? 'Generating...' : 'Export'}
               </button>
               <button 
                 className="btn btn-outline-info d-flex align-items-center gap-2"
                 onClick={handleShare}
-                disabled={!selectedMonth || !selectedYear}
+                disabled={!selectedMonth || !selectedYear || documentsLoading}
                 style={{ borderRadius: '10px' }}
+                aria-label="Share documents"
               >
                 <FiShare2 size={18} />
                 Share
@@ -607,6 +741,7 @@ function ViewContent() {
                   <button 
                     className="btn btn-sm btn-light"
                     onClick={() => setShowPrintOptions(false)}
+                    aria-label="Close"
                   >
                     <FiX size={18} />
                   </button>
@@ -624,9 +759,21 @@ function ViewContent() {
                           ...selectedDocuments,
                           [key]: e.target.checked
                         })}
+                        disabled={!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
+                                          key === 'attendanceSheet' ? 'attendance' :
+                                          key === 'gstDesign' ? 'bill' :
+                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
+                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '')}
                       />
                       <label className="form-check-label" htmlFor={key}>
                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        {!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
+                                          key === 'attendanceSheet' ? 'attendance' :
+                                          key === 'gstDesign' ? 'bill' :
+                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
+                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '') && (
+                          <span className="badge bg-secondary ms-2">Not Available</span>
+                        )}
                       </label>
                     </div>
                   ))}
@@ -636,6 +783,7 @@ function ViewContent() {
                   <button 
                     className="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-2"
                     onClick={handlePrintSelected}
+                    disabled={!Object.values(selectedDocuments).some(Boolean)}
                   >
                     <FiPrinter size={18} />
                     Print Selected
@@ -677,6 +825,7 @@ function ViewContent() {
                   <button 
                     className="btn btn-sm btn-light"
                     onClick={() => setShowExportOptions(false)}
+                    aria-label="Close"
                   >
                     <FiX size={18} />
                   </button>
@@ -723,9 +872,21 @@ function ViewContent() {
                           ...selectedDocuments,
                           [key]: e.target.checked
                         })}
+                        disabled={!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
+                                          key === 'attendanceSheet' ? 'attendance' :
+                                          key === 'gstDesign' ? 'bill' :
+                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
+                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '')}
                       />
                       <label className="form-check-label" htmlFor={`export-${key}`}>
                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        {!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
+                                          key === 'attendanceSheet' ? 'attendance' :
+                                          key === 'gstDesign' ? 'bill' :
+                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
+                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '') && (
+                          <span className="badge bg-secondary ms-2">Not Available</span>
+                        )}
                       </label>
                     </div>
                   ))}
@@ -735,9 +896,10 @@ function ViewContent() {
                   <button 
                     className="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-2"
                     onClick={handleExportSelected}
+                    disabled={isGeneratingPDF || !Object.values(selectedDocuments).some(Boolean)}
                   >
                     <FiDownload size={18} />
-                    Export as {exportFormat.toUpperCase()}
+                    {isGeneratingPDF ? 'Generating...' : `Export as ${exportFormat.toUpperCase()}`}
                   </button>
                   <button 
                     className="btn btn-outline-secondary"
@@ -776,6 +938,7 @@ function ViewContent() {
                   <button 
                     className="btn btn-sm btn-light"
                     onClick={() => setShowShareModal(false)}
+                    aria-label="Close"
                   >
                     <FiX size={18} />
                   </button>
@@ -791,10 +954,12 @@ function ViewContent() {
                     className="form-control" 
                     value={shareLink} 
                     readOnly 
+                    aria-label="Share link"
                   />
                   <button 
                     className="btn btn-outline-secondary" 
                     onClick={handleCopyLink}
+                    aria-label={copied ? "Copied" : "Copy link"}
                   >
                     {copied ? <FiCheck size={18} /> : <FiCopy size={18} />}
                   </button>
@@ -831,6 +996,7 @@ function ViewContent() {
                   value={selectedMonth}
                   onChange={handleMonthChange}
                   style={{ borderRadius: '10px' }}
+                  aria-label="Select month"
                 >
                   <option value="">Select Month</option>
                   {months.map(month => (
@@ -848,6 +1014,7 @@ function ViewContent() {
                   value={selectedYear}
                   onChange={handleYearChange}
                   style={{ borderRadius: '10px' }}
+                  aria-label="Select year"
                 >
                   <option value="">Select Year</option>
                   {years.map(year => (
@@ -858,18 +1025,19 @@ function ViewContent() {
               
               <div className="col-md-4">
                 <div className="d-flex gap-2">
-                  <button 
-                    className="btn btn-primary flex-grow-1"
+                  <button className="btn btn-primary flex-grow-1"
                     onClick={handleApplyFilter}
-                    disabled={!selectedMonth || !selectedYear || loading}
+                    disabled={!selectedMonth || !selectedYear || loading || documentsLoading}
                     style={{ borderRadius: '10px' }}
+                    aria-label="Apply filter"
                   >
-                    {loading ? 'Loading...' : 'Apply Filter'}
+                    {loading || documentsLoading ? 'Loading...' : 'Apply Filter'}
                   </button>
                   <button 
                     className="btn btn-outline-secondary"
                     onClick={handleResetFilter}
                     style={{ borderRadius: '10px' }}
+                    aria-label="Reset filter"
                   >
                     Reset
                   </button>
@@ -892,19 +1060,27 @@ function ViewContent() {
 
             {/* Error Display */}
             {error && (
-              <div className="mt-3 alert alert-danger py-2">
-                <small>{error}</small>
-              </div>
+              <ErrorMessage 
+                message={error} 
+                onRetry={handleRetryAttendance}
+                type="error"
+              />
+            )}
+
+            {/* Documents Error Display */}
+            {documentsError && (
+              <ErrorMessage 
+                message={documentsError} 
+                onRetry={handleRetryDocuments}
+                type="warning"
+              />
             )}
 
             {/* Loading Indicator */}
-            {loading && (
-              <div className="mt-3 text-center">
-                <div className="spinner-border spinner-border-sm text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-                <span className="ms-2 small">Fetching attendance data...</span>
-              </div>
+            {(loading || documentsLoading) && (
+              <LoadingSpinner 
+                message={loading ? 'Fetching attendance data...' : 'Fetching documents...'} 
+              />
             )}
           </div>
         </div>
@@ -912,41 +1088,57 @@ function ViewContent() {
 
       {/* Documents Container */}
       <div ref={documentsContainerRef}>
-        {/* Components with refs for printing/exporting */}
-        <div ref={coverLetterRef}>
-          <CoverLetter 
-            month={selectedMonth} 
-            year={selectedYear}
-            clientId={clientId}
-            clientType={clientType}
-            profileData={profileData}
+        {!documentsLoading && !hasAnyDocument() && !documentsError && (
+          <EmptyState 
+            message="No documents available for the selected period. Please try a different month or year."
+            icon={FiAlertCircle}
           />
-        </div>
+        )}
         
-        <div ref={attendanceSheetRef}>
-          <AttendanceSheet 
-            month={selectedMonth} 
-            year={selectedYear}
-            clientId={clientId}
-            clientType={clientType}
-            attendanceData={attendanceData}
-            filteredData={filteredData}
-            loading={loading}
-            error={error}
-          />
-        </div>
-
-        <div ref={gstDesignRef}>
-          <GstDesign />
-        </div>
+        {hasDocument("covering_letter") && (
+          <div ref={coverLetterRef}>
+            <CoverLetter
+              month={selectedMonth}
+              year={selectedYear}
+              clientId={clientId}
+              clientType={clientType}
+              profileData={profileData}
+            />
+          </div>
+        )}
         
-        <div ref={wagesSheetEmployeeRef}>
-          <WagesSheetEmployee attendanceData={attendanceData} />
-        </div>
+        {hasDocument("attendance") && (
+          <div ref={attendanceSheetRef}>
+            <AttendanceSheet 
+              month={selectedMonth} 
+              year={selectedYear}
+              clientId={clientId}
+              clientType={clientType}
+              attendanceData={attendanceData}
+              filteredData={filteredData}
+              loading={loading}
+              error={error}
+            />
+          </div>
+        )}
         
-        <div ref={wagesSheetEmployerRef}>
-          <WagesSheetEmployer attendanceData={attendanceData} />
-        </div>
+        {hasDocument("bill") && (
+          <div ref={gstDesignRef}>
+            <GstDesign />
+          </div>
+        )}
+ 
+        {hasDocument("employee_wages_sheet") && (
+          <div ref={wagesSheetEmployeeRef}>
+            <WagesSheetEmployee attendanceData={attendanceData} />
+          </div>
+        )}
+        
+        {hasDocument("employer_wages_sheet") && (
+          <div ref={wagesSheetEmployerRef}>
+            <WagesSheetEmployer attendanceData={attendanceData} />
+          </div>
+        )}
       </div>
 
       <style jsx>{`

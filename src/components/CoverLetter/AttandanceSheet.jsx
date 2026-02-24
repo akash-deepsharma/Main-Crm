@@ -155,6 +155,7 @@ console.log("attendanceData", attendanceData    )
               <th scope="col">EMPLOYEE ID</th>
               <th scope="col">DESIGNATION</th>
               <th scope="col">PRESENT DAYS</th>
+              <th scope="col">ABSENT DAYS</th>
               <th scope="col">EXTRA HOURS</th>
               <th scope="col">MONTH</th>
             </tr>
@@ -185,6 +186,9 @@ console.log("attendanceData", attendanceData    )
                 <td>{tiem?.designation}</td>
                 <td>
                   <span className="fw-semibold">{tiem?.present_days}</span> Days
+                </td>
+                <td>
+                  <span className="fw-semibold">{tiem?.absent_days}</span> Days
                 </td>
                 <td>
                   <span className="fw-semibold">{tiem?.extra_hours}</span> Hrs
