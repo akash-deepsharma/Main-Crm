@@ -85,9 +85,17 @@ function ViewContent() {
   const [attendanceData, setAttendanceData] = useState([])
   const [loading, setLoading] = useState(false)
   const [documentsLoading, setDocumentsLoading] = useState(false)
+  const [attendanceLoading, setAttendanceLoading] = useState(false)
+  const [wagesLoading, setWagesLoading] = useState(false)
+  const [coverLetterLoading, setCoverLetterLoading] = useState(false)
   const [error, setError] = useState(null)
   const [documentsError, setDocumentsError] = useState(null)
+  const [attendanceError, setAttendanceError] = useState(null)
+  const [wagesError, setWagesError] = useState(null)
+  const [coverLetterError, setCoverLetterError] = useState(null)
   const [profileData, setProfileData] = useState(null)
+  const [coverLetterData, setCoverLetterData] = useState(null)
+  console.log("coverLetterData swati", coverLetterData);
   
   // Print and Share states
   const [showShareModal, setShowShareModal] = useState(false)
@@ -147,15 +155,27 @@ function ViewContent() {
     }
   }, [clientType, clientId, DEBUG])
 
+  // Define hasDocument FIRST before any other functions that depend on it
+  const hasDocument = useCallback((docName) => {
+    return generateshowData?.data?.documents?.some(
+      (doc) => doc?.toLowerCase().trim() === docName.toLowerCase()
+    ) ?? false
+  }, [generateshowData])
+
+  // Check if any documents are available
+  const hasAnyDocument = useCallback(() => {
+    return generateshowData?.data?.documents?.length > 0
+  }, [generateshowData])
+
+  // Fetch attendance data only if attendance document exists
   const fetchAttendanceData = useCallback(async () => {
-    if (!clientId) {
-      setError('No client ID provided')
+    if (!hasDocument('attendance')) {
       return
     }
 
     try {
-      setLoading(true)
-      setError(null)
+      setAttendanceLoading(true)
+      setAttendanceError(null)
       
       const token = localStorage.getItem('token')
       
@@ -267,32 +287,147 @@ function ViewContent() {
         setFilteredData([])
         if (result.message) {
           throw new Error(result.message)
-        } else {
-          throw new Error('No attendance data found for the selected period')
         }
       }
     } catch (error) {
       if (DEBUG) console.error('Error fetching attendance data:', error)
-      setError(error.message || 'Failed to fetch attendance data')
+      setAttendanceError(error.message || 'Failed to fetch attendance data')
       setAttendanceData([])
       setFilteredData([])
     } finally {
-      setLoading(false)
+      setAttendanceLoading(false)
     }
-  }, [clientId, selectedMonth, selectedYear, DEBUG])
+  }, [clientId, selectedMonth, selectedYear, DEBUG, hasDocument])
 
-  // Fetch attendance data when component mounts and when filters change
-  useEffect(() => {
-    if (clientId) {
-      fetchAttendanceData()
+  // Fetch wages data only if wages sheets exist
+  const fetchWagesData = useCallback(async () => {
+    if (!clientId || (!hasDocument('employee_wages_sheet') && !hasDocument('employer_wages_sheet'))) {
+      return
     }
-  }, [clientId, fetchAttendanceData])
 
-  useEffect(() => {
-    if (selectedMonth && selectedYear && clientId) {
-      fetchAttendanceData()
+    try {
+      setWagesLoading(true)
+      setWagesError(null)
+      
+      const token = localStorage.getItem('token')
+      
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.')
+      }
+
+      let apiMonth = selectedMonth
+      let apiYear = selectedYear
+      
+      if (!apiMonth || !apiYear) {
+        const now = new Date()
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        apiMonth = prevMonth.toLocaleString('en-US', { month: 'long' })
+        apiYear = prevMonth.getFullYear().toString()
+      }
+      
+      const response = await fetch(
+        `https://green-owl-255815.hostingersite.com/api/employee/salaries?client_id=${clientId}&month=${apiMonth}&year=${apiYear}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized. Please log in again.')
+        } else if (response.status === 404) {
+          throw new Error('Wages data not found for the selected period.')
+        } else {
+          throw new Error(`Server error: ${response.status}`)
+        }
+      }
+
+      const result = await response.json()
+      
+      if (result.status && result.data) {
+        // Process wages data here
+        // You can store this in state for the wages components
+        console.log('Wages data:', result.data)
+      }
+
+    } catch (error) {
+      if (DEBUG) console.error('Error fetching wages data:', error)
+      setWagesError(error.message || 'Failed to fetch wages data')
+    } finally {
+      setWagesLoading(false)
     }
-  }, [selectedMonth, selectedYear, clientId, fetchAttendanceData])
+  }, [clientId, selectedMonth, selectedYear, DEBUG, hasDocument])
+
+  // Fetch cover letter data only if covering_letter document exists
+  const fetchCoverLetterData = useCallback(async () => {
+    if (!hasDocument('covering_letter')) {
+      return
+    }
+
+    try {
+      setCoverLetterLoading(true)
+      setCoverLetterError(null)
+      
+      const token = localStorage.getItem('token')
+      const selected_company = localStorage.getItem('selected_company')
+      
+      if (!selected_company) {
+        throw new Error('Company ID not found. Please log in again.')
+      }
+      
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.')
+      }
+
+      let apiMonth = selectedMonth
+      let apiYear = selectedYear
+      
+      if (!apiMonth || !apiYear) {
+        const now = new Date()
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        apiMonth = prevMonth.toLocaleString('en-US', { month: 'long' })
+        apiYear = prevMonth.getFullYear().toString()
+      }
+      
+      const response = await fetch(
+        `https://green-owl-255815.hostingersite.com/api/cover-letter-docs?client_id=${clientId}&month=${apiMonth}&year=${apiYear}&company_id=${selected_company}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized. Please log in again.')
+        } else if (response.status === 404) {
+          throw new Error('Cover letter data not found for the selected period.')
+        } else {
+          throw new Error(`Server error: ${response.status}`)
+        }
+      }
+
+      const result = await response.json()
+      console.log('Cover letter data:', result)
+      
+      if (result.status) {
+        setCoverLetterData(result)
+      }
+
+    } catch (error) {
+      if (DEBUG) console.error('Error fetching cover letter data:', error)
+      setCoverLetterError(error.message || 'Failed to fetch cover letter data')
+    } finally {
+      setCoverLetterLoading(false)
+    }
+  }, [clientId, selectedMonth, selectedYear, DEBUG, hasDocument])
 
   // Fetch documents data
   const fetchShowDocument = useCallback(async (clientId, month, year) => {
@@ -301,6 +436,7 @@ function ViewContent() {
     try {
       setDocumentsLoading(true)
       setDocumentsError(null)
+      setGenerateshowData(null)
 
       const token = localStorage.getItem("token")
 
@@ -358,12 +494,36 @@ function ViewContent() {
     }
   }, [clientId, selectedMonth, selectedYear, fetchShowDocument])
 
+  // Fetch attendance data only when documents are loaded and attendance exists
+  useEffect(() => {
+    if (generateshowData && hasDocument('attendance')) {
+      fetchAttendanceData()
+    }
+  }, [generateshowData, fetchAttendanceData, hasDocument])
+
+  // Fetch wages data only when documents are loaded and wages sheets exist
+  useEffect(() => {
+    if (generateshowData && (hasDocument('employee_wages_sheet') || hasDocument('employer_wages_sheet'))) {
+      fetchWagesData()
+    }
+  }, [generateshowData, fetchWagesData, hasDocument])
+
+  // Fetch cover letter data only when documents are loaded and covering_letter exists
+  useEffect(() => {
+    if (generateshowData && hasDocument('covering_letter')) {
+      fetchCoverLetterData()
+    }
+  }, [generateshowData, fetchCoverLetterData, hasDocument])
+
   const handleMonthChange = (e) => {
     const month = e.target.value
     setSelectedMonth(month)
     // Clear errors when changing filters
     setError(null)
     setDocumentsError(null)
+    setAttendanceError(null)
+    setWagesError(null)
+    setCoverLetterError(null)
   }
 
   const handleYearChange = (e) => {
@@ -372,11 +532,13 @@ function ViewContent() {
     // Clear errors when changing filters
     setError(null)
     setDocumentsError(null)
+    setAttendanceError(null)
+    setWagesError(null)
+    setCoverLetterError(null)
   }
 
   const handleApplyFilter = () => {
     if (selectedMonth && selectedYear) {
-      fetchAttendanceData()
       fetchShowDocument(clientId, selectedMonth, selectedYear)
     }
   }
@@ -387,10 +549,12 @@ function ViewContent() {
     setFilteredData(attendanceData)
     setError(null)
     setDocumentsError(null)
+    setAttendanceError(null)
+    setWagesError(null)
+    setCoverLetterError(null)
     
     // Fetch with default month/year
     if (clientId) {
-      fetchAttendanceData()
       const now = new Date()
       const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
       const defaultMonth = prevMonth.toLocaleString('en-US', { month: 'long' })
@@ -399,13 +563,27 @@ function ViewContent() {
     }
   }
 
-  const handleRetryAttendance = () => {
-    fetchAttendanceData()
-  }
-
   const handleRetryDocuments = () => {
     if (clientId) {
       fetchShowDocument(clientId, selectedMonth, selectedYear)
+    }
+  }
+
+  const handleRetryAttendance = () => {
+    if (hasDocument('attendance')) {
+      fetchAttendanceData()
+    }
+  }
+
+  const handleRetryWages = () => {
+    if (hasDocument('employee_wages_sheet') || hasDocument('employer_wages_sheet')) {
+      fetchWagesData()
+    }
+  }
+
+  const handleRetryCoverLetter = () => {
+    if (hasDocument('covering_letter')) {
+      fetchCoverLetterData()
     }
   }
 
@@ -648,17 +826,6 @@ function ViewContent() {
     }
   }
 
-  const hasDocument = (docName) => {
-    return generateshowData?.data?.documents?.some(
-      (doc) => doc?.toLowerCase().trim() === docName.toLowerCase()
-    ) ?? false
-  }
-
-  // Check if any documents are available
-  const hasAnyDocument = () => {
-    return generateshowData?.data?.documents?.length > 0
-  }
-
   return (
     <div className='pt-5'>
       {/* URL Parameters Display */}
@@ -748,35 +915,35 @@ function ViewContent() {
                 </div>
                 
                 <div className="mb-4">
-                  {Object.keys(selectedDocuments).map((key) => (
-                    <div key={key} className="form-check mb-3">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id={key}
-                        checked={selectedDocuments[key]}
-                        onChange={(e) => setSelectedDocuments({
-                          ...selectedDocuments,
-                          [key]: e.target.checked
-                        })}
-                        disabled={!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
-                                          key === 'attendanceSheet' ? 'attendance' :
-                                          key === 'gstDesign' ? 'bill' :
-                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
-                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '')}
-                      />
-                      <label className="form-check-label" htmlFor={key}>
-                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        {!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
-                                          key === 'attendanceSheet' ? 'attendance' :
-                                          key === 'gstDesign' ? 'bill' :
-                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
-                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '') && (
-                          <span className="badge bg-secondary ms-2">Not Available</span>
-                        )}
-                      </label>
-                    </div>
-                  ))}
+                  {Object.keys(selectedDocuments).map((key) => {
+                    const docName = key === 'coverLetter' ? 'covering_letter' : 
+                                   key === 'attendanceSheet' ? 'attendance' :
+                                   key === 'gstDesign' ? 'bill' :
+                                   key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
+                                   key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '';
+                    
+                    return (
+                      <div key={key} className="form-check mb-3">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id={key}
+                          checked={selectedDocuments[key]}
+                          onChange={(e) => setSelectedDocuments({
+                            ...selectedDocuments,
+                            [key]: e.target.checked
+                          })}
+                          disabled={!hasDocument(docName)}
+                        />
+                        <label className="form-check-label" htmlFor={key}>
+                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                          {!hasDocument(docName) && (
+                            <span className="badge bg-secondary ms-2">Not Available</span>
+                          )}
+                        </label>
+                      </div>
+                    );
+                  })}
                 </div>
                 
                 <div className="d-flex gap-2">
@@ -861,35 +1028,35 @@ function ViewContent() {
                   </div>
                   
                   <label className="form-label fw-semibold">Select Documents</label>
-                  {Object.keys(selectedDocuments).map((key) => (
-                    <div key={key} className="form-check mb-2">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id={`export-${key}`}
-                        checked={selectedDocuments[key]}
-                        onChange={(e) => setSelectedDocuments({
-                          ...selectedDocuments,
-                          [key]: e.target.checked
-                        })}
-                        disabled={!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
-                                          key === 'attendanceSheet' ? 'attendance' :
-                                          key === 'gstDesign' ? 'bill' :
-                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
-                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '')}
-                      />
-                      <label className="form-check-label" htmlFor={`export-${key}`}>
-                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        {!hasDocument(key === 'coverLetter' ? 'covering_letter' : 
-                                          key === 'attendanceSheet' ? 'attendance' :
-                                          key === 'gstDesign' ? 'bill' :
-                                          key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
-                                          key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '') && (
-                          <span className="badge bg-secondary ms-2">Not Available</span>
-                        )}
-                      </label>
-                    </div>
-                  ))}
+                  {Object.keys(selectedDocuments).map((key) => {
+                    const docName = key === 'coverLetter' ? 'covering_letter' : 
+                                   key === 'attendanceSheet' ? 'attendance' :
+                                   key === 'gstDesign' ? 'bill' :
+                                   key === 'wagesSheetEmployee' ? 'employee_wages_sheet' :
+                                   key === 'wagesSheetEmployer' ? 'employer_wages_sheet' : '';
+                    
+                    return (
+                      <div key={key} className="form-check mb-2">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id={`export-${key}`}
+                          checked={selectedDocuments[key]}
+                          onChange={(e) => setSelectedDocuments({
+                            ...selectedDocuments,
+                            [key]: e.target.checked
+                          })}
+                          disabled={!hasDocument(docName)}
+                        />
+                        <label className="form-check-label" htmlFor={`export-${key}`}>
+                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                          {!hasDocument(docName) && (
+                            <span className="badge bg-secondary ms-2">Not Available</span>
+                          )}
+                        </label>
+                      </div>
+                    );
+                  })}
                 </div>
                 
                 <div className="d-flex gap-2">
@@ -1058,15 +1225,6 @@ function ViewContent() {
               </div>
             )}
 
-            {/* Error Display */}
-            {error && (
-              <ErrorMessage 
-                message={error} 
-                onRetry={handleRetryAttendance}
-                type="error"
-              />
-            )}
-
             {/* Documents Error Display */}
             {documentsError && (
               <ErrorMessage 
@@ -1076,11 +1234,48 @@ function ViewContent() {
               />
             )}
 
-            {/* Loading Indicator */}
-            {(loading || documentsLoading) && (
-              <LoadingSpinner 
-                message={loading ? 'Fetching attendance data...' : 'Fetching documents...'} 
+            {/* Attendance Error Display */}
+            {attendanceError && (
+              <ErrorMessage 
+                message={attendanceError} 
+                onRetry={handleRetryAttendance}
+                type="error"
               />
+            )}
+
+            {/* Wages Error Display */}
+            {wagesError && (
+              <ErrorMessage 
+                message={wagesError} 
+                onRetry={handleRetryWages}
+                type="error"
+              />
+            )}
+
+            {/* Cover Letter Error Display */}
+            {coverLetterError && (
+              <ErrorMessage 
+                message={coverLetterError} 
+                onRetry={handleRetryCoverLetter}
+                type="error"
+              />
+            )}
+
+            {/* Loading Indicators */}
+            {documentsLoading && (
+              <LoadingSpinner message="Fetching document list..." />
+            )}
+            
+            {attendanceLoading && (
+              <LoadingSpinner message="Fetching attendance data..." />
+            )}
+            
+            {wagesLoading && (
+              <LoadingSpinner message="Fetching wages data..." />
+            )}
+
+            {coverLetterLoading && (
+              <LoadingSpinner message="Fetching cover letter data..." />
             )}
           </div>
         </div>
@@ -1094,6 +1289,7 @@ function ViewContent() {
             icon={FiAlertCircle}
           />
         )}
+        {console.log("coverLetterData print by swati", coverLetterData)}
         
         {hasDocument("covering_letter") && (
           <div ref={coverLetterRef}>
@@ -1103,6 +1299,7 @@ function ViewContent() {
               clientId={clientId}
               clientType={clientType}
               profileData={profileData}
+              coverLetterData={coverLetterData}
             />
           </div>
         )}
@@ -1116,8 +1313,8 @@ function ViewContent() {
               clientType={clientType}
               attendanceData={attendanceData}
               filteredData={filteredData}
-              loading={loading}
-              error={error}
+              loading={attendanceLoading}
+              error={attendanceError}
             />
           </div>
         )}
@@ -1130,13 +1327,21 @@ function ViewContent() {
  
         {hasDocument("employee_wages_sheet") && (
           <div ref={wagesSheetEmployeeRef}>
-            <WagesSheetEmployee attendanceData={attendanceData} />
+            <WagesSheetEmployee 
+              attendanceData={attendanceData}
+              loading={wagesLoading}
+              error={wagesError}
+            />
           </div>
         )}
         
         {hasDocument("employer_wages_sheet") && (
           <div ref={wagesSheetEmployerRef}>
-            <WagesSheetEmployer attendanceData={attendanceData} />
+            <WagesSheetEmployer 
+              attendanceData={attendanceData}
+              loading={wagesLoading}
+              error={wagesError}
+            />
           </div>
         )}
       </div>

@@ -1,8 +1,8 @@
 import React from "react";
 import './CoverLetter.css'
 
-export default function CoverLetter(profileData) {
-  console.log("profileData asdasd", profileData);
+export default function CoverLetter({profileData, coverLetterData}) {
+  console.log("coverLetterData asdasd", coverLetterData);
   
   // Parse the profileData if it's a string
   let parsedData = {};
@@ -26,16 +26,20 @@ export default function CoverLetter(profileData) {
   console.log("parsedData", parsedData);
 
   // Extract address components with fallbacks
-  const address = parsedData?.address ;
-  const city = parsedData?.city ;
-  const state = parsedData?.state;
-  const zipCode = parsedData?.zip_code ;
+  const address = coverLetterData?.company_data?.address ;
+  const city = coverLetterData?.company_data?.city ;
+  const state = coverLetterData?.company_data?.state;
+  const zipCode = coverLetterData?.company_data?.zip_code ;
   
   // Format the full address
   const fullAddress = `${address}, ${city}, ${state} - ${zipCode}`;
-  const companyName = parsedData?.companyName ;
-  const companyPhone = parsedData?.companyPhone ;
-  const companyEmail = parsedData?.companyEmail;
+  const companyName = coverLetterData?.company_data?.company_name ;
+  const companyPhone = coverLetterData?.company_data?.company_phone ;
+  const companyEmail = coverLetterData?.company_data?.company_business_email;
+const invoiceData = coverLetterData?.invoice_data?.invoice_json 
+  ? JSON.parse(coverLetterData.invoice_data.invoice_json) 
+  : null;
+
 
   return (
     <div
@@ -52,7 +56,7 @@ export default function CoverLetter(profileData) {
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         <h2 style={{ margin: "0", letterSpacing: "1px" }}>
-          {companyName}
+          {coverLetterData?.company_data?.company_name}
         </h2>
       </div>
 
@@ -68,18 +72,19 @@ export default function CoverLetter(profileData) {
 
       {/* Date - using month and year from props */}
       <p style={{ textAlign: "right", marginTop: "30px", fontWeight: "bold" }}>
-        Date: {profileData?.month || "February"} {profileData?.year || "2025"}
+        Date: {coverLetterData?.invoice_data?.month} {coverLetterData?.invoice_data?.year}
       </p>
 
       {/* To Section */}
       <p style={{ marginTop: "30px" }}>
         <strong>To,</strong>
         <br />
-        National Centre for Medium
+        {coverLetterData?.client_data?.customer_name}
         <br />
-        Range and Weather Forecasting
+        {coverLetterData?.client_data?.department} , &nbsp;
+        {coverLetterData?.client_data?.ministry}
         <br />
-        A-50, sector - 62, Noida, UP, pin 201309
+        {coverLetterData?.client_data?.address}
       </p>
 
       {/* Title */}
@@ -96,10 +101,9 @@ export default function CoverLetter(profileData) {
 
       {/* Body */}
       <p style={{ textAlign: "justify", fontSize: "16px" }}>
-        This is with the reference of contract no. GEMC-511687770326743 and
+        This is with the reference of contract no. {coverLetterData?.client_data?.contract_no} and
         we would like to inform you that the supporting documents are not
-        along with the first month's bill i.e. invoicing no.
-        AMSPL/23-24/347 it will going with the second month's bill.
+        along with the first month's bill i.e. invoicing no. <b> {invoiceData?.invoice_number}</b> it will going with the second month's bill.
         We have also done the salary of all employees. If there is any
         query regarding this then do not hesitate to reach out of us or
         you can contact us on our official mail id & landline in the
