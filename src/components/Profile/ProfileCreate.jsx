@@ -24,13 +24,14 @@ const initialProfileData = {
     aboutCompany: ''
 }
 
-// Initial user form state
+// Initial user form state with permissions
 const initialUserForm = {
     name: '',
     email: '',
     password: '',
     confirm_password: '',
-    role_type: 'subscriber'
+    role_type: 'subscriber',
+    permissions: [] // Added permissions array
 }
 
 // Initial change password form state
@@ -38,6 +39,23 @@ const initialChangePasswordForm = {
     new_password: '',
     confirm_new_password: ''
 }
+
+// Permission list constant
+const PERMISSION_LIST = [
+    "dashboard",
+    "clients",
+    "employee",
+    "attendance",
+    "wages",
+    "salary",
+    "materials",
+    "compliance",
+    "upload_documents",
+    "invoice",
+    "accounts",
+    "bill_process",
+    "generated_documents"
+];
 
 const ProfileCreate = () => {
     const [isEditMode, setIsEditMode] = useState(false)
@@ -74,9 +92,21 @@ const ProfileCreate = () => {
     const [isChangingStatus, setIsChangingStatus] = useState(false)
 
     // Save to localStorage whenever profileData changes
-useEffect(() => {
-  localStorage.setItem('profileData', JSON.stringify(profileData));
-}, [profileData]);
+    useEffect(() => {
+        localStorage.setItem('profileData', JSON.stringify(profileData));
+    }, [profileData]);
+
+    // Cleanup object URLs on unmount
+    useEffect(() => {
+        return () => {
+            if (logo && logo.startsWith('blob:')) {
+                URL.revokeObjectURL(logo);
+            }
+            if (stamp && stamp.startsWith('blob:')) {
+                URL.revokeObjectURL(stamp);
+            }
+        };
+    }, [logo, stamp]);
 
     // Function to fetch company data
     const fetchCompanyData = useCallback(async () => {
@@ -273,6 +303,42 @@ useEffect(() => {
         }))
     }
 
+    // Handle permission change for user form
+    const handlePermissionChange = (e) => {
+        const { value, checked } = e.target;
+        setUserForm(prev => ({
+            ...prev,
+            permissions: checked 
+                ? [...prev.permissions, value]
+                : prev.permissions.filter(p => p !== value)
+        }));
+    };
+
+    // Validate profile data before save
+    const validateProfileData = () => {
+        const errors = [];
+        
+        if (!profileData.companyName?.trim()) {
+            errors.push('Company name is required');
+        }
+        
+        if (!profileData.companyEmail?.trim()) {
+            errors.push('Company email is required');
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileData.companyEmail)) {
+            errors.push('Invalid email format');
+        }
+        
+        if (!profileData.companyPhone?.trim()) {
+            errors.push('Company phone is required');
+        }
+        
+        if (profileData.companyPan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(profileData.companyPan)) {
+            errors.push('Invalid PAN format');
+        }
+        
+        return errors;
+    };
+
     // Upload image to server - generic function for both logo and stamp
     const uploadImageToServer = async (file, type = 'logo') => {
         const token = localStorage.getItem('token')
@@ -455,6 +521,14 @@ useEffect(() => {
     }
 
     const handleSave = async () => {
+        // Validate profile data
+        const validationErrors = validateProfileData();
+        if (validationErrors.length > 0) {
+            setError(validationErrors.join(', '));
+            alert(`Validation failed: ${validationErrors.join(', ')}`);
+            return;
+        }
+
         setIsSaving(true)
         setError('')
         
@@ -573,12 +647,14 @@ useEffect(() => {
             try {
                 // Validate file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
+                    setError('File size must be less than 2MB');
                     alert('File size must be less than 2MB')
                     return
                 }
 
                 // Validate file type
                 if (!file.type.startsWith('image/')) {
+                    setError('Please upload an image file');
                     alert('Please upload an image file')
                     return
                 }
@@ -586,6 +662,7 @@ useEffect(() => {
                 // Create local preview
                 const imageUrl = URL.createObjectURL(file)
                 setLogo(imageUrl)
+                setError(''); // Clear any previous errors
 
                 // Upload to server
                 await uploadLogoToServer(file)
@@ -593,6 +670,7 @@ useEffect(() => {
                 
             } catch (error) {
                 console.error('Error handling logo change:', error)
+                setError(`Failed to upload logo: ${error.message}`);
                 alert(`Failed to upload logo: ${error.message}`)
                 // Keep the preview but mark it as not saved
             }
@@ -605,12 +683,14 @@ useEffect(() => {
             try {
                 // Validate file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
+                    setError('File size must be less than 2MB');
                     alert('File size must be less than 2MB')
                     return
                 }
 
                 // Validate file type
                 if (!file.type.startsWith('image/')) {
+                    setError('Please upload an image file');
                     alert('Please upload an image file')
                     return
                 }
@@ -618,6 +698,7 @@ useEffect(() => {
                 // Create local preview
                 const imageUrl = URL.createObjectURL(file)
                 setStamp(imageUrl)
+                setError(''); // Clear any previous errors
 
                 // Try different upload methods
                 try {
@@ -634,6 +715,7 @@ useEffect(() => {
                 
             } catch (error) {
                 console.error('Error handling stamp change:', error)
+                setError(`Failed to upload stamp: ${error.message}`);
                 
                 // More user-friendly error message
                 if (error.message.includes('DOCTYPE') || error.message.includes('<html')) {
@@ -716,7 +798,8 @@ useEffect(() => {
                 confirm_password: userForm.confirm_password,
                 role_type: userForm.role_type,
                 user_id: user_id,
-                company_id: selected_company
+                company_id: selected_company,
+                permissions: userForm.permissions // Include permissions
             }
 
             console.log('Adding sub-user with data:', userData)
@@ -994,6 +1077,7 @@ useEffect(() => {
                                 className="btn btn-primary d-flex align-items-center gap-2"
                                 onClick={() => setIsEditMode(true)}
                                 disabled={isLoading}
+                                aria-label="Edit profile"
                             >
                                 <FiEdit2 size={16} />
                                 Edit Profile
@@ -1563,6 +1647,29 @@ useEffect(() => {
                                 <small className="text-muted">Default: Subscriber</small>
                             </div>
                             
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">Module Permissions</label>
+                                <div className="row">
+                                    {PERMISSION_LIST.map((permission, index) => (
+                                        <div className="col-md-4 mb-2" key={index}>
+                                            <div className="form-check">
+                                                <input
+                                                    type="checkbox"
+                                                    className="form-check-input"
+                                                    value={permission}
+                                                    id={`permission-${index}`}
+                                                    checked={userForm.permissions.includes(permission)}
+                                                    onChange={handlePermissionChange}
+                                                />
+                                                <label className="form-check-label" htmlFor={`permission-${index}`}>
+                                                    {permission.replace(/_/g, ' ').toUpperCase()}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
                             <button 
                                 type="submit" 
                                 className="btn btn-primary w-100"
@@ -1662,7 +1769,11 @@ useEffect(() => {
                                                                 title="Deactivate User"
                                                                 disabled={isChangingStatus}
                                                             >
-                                                                <FiUserX size={14} />
+                                                                {isChangingStatus ? (
+                                                                    <span className="spinner-border spinner-border-sm" role="status" />
+                                                                ) : (
+                                                                    <FiUserX size={14} />
+                                                                )}
                                                             </button>
                                                         ) : (
                                                             <button 
@@ -1671,7 +1782,11 @@ useEffect(() => {
                                                                 title="Activate User"
                                                                 disabled={isChangingStatus}
                                                             >
-                                                                <FiUserCheck size={14} />
+                                                                {isChangingStatus ? (
+                                                                    <span className="spinner-border spinner-border-sm" role="status" />
+                                                                ) : (
+                                                                    <FiUserCheck size={14} />
+                                                                )}
                                                             </button>
                                                         )}
                                                     </div>

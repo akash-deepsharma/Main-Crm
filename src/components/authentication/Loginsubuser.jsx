@@ -37,6 +37,7 @@ const handleSignIn = async (e) => {
             localStorage.setItem("user", JSON.stringify(response.data));
 
 
+      localStorage.setItem("permission",JSON.stringify(response.data.permissions));
       // 👨‍💼 Parent Admin User
       localStorage.setItem("admin_user", JSON.stringify(response.user));
 
