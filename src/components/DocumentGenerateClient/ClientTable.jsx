@@ -407,12 +407,12 @@ const ProjectTable = ({ filters: externalFilters }) => { // Accept filters from 
         const clientId = info.row.original.id;
         return (
           <div className="hstack gap-2 justify-content-end">
-            <a href={`/clients/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
+            <a href={`/generate-documents/view?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
               <FiEye />
             </a>
-            <a href={`/clients/edit?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
+            {/* <a href={`/clients/edit?type=${type}&client_id=${clientId}`} className="avatar-text avatar-md">
               <FiEdit />
-            </a>
+            </a> */}
             <Dropdown
               dropdownItems={getActions(clientId, type, compid, deleteClient)}
               triggerClassNaclassName="avatar-md"

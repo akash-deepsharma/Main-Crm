@@ -1,10 +1,8 @@
-
 'use client'
-import { da } from 'date-fns/locale';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { FaIndianRupeeSign } from 'react-icons/fa6';
-import { FiUsers, FiFileText, FiUserCheck } from 'react-icons/fi';
+import { FiUsers, FiFileText, FiUserCheck, FiEye } from 'react-icons/fi';
 
 const ClientData = () => {
     const [stats, setStats] = useState([
@@ -13,9 +11,36 @@ const ClientData = () => {
         { label: 'Deployed Staff', value: 0, icon: FiUserCheck, bsIconClass: 'text-purple' },
         { label: 'Monthly Revenue', value: '₹0', icon: FaIndianRupeeSign, bsIconClass: 'text-warning' },
     ]);
-            const searchParams = useSearchParams();
-            const type = searchParams.get("type");
+    
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const type = searchParams.get("type");
     const [loading, setLoading] = useState(true);
+    const [isDraft, setIsDraft] = useState(true);
+
+    // Check URL params on component mount and when searchParams change
+    useEffect(() => {
+        const status = searchParams.get('Status');
+        setIsDraft(status === 'draft');
+    }, [searchParams]);
+
+    const handleToggle = () => {
+        // Create a new URLSearchParams object based on current params
+        const params = new URLSearchParams(searchParams.toString());
+        
+        if (isDraft) {
+            // Switch to Completed Clients - remove Status param
+            params.delete('Status');
+            setIsDraft(false);
+        } else {
+            // Switch to Draft Clients - add Status=draft
+            params.set('Status', 'draft');
+            setIsDraft(true);
+        }
+        
+        // Update the URL with new params
+        router.push(`?${params.toString()}`);
+    };
 
     useEffect(() => {
         const fetchClientData = async () => {
@@ -30,22 +55,25 @@ const ClientData = () => {
                 }
 
                 const storedCompany = JSON.parse(storedCompanyRaw);
-                const companyId =  storedCompany;
+                const companyId = storedCompany;
 
                 if (!companyId) {
                     console.log("Company ID undefined");
                     return;
                 }
 
+                // Get current status from URL params
+                const status = searchParams.get('Status') || '';
+                
                 const response = await fetch(
-                `https://green-owl-255815.hostingersite.com/api/client-data?company_id=${companyId}&client_type=${type}`,
-                {
-                    method: "GET",
-                    headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                    },
-                }
+                    `https://green-owl-255815.hostingersite.com/api/client-data?company_id=${companyId}&client_type=${type}&status=${status}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    }
                 );
 
                 if (!response.ok) {
@@ -59,7 +87,7 @@ const ClientData = () => {
                     { label: 'Total Clients', value: data.total_clients || 0, icon: FiUsers, bsIconClass: 'text-primary' },
                     { label: 'Active Contracts', value: data.active_clients || 0, icon: FiFileText, bsIconClass: 'text-success' },
                     { label: 'Deployed Staff', value: data.total_deployed_staff || 0, icon: FiUserCheck, bsIconClass: 'text-purple' },
-                    { label: 'Monthly Revenue', value: `₹${data.total_salary || 0}`, icon: FaIndianRupeeSign, bsIconClass: 'text-warning'},
+                    { label: 'Monthly Revenue', value: `₹${data.total_salary || 0}`, icon: FaIndianRupeeSign, bsIconClass: 'text-warning' },
                 ]);
 
             } catch (error) {
@@ -70,7 +98,7 @@ const ClientData = () => {
         };
 
         fetchClientData();
-    }, []);
+    }, [type, searchParams]); // Add searchParams as dependency to refetch when status changes
 
     return (
         <div className="container-fluid py-4 px-4">
@@ -81,6 +109,12 @@ const ClientData = () => {
                         <h1 className="h3 mb-1 text-dark">Client & Contract Management</h1>
                         <p className="text-secondary mb-0">Manage clients, contracts, and deployments</p>
                     </div>
+                    <button 
+                        className='btn btn-primary' 
+                        onClick={handleToggle}
+                    ><FiEye style={{color:'#ffffff'}} /> &nbsp;
+                        {isDraft ? ' Show Completed Clients' : 'Show Draft Clients'}
+                    </button>
                 </div>
 
                 {loading ? (

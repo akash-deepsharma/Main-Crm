@@ -10,7 +10,7 @@ import TabCompleted from './TabCompleted';
 import { useSearchParams } from 'next/navigation';
 const TabProjectDetails = dynamic(() => import('./TabProjectDetails'), { ssr: false })
 const TabProjectTarget = dynamic(() => import('./TabProjectTarget'), { ssr: false })
-
+ 
 const steps = [
     { name: "Type", required: true }, 
     { name: "Organisation Details", required: true }, 

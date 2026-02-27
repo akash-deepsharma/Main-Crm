@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, forwardRef, useImperativeHandle, useMemo } from "react";
-// import useJoditConfig from "@/hooks/useJoditConfig";
 import SelectDropdown from "@/components/shared/SelectDropdown";
 
 const TabProjectTarget = forwardRef(({ clientId }, ref) => {
@@ -12,6 +11,7 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
     selectedGender: null,
     selectedSkill: null,
     ageLimit: "",
+    id: "",
     educationalQualification: "",
     specializationPG: "",
     postGraduation: "",
@@ -37,7 +37,6 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
     hiredResources: "",
     serviceCharge: "",
     additionalRequirement: "",
-    // Per-service totals fields
     totalWithoutAddons: "",
     totalAddons: "",
     totalWithAddons: "",
@@ -55,22 +54,50 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
 
   const [services, setServices] = useState([emptyBlock]);
   const [consigneeOptions, setConsigneeOptions] = useState([]);
-  // Store all fetched designations by consignee ID to avoid duplicate API calls
   const [designationsCache, setDesignationsCache] = useState({});
-
   const [totals, setTotals] = useState({
     totalContractValue: "",
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Predefined options without colors for better compatibility
+  const Gender = useMemo(() => [
+    { value: "Male", label: "Male" },
+    { value: "Female", label: "Female" },
+    { value: "Any", label: "Any" },
+  ], []);
+
+  const Skill = useMemo(() => [
+    { value: "Semi-Skilled", label: "Semi-Skilled" },
+    { value: "Skilled", label: "Skilled" },
+    { value: "Any", label: "Any" },
+  ], []);
 
   useEffect(() => {
-    fetchConsignees();
+    const loadData = async () => {
+      setIsLoading(true);
+      await fetchConsignees();
+      setIsLoading(false);
+    };
+    
+    loadData();
   }, []);
+
+  // Load saved data when consigneeOptions are available
+  useEffect(() => {
+    if (consigneeOptions.length > 0) {
+      loadSavedData();
+    }
+  }, [consigneeOptions]);
 
   const fetchConsignees = async () => {
     try {
       const token = localStorage.getItem("token");
       const client_id = localStorage.getItem("client_id");
       const selected_company = localStorage.getItem("selected_company");
+
+      if (!token || !client_id || !selected_company) return;
 
       const response = await fetch(
         `https://green-owl-255815.hostingersite.com/api/select/consignee?client_id=${client_id}&company_id=${selected_company}`,
@@ -81,20 +108,13 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
         }
       );
 
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        console.error("API returned non-JSON response:", await response.text());
-        return;
-      }
-
       const result = await response.json();
 
-      if (result?.status) {
+      if (result?.status && Array.isArray(result.data)) {
         const options = result.data.map((c) => ({
           label: c.consignee_name,
           value: c.id,
         }));
-
         setConsigneeOptions(options);
       }
     } catch (err) {
@@ -102,22 +122,15 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
     }
   };
 
-  const fetchDesignations = async (consigneeId, index) => {
-    // Check if we already have designations for this consignee in cache
+  const fetchDesignations = async (consigneeId) => {
+    if (!consigneeId) return [];
+    
     if (designationsCache[consigneeId]) {
-      // Use cached designations
-      setServices((prev) =>
-        prev.map((s, i) =>
-          i === index ? { ...s, designationOptions: designationsCache[consigneeId] } : s
-        )
-      );
-      return;
+      return designationsCache[consigneeId];
     }
 
     try {
       const token = localStorage.getItem("token");
-      console.log("Fetching designations for consigneeId:", consigneeId);
-
       const response = await fetch(
         `https://green-owl-255815.hostingersite.com/api/select/designation?consignee_id=${consigneeId}`,
         {
@@ -125,38 +138,28 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
         }
       );
 
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        console.error("API returned non-JSON response:", await response.text());
-        return;
-      }
-
       const result = await response.json();
 
-      if (result?.status) {
+      if (result?.status && Array.isArray(result.data)) {
         const options = result.data.map((d) => ({
           label: d.name,
           value: d.id,
         }));
 
-        // Store in cache
         setDesignationsCache(prev => ({
           ...prev,
           [consigneeId]: options
         }));
 
-        setServices((prev) =>
-          prev.map((s, i) =>
-            i === index ? { ...s, designationOptions: options } : s
-          )
-        );
+        return options;
       }
+      return [];
     } catch (err) {
       console.error("Error fetching designations:", err);
+      return [];
     }
   };
 
-  // Helper function to check if a designation is already selected in another service
   const isDesignationSelectedElsewhere = (consigneeId, designationId, currentServiceIndex) => {
     return services.some((service, idx) => 
       idx !== currentServiceIndex && 
@@ -165,25 +168,12 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
     );
   };
 
-  // Get all designations for dropdown (including already selected ones)
   const getAllDesignationsForConsignee = (consigneeId) => {
     if (!consigneeId || !designationsCache[consigneeId]) {
       return [];
     }
     return designationsCache[consigneeId];
   };
-
-  const Gender = useMemo(() => [
-    { value: "Male", label: "Male", color: "#3454d1" },
-    { value: "Female", label: "Female", color: "#41b2c4" },
-    { value: "Any", label: "Any", color: "#ea4d4d" },
-  ], []);
-
-  const Skill = useMemo(() => [
-    { value: "Semi-Skilled", label: "Semi-Skilled", color: "#3454d1" },
-    { value: "Skilled", label: "Skilled", color: "#41b2c4" },
-    { value: "Any", label: "Any", color: "#ea4d4d" },
-  ], []);
 
   const handleAddService = (e) => {
     e.preventDefault();
@@ -200,13 +190,7 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
   const handleChange = (index, field, value) => {
     setServices((prev) => {
       const newServices = [...prev];
-      const currentService = newServices[index];
-
-      if (currentService[field] === value) {
-        return prev;
-      }
-
-      newServices[index] = { ...currentService, [field]: value };
+      newServices[index] = { ...newServices[index], [field]: value };
       return newServices;
     });
   };
@@ -225,7 +209,7 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
     });
   };
 
-  const handleConsigneeChange = (index, consignee) => {
+  const handleConsigneeChange = async (index, consignee) => {
     setServices((prev) => {
       const newServices = [...prev];
       newServices[index] = {
@@ -238,12 +222,19 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
     });
 
     if (consignee?.value) {
-      fetchDesignations(consignee.value, index);
+      const options = await fetchDesignations(consignee.value);
+      setServices((prev) => {
+        const newServices = [...prev];
+        newServices[index] = {
+          ...newServices[index],
+          designationOptions: options,
+        };
+        return newServices;
+      });
     }
   };
 
   const handleDesignationChange = (index, designation) => {
-    // Check if this designation is already selected in another service
     const currentService = services[index];
     if (currentService.selectedConsignee?.value && designation?.value) {
       const isDuplicate = isDesignationSelectedElsewhere(
@@ -257,12 +248,11 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
         return;
       }
     }
-
     handleChange(index, "selectedDesignation", designation);
   };
 
   const handleSaveAndNext = async () => {
-    // Check for duplicate designations before saving
+    // Validation
     const designationMap = new Map();
     
     for (let i = 0; i < services.length; i++) {
@@ -270,42 +260,45 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
 
       if (!s.selectedConsignee) {
         alert(`Service ${i + 1}: Consignee is required`);
-        return;
+        return false;
       }
       if (!s.selectedDesignation) {
         alert(`Service ${i + 1}: Designation is required`);
-        return;
+        return false;
       }
       if (!s.selectedGender) {
         alert(`Service ${i + 1}: Gender is required`);
-        return;
+        return false;
       }
       if (!s.selectedSkill) {
         alert(`Service ${i + 1}: Skill is required`);
-        return;
+        return false;
       }
 
-      // Check for duplicate consignee-designation combination
       const key = `${s.selectedConsignee.value}-${s.selectedDesignation.value}`;
       if (designationMap.has(key)) {
-        alert(`Service ${i + 1}: This Consignee-Designation combination is already used in Service ${designationMap.get(key) + 1}. Please choose a different combination.`);
-        return;
+        alert(`Service ${i + 1}: This Consignee-Designation combination is already used in Service ${designationMap.get(key) + 1}`);
+        return false;
       }
       designationMap.set(key, i);
     }
+
+    setIsSaving(true);
 
     try {
       const token = localStorage.getItem("token");
       const client_id = localStorage.getItem("client_id");
       const company_id = localStorage.getItem("selected_company");
 
-      const payload = {
-        client_id,
-        company_id,
-        totals: {
-          total_contract_value: totals.totalContractValue,
-        },
-        services: services.map((service, index) => ({
+      if (!token || !client_id || !company_id) {
+        alert("Missing required data");
+        setIsSaving(false);
+        return false;
+      }
+
+      // Prepare payload - only include id if it exists and is not empty
+      const servicesPayload = services.map((service, index) => {
+        const payloadItem = {
           index: index + 1,
           consignee_id: service.selectedConsignee?.value,
           designation_id: service.selectedDesignation?.value,
@@ -345,13 +338,29 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
           is_optional_allowance_1_applicable: service.checkboxes.opt1 ? 1 : 0,
           is_optional_allowance_2_applicable: service.checkboxes.opt2 ? 1 : 0,
           is_optional_allowance_3_applicable: service.checkboxes.opt3 ? 1 : 0,
-          // Per-service totals
           total_without_addons: service.totalWithoutAddons,
           total_addons_value: service.totalAddons,
           total_with_addons: service.totalWithAddons,
-        })),
+        };
 
+        // Only add id if it exists and is not empty (for existing services)
+        if (service.id && service.id !== "") {
+          payloadItem.id = service.id;
+        }
+
+        return payloadItem;
+      });
+
+      const payload = {
+        client_id,
+        company_id,
+        totals: {
+          total_contract_value: totals.totalContractValue || "",
+        },
+        services: servicesPayload,
       };
+
+      console.log("Saving services payload:", JSON.stringify(payload, null, 2));
 
       const response = await fetch(
         "https://green-owl-255815.hostingersite.com/api/create/client/services",
@@ -365,127 +374,124 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
         }
       );
 
+      // Check if response is JSON
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const errorText = await response.text();
         console.error("API returned non-JSON response:", errorText);
-        alert("API error: Server returned invalid response");
-        return;
+        alert("Server error: Please try again");
+        setIsSaving(false);
+        return false;
       }
 
       const result = await response.json();
+      console.log("Services API response:", result);
 
-      console.log("========== API RESPONSE ==========" , result);
-      
-      console.log(JSON.stringify(result, null, 2));
+      if (!response.ok) {
+        throw new Error(result?.message || `HTTP error! status: ${response.status}`);
+      }
+
       if (!result?.status) {
-        throw new Error(result.message || 'Failed to save settings')
+        throw new Error(result?.message || 'Failed to save services');
       }
 
-      if (result?.status) {
-        localStorage.setItem('Client_Services', JSON.stringify({ result }));
-      }
+      // Save to localStorage
+      localStorage.setItem('Client_Services', JSON.stringify({ services, totals }));
 
-      if (result.status) {
-        alert("Services created successfully!");
-      } else {
-        alert(result.message || "Something went wrong");
-      }
+      alert("Services saved successfully!");
+      setIsSaving(false);
       return true;
+      
     } catch (error) {
-      console.error(error);
-      alert("API error: " + error.message);
+      console.error("Save services error:", error);
+      alert(`Error saving services: ${error.message}`);
+      setIsSaving(false);
+      return false;
     }
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem("Client_Services");
-    console.log("services saved data ", saved);
-    if (!saved) return;
+  // Load saved data from localStorage
+  const loadSavedData = async () => {
+    try {
+      const saved = localStorage.getItem("Client_Services");
+      console.log("Saved services data:", saved);
+      
+      if (!saved) return;
 
-    const parsed = JSON.parse(saved);
-    const datach = parsed?.result;
-    console.log("services parsed data ", datach);
+      const parsed = JSON.parse(saved);
+      console.log("Parsed services data:", parsed);
+      
+      if (parsed?.services && parsed.services.length > 0) {
+        // First, fetch all unique consignee IDs to load their designations
+        const uniqueConsigneeIds = [...new Set(parsed.services.map(s => s.selectedConsignee?.value))];
+        
+        // Fetch designations for each consignee
+        for (const consigneeId of uniqueConsigneeIds) {
+          if (consigneeId) {
+            await fetchDesignations(consigneeId);
+          }
+        }
 
-    const restoredServices = datach.data.map((s) => ({
-      selectedConsignee: {
-        label: consigneeOptions.find(c => c.value === s.consignee_id)?.label || "",
-        value: s.consignee_id,
-      },
-      selectedDesignation: {
-        label: s.designation_id,
-        value: s.designation_id,
-      },
-      designationOptions: [],
-      selectedGender: {
-        label: s.gender,
-        value: s.gender,
-      },
-      selectedSkill: {
-        label: s.skill_category,
-        value: s.skill_category,
-      },
-      ageLimit: s.age_limit || "",
-      educationalQualification: s.education_qualification || "",
-      specializationPG: s.specialization_for_pg || "",
-      postGraduation: s.post_graduation || "",
-      typesOfFunction: s.type_of_function || "",
-      yearsOfExperience: s.year_of_experience || "",
-      specialization: s.specialization || "",
-      district: s.district || "",
-      zipcode: s.zip_code || "",
-      dutyHours: s.duty_hours || "",
-      dutyExtraHours: s.duty_extra_hours || "",
-      minDailyWages: s.min_daily_wages || "",
-      monthlySalary: s.monthly_salary || "",
-      bonusInput: s.bonus || "",
-      providentFund: s.provideant_fund || "",
-      epfAdminCharge: s.epf_admin_charge || "",
-      edli: s.edliPerDay || "",
-      esi: s.esiPerDay || "",
-      optionalAllowance1: s.optionAllowance1 || "",
-      optionalAllowance2: s.optionAllowance2 || "",
-      optionalAllowance3: s.optionAllowance3 || "",
-      workingDays: s.no_of_working_day || "",
-      tenureMonths: s.tenure_duration || "",
-      hiredResources: s.number_of_hire_resource || "",
-      serviceCharge: s.perecnt_service_charge || "",
-      additionalRequirement: s.additional_requirement || "",
-      // Restore per-service totals
-      totalWithoutAddons: s.total_without_addons || "",
-      totalAddons: s.total_addons_value || "",
-      totalWithAddons: s.total_with_addons || "",
-      checkboxes: {
-        bonus: !!s.is_bonus_applicable,
-        pf: !!s.is_pf_applicable,
-        epfAdmin: !!s.is_epf_admin_charge_applicable,
-        edli: !!s.is_edli_applicable,
-        esi: !!s.is_esi_applicable,
-        opt1: !!s.is_optional_allowance_1_applicable,
-        opt2: !!s.is_optional_allowance_2_applicable,
-        opt3: !!s.is_optional_allowance_3_applicable,
-      },
-    }));
+        // Map the saved data to match the exact option objects
+        const processedServices = parsed.services.map(savedService => {
+          // Find matching consignee option
+          const consigneeOption = consigneeOptions.find(
+            c => c.value === savedService.selectedConsignee?.value
+          );
 
-    console.log("services Totals data ", datach?.totals);
+          // Find matching gender option
+          const genderOption = Gender.find(
+            g => g.value === savedService.selectedGender?.value
+          );
 
-    const restoredTotals = {
-      totalContractValue: datach?.totals?.total_contract_value || "",
-    };
+          // Find matching skill option
+          const skillOption = Skill.find(
+            s => s.value === savedService.selectedSkill?.value
+          );
 
-    setTotals(restoredTotals);
-    setServices(restoredServices);
+          // Get designation options for this consignee
+          const desigOptions = designationsCache[savedService.selectedConsignee?.value] || [];
 
-    restoredServices.forEach((srv, index) => {
-      if (srv.selectedConsignee?.value) {
-        fetchDesignations(srv.selectedConsignee.value, index);
+          // Find matching designation option
+          const designationOption = desigOptions.find(
+            d => d.value === savedService.selectedDesignation?.value
+          );
+
+          return {
+            ...savedService,
+            selectedConsignee: consigneeOption || savedService.selectedConsignee,
+            selectedGender: genderOption || savedService.selectedGender,
+            selectedSkill: skillOption || savedService.selectedSkill,
+            selectedDesignation: designationOption || savedService.selectedDesignation,
+            designationOptions: desigOptions
+          };
+        });
+
+        console.log("Processed services:", processedServices);
+        setServices(processedServices);
+        setTotals(parsed.totals || { totalContractValue: "" });
       }
-    });
-  }, [consigneeOptions]);
+    } catch (error) {
+      console.error("Error loading saved services:", error);
+    }
+  };
 
   useImperativeHandle(ref, () => ({
     submit: handleSaveAndNext,
   }));
+
+  if (isLoading) {
+    return (
+      <section className="step-body mt-4 body current stepChange">
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2">Loading services data...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="step-body mt-4 body current stepChange">
@@ -497,7 +503,8 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
           </div>
 
           {services.map((service, index) => (
-            <fieldset className="mb-4" key={service.id || index}>
+            <fieldset className="mb-4 border p-4 rounded" key={index}>
+              <h5 className="mb-3">Service #{index + 1}</h5>
               <div className="row">
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
@@ -509,6 +516,11 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                     defaultSelect="Select Consignee"
                     onSelectOption={(opt) => handleConsigneeChange(index, opt)}
                   />
+                  {service.selectedConsignee && (
+                    <small className="text-success d-block mt-1">
+                      Selected: {service.selectedConsignee.label}
+                    </small>
+                  )}
                 </div>
 
                 <div className="col-lg-3 mb-4">
@@ -530,14 +542,9 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                     }
                     disabled={!service.selectedConsignee}
                   />
-                  {service.selectedConsignee?.value && service.selectedDesignation?.value && 
-                   isDesignationSelectedElsewhere(
-                     service.selectedConsignee.value,
-                     service.selectedDesignation.value,
-                     index
-                   ) && (
-                    <small className="text-danger d-block mt-1">
-                      Warning: This designation is also selected in another service
+                  {service.selectedDesignation && (
+                    <small className="text-success d-block mt-1">
+                      Selected: {service.selectedDesignation.label}
                     </small>
                   )}
                 </div>
@@ -554,6 +561,11 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                       handleChange(index, "selectedGender", opt)
                     }
                   />
+                  {service.selectedGender && (
+                    <small className="text-success d-block mt-1">
+                      Selected: {service.selectedGender.label}
+                    </small>
+                  )}
                 </div>
 
                 <div className="col-lg-3 mb-4">
@@ -669,6 +681,11 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                       handleChange(index, "selectedSkill", opt)
                     }
                   />
+                  {service.selectedSkill && (
+                    <small className="text-success d-block mt-1">
+                      Selected: {service.selectedSkill.label}
+                    </small>
+                  )}
                 </div>
 
                 <div className="col-lg-3 mb-4">
@@ -752,11 +769,8 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                 </div>
 
                 <div className="col-lg-3 mb-4">
-                  <label
-                    htmlFor="targetTitle"
-                    className="fw-semibold text-dark"
-                  >
-                    Bonus<span className="text-danger">*</span>
+                  <label className="fw-semibold text-dark">
+                    Bonus
                   </label>
                   <input
                     type="text"
@@ -771,7 +785,6 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
                     Provident Fund (per/day)
-                    <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -786,7 +799,6 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
                     EPF Admin Charge (per/day)
-                    <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -800,7 +812,7 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
 
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
-                    EDLI (per/day)<span className="text-danger">*</span>
+                    EDLI (per/day)
                   </label>
                   <input
                     type="text"
@@ -814,7 +826,7 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
 
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
-                    ESI (per/day)<span className="text-danger">*</span>
+                    ESI (per/day)
                   </label>
                   <input
                     type="text"
@@ -827,7 +839,6 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
                     Optional Allowance 1 (per/day)
-                    <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -842,7 +853,6 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
                     Optional Allowance 2 (per/day)
-                    <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -857,7 +867,6 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                 <div className="col-lg-3 mb-4">
                   <label className="fw-semibold text-dark">
                     Optional Allowance 3 (per/day)
-                    <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -923,11 +932,9 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                   />
                 </div>
                 
-                {/* Per-service totals fields - moved inside each service */}
                 <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
                   <label className="form-label">
-                    Total Value Without Addons{" "}
-                    <span className="text-danger">*</span>
+                    Total Value Without Addons
                   </label>
                   <input
                     type="text"
@@ -936,13 +943,12 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                     onChange={(e) =>
                       handleChange(index, "totalWithoutAddons", e.target.value)
                     }
-                    required
                   />
                 </div>
 
                 <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
                   <label className="form-label">
-                    Total Addons Value <span className="text-danger">*</span>
+                    Total Addons Value
                   </label>
                   <input
                     type="text"
@@ -951,14 +957,12 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                     onChange={(e) =>
                       handleChange(index, "totalAddons", e.target.value)
                     }
-                    required
                   />
                 </div>
 
                 <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
                   <label className="form-label">
-                    Total Value Including Addons{" "}
-                    <span className="text-danger">*</span>
+                    Total Value Including Addons
                   </label>
                   <input
                     type="text"
@@ -967,7 +971,6 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                     onChange={(e) =>
                       handleChange(index, "totalWithAddons", e.target.value)
                     }
-                    required
                   />
                 </div>
 
@@ -1038,15 +1041,16 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
                 className="btn btn-md bg-soft-danger text-danger"
                 onClick={handleDeleteLastService}
               >
-                Delete Service
+                Delete Last Service
               </button>
             )}
             <button
               type="button"
               className="btn btn-md btn-primary"
               onClick={handleAddService}
+              disabled={isSaving}
             >
-              + Add More Service
+              {isSaving ? "Saving..." : "+ Add More Service"}
             </button>
           </div>
         </fieldset>
@@ -1054,7 +1058,7 @@ const TabProjectTarget = forwardRef(({ clientId }, ref) => {
           <div className="row">
             <div className="col-xl-3 col-lg-4 col-md-6 mb-4">
               <label className="form-label">
-                Total Contract Value <span className="text-danger">*</span>
+                Total Contract Value
               </label>
               <input
                 type="text"
